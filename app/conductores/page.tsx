@@ -1,17 +1,24 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-  Search, Filter, Calendar, ChevronDown, ChevronUp,
-  Download, FileText,
-  AlertCircle, RefreshCw
-} from 'lucide-react';
-import { useNomina } from '@/context/NominaContext';
-import { useRouter } from 'next/navigation';
-import LoadingPage from '@/components/loadingPage';
-import LiquidacionesTable from '@/components/liquidacionesTable';
-import GenericExportButton from '@/components/genericExportButton';
-import EmailSender from '@/components/emailSender';
+  Search,
+  Filter,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  FileText,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+
+import { useNomina } from "@/context/NominaContext";
+import LoadingPage from "@/components/loadingPage";
+import LiquidacionesTable from "@/components/liquidacionesTable";
+import GenericExportButton from "@/components/genericExportButton";
+import EmailSender from "@/components/emailSender";
 
 const LiquidacionesDashboard: React.FC = () => {
   const {
@@ -25,57 +32,68 @@ const LiquidacionesDashboard: React.FC = () => {
     estadisticas,
     sortConfig,
     ordenarLiquidaciones,
-    confirmarEliminarLiquidacion
+    confirmarEliminarLiquidacion,
   } = useNomina();
 
-  const router = useRouter()
+  const router = useRouter();
 
   // Estados para paginación
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
 
   // Estado para mostrar/ocultar filtros avanzados
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] =
+    useState<boolean>(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   // Cálculos para paginación
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = liquidacionesFiltradas.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = liquidacionesFiltradas.slice(
+    indexOfFirstItem,
+    indexOfLastItem,
+  );
 
   // Funciones de paginación
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
-  const nextPage = () => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(liquidacionesFiltradas.length / itemsPerPage)));
-  const prevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
+  const nextPage = () =>
+    setCurrentPage((prev) =>
+      Math.min(
+        prev + 1,
+        Math.ceil(liquidacionesFiltradas.length / itemsPerPage),
+      ),
+    );
+  const prevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
 
   const requestSort = (key: string) => {
-    let direction: 'asc' | 'desc' = 'desc';
-    if (sortConfig.key === key && sortConfig.direction === 'desc') {
-      direction = 'asc';
+    let direction: "asc" | "desc" = "desc";
+
+    if (sortConfig.key === key && sortConfig.direction === "desc") {
+      direction = "asc";
     }
     ordenarLiquidaciones(key, direction);
   };
 
   // Función para formatear monedas
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
     }).format(value);
   };
 
   // Esta función obtiene solo las liquidaciones seleccionadas
   const getSelectedLiquidaciones = async () => {
     // Filtrar solo las liquidaciones seleccionadas
-    return liquidaciones.filter(item => selectedIds.includes(item.id));
+    return liquidaciones.filter((item) => selectedIds.includes(item.id));
   };
 
   const handleSelectItem = (id: string) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       if (prev.includes(id)) {
-        return prev.filter(item => item !== id);
+        return prev.filter((item) => item !== id);
       } else {
         return [...prev, id];
       }
@@ -90,15 +108,21 @@ const LiquidacionesDashboard: React.FC = () => {
           {/* Panel de información */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
-              <h3 className="font-medium text-gray-500 mb-2">Total Liquidaciones</h3>
+              <h3 className="font-medium text-gray-500 mb-2">
+                Total Liquidaciones
+              </h3>
               <div className="flex items-center">
-                <span className="text-3xl font-bold text-gray-800">{estadisticas.total}</span>
+                <span className="text-3xl font-bold text-gray-800">
+                  {estadisticas.total}
+                </span>
                 <span className="ml-2 text-sm text-gray-500">registros</span>
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
-              <h3 className="font-medium text-gray-500 mb-2">Liquidaciones Pendientes</h3>
+              <h3 className="font-medium text-gray-500 mb-2">
+                Liquidaciones Pendientes
+              </h3>
               <div className="flex items-center">
                 <span className="text-3xl font-bold text-amber-500">
                   {estadisticas.pendientes}
@@ -120,12 +144,14 @@ const LiquidacionesDashboard: React.FC = () => {
           {/* Filtros y búsqueda */}
           <div className="bg-white rounded-lg shadow-sm p-6 mb-8 border border-gray-100">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
-              <h2 className="text-xl font-semibold text-gray-800">Liquidaciones</h2>
+              <h2 className="text-xl font-semibold text-gray-800">
+                Liquidaciones
+              </h2>
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition flex items-center justify-center"
-                  onClick={() => router.push('/conductores/agregar')}
+                  onClick={() => router.push("/conductores/agregar")}
                 >
                   <FileText className="w-4 h-4 mr-2" />
                   Nueva Liquidación
@@ -133,17 +159,17 @@ const LiquidacionesDashboard: React.FC = () => {
 
                 {/* Reemplazar el botón anidado con el componente directo */}
                 <GenericExportButton
-                  getData={getSelectedLiquidaciones}
-                  label={`Exportar (${selectedIds.length})`}
-                  options={{ filePrefix: 'liquidaciones_seleccionadas' }}
                   buttonClassName="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition w-full"
                   buttonProps={{
                     disabled: selectedIds.length === 0,
-                    startContent: <Download className="w-4 h-4 mr-2" />
+                    startContent: <Download className="w-4 h-4 mr-2" />,
                   }}
+                  getData={getSelectedLiquidaciones}
+                  label={`Exportar (${selectedIds.length})`}
+                  options={{ filePrefix: "liquidaciones_seleccionadas" }}
                 />
 
-                <EmailSender selectedIds={selectedIds}/>
+                <EmailSender selectedIds={selectedIds} />
               </div>
             </div>
 
@@ -154,11 +180,13 @@ const LiquidacionesDashboard: React.FC = () => {
                   <Search className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  type="text"
                   className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
                   placeholder="Buscar por conductor o ID..."
+                  type="text"
                   value={filtros.busqueda}
-                  onChange={(e) => setFiltros({ ...filtros, busqueda: e.target.value })}
+                  onChange={(e) =>
+                    setFiltros({ ...filtros, busqueda: e.target.value })
+                  }
                 />
               </div>
 
@@ -169,20 +197,25 @@ const LiquidacionesDashboard: React.FC = () => {
                     <Calendar className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
-                    type="month"
                     className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
-                    value={filtros.periodoStart ? filtros.periodoStart.substring(0, 7) : ''}
+                    type="month"
+                    value={
+                      filtros.periodoStart
+                        ? filtros.periodoStart.substring(0, 7)
+                        : ""
+                    }
                     onChange={(e) => {
                       const value = e.target.value;
+
                       if (value) {
                         setFiltros({
                           ...filtros,
-                          periodoStart: `${value}-01`
+                          periodoStart: `${value}-01`,
                         });
                       } else {
                         setFiltros({
                           ...filtros,
-                          periodoStart: ''
+                          periodoStart: "",
                         });
                       }
                     }}
@@ -196,7 +229,9 @@ const LiquidacionesDashboard: React.FC = () => {
                   <select
                     className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-md focus:ring-emerald-500 focus:border-emerald-500 appearance-none"
                     value={filtros.estado}
-                    onChange={(e) => setFiltros({ ...filtros, estado: e.target.value })}
+                    onChange={(e) =>
+                      setFiltros({ ...filtros, estado: e.target.value })
+                    }
                   >
                     <option value="">Todos los estados</option>
                     <option value="Liquidado">Liquidado</option>
@@ -211,11 +246,12 @@ const LiquidacionesDashboard: React.FC = () => {
                   className="px-4 py-2 border border-gray-200 text-gray-600 rounded-md hover:bg-gray-50 transition flex items-center justify-center"
                   onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                 >
-                  {showAdvancedFilters ? 'Ocultar filtros' : 'Más filtros'}
-                  {showAdvancedFilters ?
-                    <ChevronUp className="ml-2 w-4 h-4" /> :
+                  {showAdvancedFilters ? "Ocultar filtros" : "Más filtros"}
+                  {showAdvancedFilters ? (
+                    <ChevronUp className="ml-2 w-4 h-4" />
+                  ) : (
                     <ChevronDown className="ml-2 w-4 h-4" />
-                  }
+                  )}
                 </button>
               </div>
             </div>
@@ -224,38 +260,59 @@ const LiquidacionesDashboard: React.FC = () => {
             {showAdvancedFilters && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-100">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                    htmlFor="conductorSelected"
+                  >
                     Conductor
                   </label>
                   <select
                     className="block w-full py-2 px-3 border border-gray-200 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
+                    id="conductorSelected"
                     value={filtros.conductor_id}
-                    onChange={(e) => setFiltros({ ...filtros, conductor_id: e.target.value })}
+                    onChange={(e) =>
+                      setFiltros({ ...filtros, conductor_id: e.target.value })
+                    }
                   >
                     <option value="">Todos los conductores</option>
                     {/* Eliminar duplicados y ordenar por nombre */}
-                    {Array.from(new Set(liquidaciones.map(liq => liq.conductor?.id)))
-                      .map(conductorId => {
-                        const conductor = liquidaciones.find(liq => liq.conductor?.id === conductorId)?.conductor;
-                        return conductor ? { id: conductorId, nombre: `${conductor.nombre} ${conductor.apellido}` } : null;
+                    {Array.from(
+                      new Set(liquidaciones.map((liq) => liq.conductor?.id)),
+                    )
+                      .map((conductorId) => {
+                        const conductor = liquidaciones.find(
+                          (liq) => liq.conductor?.id === conductorId,
+                        )?.conductor;
+
+                        return conductor
+                          ? {
+                              id: conductorId,
+                              nombre: `${conductor.nombre} ${conductor.apellido}`,
+                            }
+                          : null;
                       })
                       .filter(Boolean)
-                      .sort((a: any, b: any) => a.nombre.localeCompare(b.nombre))
-                      .map(conductor => (
+                      .sort((a: any, b: any) =>
+                        a.nombre.localeCompare(b.nombre),
+                      )
+                      .map((conductor) => (
                         <option key={conductor?.id} value={conductor?.id}>
                           {conductor?.nombre}
                         </option>
-                      ))
-                    }
+                      ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                    htmlFor={"itemPerPage"}
+                  >
                     Registros por página
                   </label>
                   <select
                     className="block w-full py-2 px-3 border border-gray-200 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
+                    id="itemPerPage"
                     value={itemsPerPage}
                     onChange={(e) => setItemsPerPage(Number(e.target.value))}
                   >
@@ -282,88 +339,111 @@ const LiquidacionesDashboard: React.FC = () => {
 
           {/* Tabla de liquidaciones */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-            {loading ? <LoadingPage />
-              : error ? (
-                <div className="p-8 text-center">
-                  <AlertCircle className="h-10 w-10 text-red-500 mx-auto" />
-                  <p className="mt-4 text-gray-700">{error}</p>
-                  <button
-                    className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
-                    onClick={() => window.location.reload()}
-                  >
-                    Intentar nuevamente
-                  </button>
-                </div>
-              ) : liquidacionesFiltradas.length === 0 ? (
-                <div className="p-8 text-center">
-                  <p className="text-gray-500">No se encontraron liquidaciones con los filtros aplicados.</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <LiquidacionesTable
-                    currentItems={currentItems}
-                    requestSort={requestSort}
-                    confirmarEliminarLiquidacion={confirmarEliminarLiquidacion}
-                    selectedIds={selectedIds}
-                    onSelectItem={handleSelectItem}
-                  />                </div>
-              )}
+            {loading ? (
+              <LoadingPage />
+            ) : error ? (
+              <div className="p-8 text-center">
+                <AlertCircle className="h-10 w-10 text-red-500 mx-auto" />
+                <p className="mt-4 text-gray-700">{error}</p>
+                <button
+                  className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
+                  onClick={() => window.location.reload()}
+                >
+                  Intentar nuevamente
+                </button>
+              </div>
+            ) : liquidacionesFiltradas.length === 0 ? (
+              <div className="p-8 text-center">
+                <p className="text-gray-500">
+                  No se encontraron liquidaciones con los filtros aplicados.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <LiquidacionesTable
+                  confirmarEliminarLiquidacion={confirmarEliminarLiquidacion}
+                  currentItems={currentItems}
+                  requestSort={requestSort}
+                  selectedIds={selectedIds}
+                  onSelectItem={handleSelectItem}
+                />{" "}
+              </div>
+            )}
 
             {/* Paginación */}
             {!loading && !error && liquidacionesFiltradas.length > 0 && (
               <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
                 <div className="text-sm text-gray-500">
-                  Mostrando {indexOfFirstItem + 1} a {Math.min(indexOfLastItem, liquidacionesFiltradas.length)} de {liquidacionesFiltradas.length} registros
+                  Mostrando {indexOfFirstItem + 1} a{" "}
+                  {Math.min(indexOfLastItem, liquidacionesFiltradas.length)} de{" "}
+                  {liquidacionesFiltradas.length} registros
                 </div>
 
                 <div className="flex space-x-2">
                   <button
-                    onClick={prevPage}
+                    className={`px-3 py-1 border rounded-md ${
+                      currentPage === 1
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
                     disabled={currentPage === 1}
-                    className={`px-3 py-1 border rounded-md ${currentPage === 1
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-gray-700 hover:bg-gray-50'
-                      }`}
+                    onClick={prevPage}
                   >
                     Anterior
                   </button>
 
-                  {Array.from({ length: Math.min(5, Math.ceil(liquidacionesFiltradas.length / itemsPerPage)) }, (_, i) => {
-                    // Lógica para mostrar páginas alrededor de la página actual
-                    let pageNum;
-                    const totalPages = Math.ceil(liquidacionesFiltradas.length / itemsPerPage);
+                  {Array.from(
+                    {
+                      length: Math.min(
+                        5,
+                        Math.ceil(liquidacionesFiltradas.length / itemsPerPage),
+                      ),
+                    },
+                    (_, i) => {
+                      // Lógica para mostrar páginas alrededor de la página actual
+                      let pageNum;
+                      const totalPages = Math.ceil(
+                        liquidacionesFiltradas.length / itemsPerPage,
+                      );
 
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = currentPage - 2 + i;
-                    }
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
 
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => paginate(pageNum)}
-                        className={`px-3 py-1 border rounded-md ${currentPage === pageNum
-                          ? 'bg-emerald-600 text-white'
-                          : 'bg-white text-gray-700 hover:bg-gray-50'
+                      return (
+                        <button
+                          key={pageNum}
+                          className={`px-3 py-1 border rounded-md ${
+                            currentPage === pageNum
+                              ? "bg-emerald-600 text-white"
+                              : "bg-white text-gray-700 hover:bg-gray-50"
                           }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
+                          onClick={() => paginate(pageNum)}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    },
+                  )}
 
                   <button
+                    className={`px-3 py-1 border rounded-md ${
+                      currentPage ===
+                      Math.ceil(liquidacionesFiltradas.length / itemsPerPage)
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                    disabled={
+                      currentPage ===
+                      Math.ceil(liquidacionesFiltradas.length / itemsPerPage)
+                    }
                     onClick={nextPage}
-                    disabled={currentPage === Math.ceil(liquidacionesFiltradas.length / itemsPerPage)}
-                    className={`px-3 py-1 border rounded-md ${currentPage === Math.ceil(liquidacionesFiltradas.length / itemsPerPage)
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-gray-700 hover:bg-gray-50'
-                      }`}
                   >
                     Siguiente
                   </button>
@@ -378,7 +458,8 @@ const LiquidacionesDashboard: React.FC = () => {
       <footer className="bg-white border-t border-gray-200 py-4">
         <div className="max-w-7xl mx-auto px-6">
           <p className="text-sm text-gray-500 text-center">
-            &copy; {new Date().getFullYear()} Sistema de Gestión de Nómina. Todos los derechos reservados.
+            &copy; {new Date().getFullYear()} Sistema de Gestión de Nómina.
+            Todos los derechos reservados.
           </p>
         </div>
       </footer>

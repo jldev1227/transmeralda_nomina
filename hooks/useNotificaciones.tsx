@@ -1,6 +1,7 @@
 // src/hooks/useNotificaciones.ts
-import { useCallback } from 'react';
-import { useNotification } from '@/context/NotificacionContext';
+import { useCallback } from "react";
+
+import { useNotification } from "@/context/NotificacionContext";
 
 interface UseNotificacionesOptions {
   /**
@@ -19,60 +20,77 @@ export const useNotificaciones = (options: UseNotificacionesOptions = {}) => {
   /**
    * Mostrar notificación basada en el tipo y mensaje
    */
-  const mostrarNotificacion = useCallback((tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string, duracion?: number) => {
-    if (!enabled) return;
-    addNotification(tipo, mensaje, duracion);
-  }, [enabled, addNotification]);
+  const mostrarNotificacion = useCallback(
+    (
+      tipo: "success" | "error" | "warning" | "info",
+      mensaje: string,
+      duracion?: number,
+    ) => {
+      if (!enabled) return;
+      addNotification(tipo, mensaje, duracion);
+    },
+    [enabled, addNotification],
+  );
 
   /**
    * Mostrar notificación según el resultado de la operación
    */
-  const notificarResultado = useCallback((exito: boolean, mensajeExito: string, mensajeError?: string) => {
-    if (!enabled) return;
-    
-    if (exito) {
-      addNotification('success', mensajeExito);
-    } else if (mensajeError) {
-      addNotification('error', mensajeError);
-    }
-  }, [enabled, addNotification]);
+  const notificarResultado = useCallback(
+    (exito: boolean, mensajeExito: string, mensajeError?: string) => {
+      if (!enabled) return;
+
+      if (exito) {
+        addNotification("success", mensajeExito);
+      } else if (mensajeError) {
+        addNotification("error", mensajeError);
+      }
+    },
+    [enabled, addNotification],
+  );
 
   /**
    * Mostrar notificación para operaciones CRUD comunes
    */
-  const notificarCRUD = useCallback((operacion: 'crear' | 'editar' | 'eliminar' | 'registrar', 
-    entidad: string, exito: boolean, error?: string) => {
-    if (!enabled) return;
+  const notificarCRUD = useCallback(
+    (
+      operacion: "crear" | "editar" | "eliminar" | "registrar",
+      entidad: string,
+      exito: boolean,
+      error?: string,
+    ) => {
+      if (!enabled) return;
 
-    const mensajes = {
-      crear: {
-        success: `${entidad} creado correctamente`,
-        error: `Error al crear ${entidad}`
-      },
-      editar: {
-        success: `${entidad} actualizado correctamente`,
-        error: `Error al actualizar ${entidad}`
-      },
-      eliminar: {
-        success: `${entidad} eliminado correctamente`,
-        error: `Error al eliminar ${entidad}`
-      },
-      registrar: {
-        success: `${entidad} registrado correctamente`,
-        error: `Error al registrar ${entidad}`
+      const mensajes = {
+        crear: {
+          success: `${entidad} creado correctamente`,
+          error: `Error al crear ${entidad}`,
+        },
+        editar: {
+          success: `${entidad} actualizado correctamente`,
+          error: `Error al actualizar ${entidad}`,
+        },
+        eliminar: {
+          success: `${entidad} eliminado correctamente`,
+          error: `Error al eliminar ${entidad}`,
+        },
+        registrar: {
+          success: `${entidad} registrado correctamente`,
+          error: `Error al registrar ${entidad}`,
+        },
+      };
+
+      if (exito) {
+        addNotification("success", mensajes[operacion].success);
+      } else {
+        addNotification("error", error || mensajes[operacion].error);
       }
-    };
-
-    if (exito) {
-      addNotification('success', mensajes[operacion].success);
-    } else {
-      addNotification('error', error || mensajes[operacion].error);
-    }
-  }, [enabled, addNotification]);
+    },
+    [enabled, addNotification],
+  );
 
   return {
     mostrarNotificacion,
     notificarResultado,
-    notificarCRUD
+    notificarCRUD,
   };
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import LiquidacionPage from '@/components/liquidacionPage';
+import LiquidacionPage from "@/components/liquidacionPage";
 
 const CrearLiquidacionPage = () => {
   return <LiquidacionPage mode="create" />;

@@ -7,9 +7,21 @@ import {
   pdf,
   Image,
 } from "@react-pdf/renderer";
-import { BonificacionesAcc, Bonificacion, Liquidacion, Recargo } from "@/context/NominaContext";
-import { agruparFechasConsecutivas, formatDate, formatToCOP, MesyAño, obtenerDiferenciaDias } from "@/helpers/helpers";
 import { parseDate } from "@internationalized/date";
+
+import {
+  BonificacionesAcc,
+  Bonificacion,
+  Liquidacion,
+  Recargo,
+} from "@/context/NominaContext";
+import {
+  agruparFechasConsecutivas,
+  formatDate,
+  formatToCOP,
+  MesyAño,
+  obtenerDiferenciaDias,
+} from "@/helpers/helpers";
 
 // Estilos para el PDF con un diseño más elegante tipo tabla
 const styles = StyleSheet.create({
@@ -37,13 +49,13 @@ const styles = StyleSheet.create({
     color: "#2E8B57",
   },
   period: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 12,
-    color: '#2E8B57',
-    fontWeight: 'bold',
+    color: "#2E8B57",
+    fontWeight: "bold",
     marginBottom: 12,
     marginTop: 5,
-    textTransform: 'uppercase'
+    textTransform: "uppercase",
   },
   // Table styles
   table: {
@@ -80,7 +92,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     borderRightWidth: 1,
     borderColor: "#E0E0E0",
-    fontWeight: "bold"
+    fontWeight: "bold",
   },
   tableColHeader2: {
     width: "40%",
@@ -88,7 +100,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     borderRightWidth: 1,
     borderColor: "#E0E0E0",
-    fontWeight: "bold"
+    fontWeight: "bold",
   },
   tableColHeader3: {
     width: "15%",
@@ -96,7 +108,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     borderRightWidth: 1,
     borderColor: "#E0E0E0",
-    fontWeight: "bold"
+    fontWeight: "bold",
   },
   tableColHeader4: {
     width: "15%",
@@ -105,7 +117,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     borderRightWidth: 1,
     borderColor: "#E0E0E0",
-    fontWeight: "bold"
+    fontWeight: "bold",
   },
 
   // Estilos similares para las filas de datos (no solo el encabezado)
@@ -116,7 +128,6 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderColor: "#E0E0E0",
     height: "100%", // Ocupar toda la altura disponible
-
   },
   tableCol2: {
     width: "40%",
@@ -125,7 +136,6 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderColor: "#E0E0E0",
     height: "100%", // Ocupar toda la altura disponible
-
   },
   tableCol3: {
     width: "15%",
@@ -135,7 +145,6 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderColor: "#E0E0E0",
     height: "100%", // Ocupar toda la altura disponible
-
   },
   tableCol4: {
     width: "15%",
@@ -145,7 +154,6 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderColor: "#E0E0E0",
     height: "100%", // Ocupar toda la altura disponible
-
   },
   // Text styles
   labelText: {
@@ -159,7 +167,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 4
+    padding: 4,
   },
   // Value styles with color
   blueValue: {
@@ -212,7 +220,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#2E8B57",
     marginBottom: 15,
-  }
+  },
 });
 
 type LiquidacionPDFProps = {
@@ -228,7 +236,12 @@ const safeValue = (value: any, defaultValue = "") => {
 };
 
 // Componente que genera el PDF con la información del item
-export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recargosActualizados }: LiquidacionPDFProps) => {
+export const LiquidacionPDF = ({
+  item,
+  totalRecargosParex,
+  recargosParex,
+  recargosActualizados,
+}: LiquidacionPDFProps) => {
   if (!item) {
     return (
       <Document>
@@ -243,19 +256,24 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
-        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 20,
+          }}
+        >
           <View style={{ gap: 2 }}>
             <Text style={styles.header}>
               TRANSPORTES Y SERVICIOS ESMERALDA S.A.S ZOMAC
             </Text>
-            <Text style={styles.subHeader}>
-              NIT: 901528440-3
-            </Text>
+            <Text style={styles.subHeader}>NIT: 901528440-3</Text>
             <Text style={styles.comprobante}>
               COMPROBANTE DE NOMINA - {MesyAño(item.periodo_end)}
             </Text>
           </View>
           <Image
+            source={"/codi.png"}
             style={{
               width: 175,
               position: "absolute",
@@ -263,7 +281,6 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
               right: -50,
               objectFit: "contain",
             }}
-            source={"/codi.png"}
           />
         </View>
 
@@ -275,7 +292,8 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
             </View>
             <View>
               <Text style={styles.valueText}>
-                {safeValue(item.conductor?.nombre)} {safeValue(item.conductor?.apellido)}
+                {safeValue(item.conductor?.nombre)}{" "}
+                {safeValue(item.conductor?.apellido)}
               </Text>
             </View>
           </View>
@@ -285,7 +303,9 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
               <Text style={styles.labelText}>C.C.</Text>
             </View>
             <View>
-              <Text style={styles.valueText}>{safeValue(item.conductor?.numero_identificacion)}</Text>
+              <Text style={styles.valueText}>
+                {safeValue(item.conductor?.numero_identificacion)}
+              </Text>
             </View>
           </View>
 
@@ -294,7 +314,9 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
               <Text style={styles.labelText}>Días laborados</Text>
             </View>
             <View>
-              <Text style={styles.valueText}>{safeValue(item.dias_laborados, '0')}</Text>
+              <Text style={styles.valueText}>
+                {safeValue(item.dias_laborados, "0")}
+              </Text>
             </View>
           </View>
 
@@ -304,7 +326,7 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
             </View>
             <View>
               <Text style={styles.blueValue}>
-                {formatToCOP(safeValue(item.salario_devengado, '0'))}
+                {formatToCOP(safeValue(item.salario_devengado, "0"))}
               </Text>
             </View>
           </View>
@@ -315,7 +337,7 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
             </View>
             <View>
               <Text style={styles.grayValue}>
-                {formatToCOP(safeValue(item.auxilio_transporte, '0'))}
+                {formatToCOP(safeValue(item.auxilio_transporte, "0"))}
               </Text>
             </View>
           </View>
@@ -326,12 +348,12 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
             </View>
             <View>
               <Text style={styles.valueText}>
-                {safeValue(item.dias_laborados_villanueva, '0')} días
+                {safeValue(item.dias_laborados_villanueva, "0")} días
               </Text>
             </View>
             <View>
               <Text style={styles.orangeValue}>
-                {formatToCOP(safeValue(item.ajuste_salarial, '0'))}
+                {formatToCOP(safeValue(item.ajuste_salarial, "0"))}
               </Text>
             </View>
           </View>
@@ -346,85 +368,115 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
         <View style={styles.table}>
           <View style={styles.tableHeader}>
             <View style={styles.tableColHeader1}>
-              <Text style={[styles.labelText, { color: "#2E8B57", fontSize: 10 }]}>CONCEPTO</Text>
+              <Text
+                style={[styles.labelText, { color: "#2E8B57", fontSize: 10 }]}
+              >
+                CONCEPTO
+              </Text>
             </View>
             <View style={styles.tableColHeader2}>
-              <Text style={[styles.labelText, { color: "#2E8B57", fontSize: 10 }]}>OBSERVACIÓN</Text>
+              <Text
+                style={[styles.labelText, { color: "#2E8B57", fontSize: 10 }]}
+              >
+                OBSERVACIÓN
+              </Text>
             </View>
             <View style={styles.tableColHeader3}>
-              <Text style={[styles.labelText, { color: "#2E8B57", fontSize: 10, textAlign: "center" }]}>CANTIDAD</Text>
+              <Text
+                style={[
+                  styles.labelText,
+                  { color: "#2E8B57", fontSize: 10, textAlign: "center" },
+                ]}
+              >
+                CANTIDAD
+              </Text>
             </View>
             <View style={styles.tableColHeader4}>
-              <Text style={[styles.labelText, { color: "#2E8B57", fontSize: 10 }]}>VALOR</Text>
+              <Text
+                style={[styles.labelText, { color: "#2E8B57", fontSize: 10 }]}
+              >
+                VALOR
+              </Text>
             </View>
           </View>
 
           {/* Mapping bonificaciones */}
-          {item.bonificaciones && item.bonificaciones.length > 0 ?
-            Object.values(
-              item.bonificaciones.reduce(
-                (acc: BonificacionesAcc, bonificacion: Bonificacion) => {
-                  // Sumamos la cantidad de bonificaciones y el valor total
-                  const totalQuantity = bonificacion.values.reduce(
-                    (sum: number, val: any) => sum + (val.quantity || 0),
-                    0
-                  );
+          {item.bonificaciones && item.bonificaciones.length > 0
+            ? Object.values(
+                item.bonificaciones.reduce(
+                  (acc: BonificacionesAcc, bonificacion: Bonificacion) => {
+                    // Sumamos la cantidad de bonificaciones y el valor total
+                    const totalQuantity = bonificacion.values.reduce(
+                      (sum: number, val: any) => sum + (val.quantity || 0),
+                      0,
+                    );
 
-                  if (acc[bonificacion.name]) {
-                    acc[bonificacion.name].quantity += totalQuantity;
-                    acc[bonificacion.name].totalValue +=
-                      totalQuantity * bonificacion.value;
-                  } else {
-                    acc[bonificacion.name] = {
-                      name: bonificacion.name,
-                      quantity: totalQuantity,
-                      totalValue: totalQuantity * bonificacion.value,
-                    };
+                    if (acc[bonificacion.name]) {
+                      acc[bonificacion.name].quantity += totalQuantity;
+                      acc[bonificacion.name].totalValue +=
+                        totalQuantity * bonificacion.value;
+                    } else {
+                      acc[bonificacion.name] = {
+                        name: bonificacion.name,
+                        quantity: totalQuantity,
+                        totalValue: totalQuantity * bonificacion.value,
+                      };
+                    }
+
+                    return acc;
+                  },
+                  {},
+                ),
+              ).map((bono: any, index, array) => (
+                <View
+                  key={bono.name}
+                  style={
+                    index === array.length - 1 &&
+                    recargosActualizados.length === 0 &&
+                    recargosParex.length === 0 &&
+                    (!item.pernotes || item.pernotes.length === 0)
+                      ? styles.tableRowLast
+                      : styles.tableRow
                   }
-                  return acc;
-                },
-                {}
-              )
-            ).map((bono: any, index, array) => (
-              <View key={bono.name} style={index === array.length - 1 && recargosActualizados.length === 0 && recargosParex.length === 0 && (!item.pernotes || item.pernotes.length === 0) ? styles.tableRowLast : styles.tableRow}>
-                <View style={styles.tableCol1}>
-                  <Text style={styles.valueText}>{bono.name || ""}</Text>
+                >
+                  <View style={styles.tableCol1}>
+                    <Text style={styles.valueText}>{bono.name || ""}</Text>
+                  </View>
+                  <View style={styles.tableCol2}>
+                    <Text style={styles.valueText} />
+                  </View>
+                  <View style={styles.tableCol3}>
+                    <Text style={styles.valueText}>{bono.quantity}</Text>
+                  </View>
+                  <View style={styles.tableCol4}>
+                    <Text style={styles.valueText}>
+                      {formatToCOP(bono.totalValue)}
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.tableCol2}>
-                  <Text style={styles.valueText}></Text>
+              ))
+            : // Bonificaciones por defecto si el array está vacío o no existe
+              [
+                "Bono de alimentación",
+                "Bono día trabajado",
+                "Bono día trabajado doble",
+                "Bono festividades",
+              ].map((conceptName, index) => (
+                <View key={index} style={styles.tableRow}>
+                  <View style={styles.tableCol1}>
+                    <Text style={styles.valueText}>{conceptName}</Text>
+                  </View>
+                  <View style={styles.tableCol2}>
+                    <Text style={styles.valueText} />
+                  </View>
+                  <View style={styles.tableCol3}>
+                    <Text style={styles.valueText}>0</Text>
+                  </View>
+                  <View style={styles.tableCol4}>
+                    <Text style={styles.valueText}>{formatToCOP(0)}</Text>
+                  </View>
                 </View>
-                <View style={styles.tableCol3}>
-                  <Text style={styles.valueText}>{bono.quantity}</Text>
-                </View>
-                <View style={styles.tableCol4}>
-                  <Text style={styles.valueText}>{formatToCOP(bono.totalValue)}</Text>
-                </View>
-              </View>
-            ))
-            :
-            // Bonificaciones por defecto si el array está vacío o no existe
-            [
-              "Bono de alimentación",
-              "Bono día trabajado",
-              "Bono día trabajado doble",
-              "Bono festividades"
-            ].map((conceptName, index) => (
-              <View key={index} style={styles.tableRow}>
-                <View style={styles.tableCol1}>
-                  <Text style={styles.valueText}>{conceptName}</Text>
-                </View>
-                <View style={styles.tableCol2}>
-                  <Text style={styles.valueText}></Text>
-                </View>
-                <View style={styles.tableCol3}>
-                  <Text style={styles.valueText}>0</Text>
-                </View>
-                <View style={styles.tableCol4}>
-                  <Text style={styles.valueText}>{formatToCOP(0)}</Text>
-                </View>
-              </View>
-            ))
-          }
+              ))}
 
           {/* Recargos */}
           <View style={styles.tableRow}>
@@ -432,17 +484,20 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
               <Text style={styles.valueText}>Recargos</Text>
             </View>
             <View style={styles.tableCol2}>
-              <Text style={styles.valueText}></Text>
+              <Text style={styles.valueText} />
             </View>
             <View style={styles.tableCol3}>
-              <Text style={styles.valueText}>{recargosActualizados?.length}</Text>
+              <Text style={styles.valueText}>
+                {recargosActualizados?.length}
+              </Text>
             </View>
             <View style={styles.tableCol4}>
               <Text style={styles.valueText}>
                 {formatToCOP(
-                  totalRecargosParex !== undefined && item.total_recargos !== undefined
+                  totalRecargosParex !== undefined &&
+                    item.total_recargos !== undefined
                     ? item.total_recargos - totalRecargosParex
-                    : item.total_recargos || 0
+                    : item.total_recargos || 0,
                 )}
               </Text>
             </View>
@@ -450,18 +505,26 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
 
           {/* Recargos PAREX */}
           {recargosParex.length > 0 && (
-            <View style={!item.pernotes || item.pernotes.length === 0 ? styles.tableRowLast : styles.tableRow}>
+            <View
+              style={
+                !item.pernotes || item.pernotes.length === 0
+                  ? styles.tableRowLast
+                  : styles.tableRow
+              }
+            >
               <View style={styles.tableCol1}>
                 <Text style={styles.valueText}>Recargos PAREX</Text>
               </View>
               <View style={styles.tableCol2}>
-                <Text style={styles.valueText}></Text>
+                <Text style={styles.valueText} />
               </View>
               <View style={styles.tableCol3}>
                 <Text style={styles.valueText}>{recargosParex.length}</Text>
               </View>
               <View style={styles.tableCol4}>
-                <Text style={styles.valueText}>{formatToCOP(totalRecargosParex)}</Text>
+                <Text style={styles.valueText}>
+                  {formatToCOP(totalRecargosParex)}
+                </Text>
               </View>
             </View>
           )}
@@ -478,7 +541,8 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
                     try {
                       // Recolectar todas las fechas de todos los pernotes
                       const todasLasFechas: string[] = [];
-                      item.pernotes.forEach(pernote => {
+
+                      item.pernotes.forEach((pernote) => {
                         if (pernote.fechas && pernote.fechas.length > 0) {
                           todasLasFechas.push(...pernote.fechas);
                         }
@@ -486,10 +550,12 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
 
                       // Usar la función agruparFechasConsecutivas
                       const rangos = agruparFechasConsecutivas(todasLasFechas);
+
                       return rangos.join(", ");
-                    } catch (error) {
-                      console.error("Error al agrupar fechas de pernotes:", error);
-                      return '';
+                    } catch (error: any) {
+                      return (
+                        error.message || "Error al recolectar fechas pernotes"
+                      );
                     }
                   })()}
                 </Text>
@@ -503,7 +569,7 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
               </View>
               <View style={styles.tableCol4}>
                 <Text style={styles.valueText}>
-                  {formatToCOP(safeValue(item.total_pernotes, '0'))}
+                  {formatToCOP(safeValue(item.total_pernotes, "0"))}
                 </Text>
               </View>
             </View>
@@ -513,10 +579,10 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
                 <Text style={styles.valueText}>Pernotes</Text>
               </View>
               <View>
-                <Text style={styles.valueText}></Text>
+                <Text style={styles.valueText} />
               </View>
               <View>
-                <Text style={styles.valueText}></Text>
+                <Text style={styles.valueText} />
               </View>
               <View>
                 <Text style={styles.valueText}>{formatToCOP(0)}</Text>
@@ -536,23 +602,28 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
             </View>
             <View>
               <Text style={styles.redValue}>
-                {formatToCOP(safeValue(item.salud, '0'))}
+                {formatToCOP(safeValue(item.salud, "0"))}
               </Text>
             </View>
           </View>
 
           {/* Pensión */}
-          <View style={item.anticipos && item.anticipos.length == 0 ? [styles.tableRowLast, styles.flex] : [styles.tableRow, styles.flex]}>
+          <View
+            style={
+              item.anticipos && item.anticipos.length == 0
+                ? [styles.tableRowLast, styles.flex]
+                : [styles.tableRow, styles.flex]
+            }
+          >
             <View>
               <Text style={styles.labelText}>Pensión</Text>
             </View>
             <View>
               <Text style={styles.redValue}>
-                {formatToCOP(safeValue(item.pension, '0'))}
+                {formatToCOP(safeValue(item.pension, "0"))}
               </Text>
             </View>
           </View>
-
 
           {/* Anticipos */}
           {item.anticipos && item?.anticipos.length > 0 && (
@@ -562,54 +633,51 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
               </View>
               <View>
                 <Text style={styles.redValue}>
-                  {formatToCOP(safeValue(item.total_anticipos, '0'))}
+                  {formatToCOP(safeValue(item.total_anticipos, "0"))}
                 </Text>
               </View>
             </View>
           )}
         </View>
 
-
         <Text style={styles.sectionHeader}>RESUMEN FINAL</Text>
-
 
         {/* Total */}
         <View style={[styles.table]}>
           {/* Vacaciones (si existen) */}
-          {(safeValue(item.total_vacaciones, '0') > 0) && (
+          {safeValue(item.total_vacaciones, "0") > 0 && (
             <View style={[styles.tableRow, styles.flex]}>
               <View>
                 <Text style={styles.labelText}>Vacaciones</Text>
               </View>
               <View>
                 <Text style={styles.valueText}>
-                  {
-                    item.periodo_start_vacaciones && item.periodo_end_vacaciones ?
-                      obtenerDiferenciaDias({
+                  {item.periodo_start_vacaciones && item.periodo_end_vacaciones
+                    ? obtenerDiferenciaDias({
                         start: parseDate(item.periodo_start_vacaciones),
                         end: parseDate(item.periodo_end_vacaciones),
-                      }) :
-                      0
-                  } días
+                      })
+                    : 0}{" "}
+                  días
                 </Text>
               </View>
               <View>
                 <Text style={styles.orangeValue}>
-                  {formatToCOP(safeValue(item.total_vacaciones, '0'))}
+                  {formatToCOP(safeValue(item.total_vacaciones, "0"))}
                 </Text>
               </View>
             </View>
           )}
 
           {/* Interés Cesantías (si existe) */}
-          {safeValue(item.interes_cesantias, '0') > 0 && (
+          {safeValue(item.interes_cesantias, "0") > 0 && (
             <View style={[styles.tableRow, styles.flex]}>
               <View>
                 <Text style={styles.labelText}>Interes cesantias</Text>
               </View>
               <View>
                 <Text style={styles.blueValue}>
-                  {formatToCOP(safeValue(item.interes_cesantias, '0'))}
+                  {formatToCOP(safeValue(item.interes_cesantias, "0"))}
                 </Text>
               </View>
             </View>
@@ -620,7 +688,7 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
             </View>
             <View>
               <Text style={styles.greenValue}>
-                {formatToCOP(safeValue(item.sueldo_total, '0'))}
+                {formatToCOP(safeValue(item.sueldo_total, "0"))}
               </Text>
             </View>
           </View>
@@ -639,52 +707,58 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
 const handleGeneratePDF = async (item: Liquidacion | null): Promise<void> => {
   try {
     if (!item) {
-      console.error("No se proporcionaron datos para generar el PDF");
       return;
     }
 
-
     // Filtrar recargos de PAREX
-    const recargosParex = item?.recargos?.filter(recargo =>
-      recargo.empresa_id === "cfb258a6-448c-4469-aa71-8eeafa4530ef"
-    ) || [];
+    const recargosParex =
+      item?.recargos?.filter(
+        (recargo) =>
+          recargo.empresa_id === "cfb258a6-448c-4469-aa71-8eeafa4530ef",
+      ) || [];
 
     // Calcular el total de recargos PAREX
-    const totalRecargosParex = recargosParex.reduce((sum, recargo) =>
-      sum + (recargo.valor || 0), 0
+    const totalRecargosParex = recargosParex.reduce(
+      (sum, recargo) => sum + (recargo.valor || 0),
+      0,
     );
 
     // Obtener recargos que no son de PAREX
-    const recargosActualizados = item?.recargos?.filter(recargo =>
-      recargo.empresa_id !== "cfb258a6-448c-4469-aa71-8eeafa4530ef"
-    ) || [];
-
-    console.log(recargosActualizados, recargosParex, totalRecargosParex)
+    const recargosActualizados =
+      item?.recargos?.filter(
+        (recargo) =>
+          recargo.empresa_id !== "cfb258a6-448c-4469-aa71-8eeafa4530ef",
+      ) || [];
 
     // Generar el PDF con los datos filtrados
     const blob = await pdf(
       <LiquidacionPDF
         item={item}
-        totalRecargosParex={Number(totalRecargosParex)}
-        recargosParex={recargosParex}
         recargosActualizados={recargosActualizados}
-      />
+        recargosParex={recargosParex}
+        totalRecargosParex={Number(totalRecargosParex)}
+      />,
     ).toBlob();
 
     const url = URL.createObjectURL(blob);
-    const pdfWindow = window.open(url, '_blank');
+    const pdfWindow = window.open(url, "_blank");
 
     if (!pdfWindow) {
-      alert("El navegador bloqueó la apertura del PDF. Por favor, permita ventanas emergentes.");
+      alert(
+        "El navegador bloqueó la apertura del PDF. Por favor, permita ventanas emergentes.",
+      );
     }
 
     // Limpiar URL después de abrir el PDF
     setTimeout(() => {
       URL.revokeObjectURL(url);
     }, 100);
-  } catch (error) {
-    console.error("Error al generar el PDF:", error);
-    alert("Ocurrió un error al generar el PDF. Por favor, inténtelo de nuevo.");
+  } catch (error: any) {
+    const message =
+      error.message ||
+      "Ocurrió un error al generar el PDF. Por favor, inténtelo de nuevo.";
+
+    alert(message);
   }
 };
 

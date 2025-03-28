@@ -1,7 +1,9 @@
 // src/components/ui/NotificationContainer.tsx
-import React from 'react';
-import { useNotification } from '@/context/NotificacionContext';
-import { Notification } from './notificacion';
+import React from "react";
+
+import { Notification } from "./notificacion";
+
+import { useNotification } from "@/context/NotificacionContext";
 
 export const NotificationContainer: React.FC = () => {
   const { notifications, removeNotification } = useNotification();
@@ -15,10 +17,13 @@ export const NotificationContainer: React.FC = () => {
           key={notification.id}
           className="transform transition-all duration-500 ease-in-out"
           style={{
-            animation: 'slideIn 0.3s ease-out forwards',
+            animation: "slideIn 0.3s ease-out forwards",
           }}
         >
-          <Notification notification={notification} onDismiss={removeNotification} />
+          <Notification
+            notification={notification}
+            onDismiss={removeNotification}
+          />
         </div>
       ))}
     </div>

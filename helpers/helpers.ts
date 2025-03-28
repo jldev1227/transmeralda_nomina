@@ -1,5 +1,4 @@
-import { DateValue } from '@nextui-org/react';
-import { AnyCalendarDate } from '@internationalized/date';
+import { DateValue } from "@nextui-org/react";
 
 /**
  * Formatea un valor numérico a formato de moneda COP
@@ -7,11 +6,11 @@ import { AnyCalendarDate } from '@internationalized/date';
  * @returns String con formato de moneda COP
  */
 export const formatToCOP = (value: number): string => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    maximumFractionDigits: 0,
   }).format(value);
 };
 
@@ -21,11 +20,11 @@ export const formatToCOP = (value: number): string => {
  * @returns String con formato de moneda
  */
 export const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    maximumFractionDigits: 0,
   }).format(value);
 };
 
@@ -36,40 +35,40 @@ export const formatCurrency = (value: number): string => {
  */
 export function formatDate(date: string | DateValue | undefined): string {
   if (!date) {
-    return 'Fecha no especificada';
+    return "Fecha no especificada";
   }
 
   let dateObj: Date;
 
   // Determinar si el argumento es un string o un objeto DateValue
-  if (typeof date === 'string') {
+  if (typeof date === "string") {
     // Si es string, convertir a Date
     dateObj = new Date(date);
   } else {
     // Si es DateValue/CalendarDate, extraer los componentes
-    if ('year' in date && 'month' in date && 'day' in date) {
+    if ("year" in date && "month" in date && "day" in date) {
       // Es un CalendarDate
       dateObj = new Date(date.year, date.month - 1, date.day);
     } else {
       // Si no se puede procesar, devolver mensaje de error
-      return 'Formato de fecha no válido';
+      return "Formato de fecha no válido";
     }
   }
 
   // Verificar si la fecha es válida
   if (isNaN(dateObj.getTime())) {
-    return 'Fecha no válida';
+    return "Fecha no válida";
   }
 
   // Definir opciones para el formato de fecha
   const options: Intl.DateTimeFormatOptions = {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
+    day: "numeric",
+    month: "long",
+    year: "numeric",
   };
 
   // Formatear y devolver la fecha
-  return dateObj.toLocaleDateString('es-ES', options);
+  return dateObj.toLocaleDateString("es-ES", options);
 }
 /**
  * Formatea un DateValue a formato YYYY-MM-DD
@@ -77,7 +76,7 @@ export function formatDate(date: string | DateValue | undefined): string {
  * @returns String con la fecha en formato YYYY-MM-DD
  */
 export const formatDateValue = (date: DateValue): string => {
-  return `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`;
+  return `${date.year}-${date.month.toString().padStart(2, "0")}-${date.day.toString().padStart(2, "0")}`;
 };
 
 /**
@@ -86,7 +85,7 @@ export const formatDateValue = (date: DateValue): string => {
  * @returns String con la fecha en formato YYYY-MM-DD
  */
 export const dateToDateValue = (date: Date): string => {
-  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
 };
 
 /**
@@ -95,13 +94,16 @@ export const dateToDateValue = (date: Date): string => {
  * @param endDate - Fecha de fin en formato YYYY-MM-DD
  * @returns Array con los meses en formato "MMM YYYY" (por ejemplo, "Ene 2023")
  */
-export const obtenerMesesEntreFechas = (startDate: string, endDate: string): string[] => {
+export const obtenerMesesEntreFechas = (
+  startDate: string,
+  endDate: string,
+): string[] => {
   const start = new Date(startDate);
   const end = new Date(endDate);
   const meses = [];
 
   // Crear un objeto para formatear los nombres de meses
-  const formatoMes = new Intl.DateTimeFormat('es', { month: 'long' });
+  const formatoMes = new Intl.DateTimeFormat("es", { month: "long" });
 
   // Crear una copia de la fecha de inicio
   const currentDate = new Date(start);
@@ -111,8 +113,10 @@ export const obtenerMesesEntreFechas = (startDate: string, endDate: string): str
 
   // Iterar entre meses
   while (currentDate <= end) {
-    const mes = formatoMes.format(currentDate).charAt(0).toUpperCase() + formatoMes.format(currentDate).slice(1);
-    const año = currentDate.getFullYear();
+    const mes =
+      formatoMes.format(currentDate).charAt(0).toUpperCase() +
+      formatoMes.format(currentDate).slice(1);
+
     meses.push(`${mes}`);
 
     // Avanzar al siguiente mes
@@ -129,11 +133,19 @@ export const obtenerMesesEntreFechas = (startDate: string, endDate: string): str
  */
 export const obtenerDiferenciaDias = (dateRange: any): number | string => {
   if (!dateRange || !dateRange.start || !dateRange.end) {
-    return 'Sin fechas seleccionadas';
+    return "Sin fechas seleccionadas";
   }
 
-  const start = new Date(dateRange.start.year, dateRange.start.month - 1, dateRange.start.day);
-  const end = new Date(dateRange.end.year, dateRange.end.month - 1, dateRange.end.day);
+  const start = new Date(
+    dateRange.start.year,
+    dateRange.start.month - 1,
+    dateRange.start.day,
+  );
+  const end = new Date(
+    dateRange.end.year,
+    dateRange.end.month - 1,
+    dateRange.end.day,
+  );
 
   // Calcular la diferencia en días
   const diffTime = Math.abs(end.getTime() - start.getTime());
@@ -143,9 +155,8 @@ export const obtenerDiferenciaDias = (dateRange: any): number | string => {
 };
 
 export function MesyAño(dateString: string | undefined): string {
-
   if (!dateString) {
-    throw new Error('La fecha debe ser una cadena válida.');
+    throw new Error("La fecha debe ser una cadena válida.");
   }
 
   // Crear un objeto Date a partir de la cadena en formato 'YYYY-MM-DD'
@@ -153,7 +164,7 @@ export function MesyAño(dateString: string | undefined): string {
 
   // Verificar si la fecha es válida
   if (isNaN(date.getTime())) {
-    throw new Error('Fecha no válida.');
+    throw new Error("Fecha no válida.");
   }
 
   // Establecer la hora a medianoche para evitar problemas de zona horaria
@@ -164,12 +175,12 @@ export function MesyAño(dateString: string | undefined): string {
 
   // Definir opciones para el formato de fecha con tipos correctos
   const options: Intl.DateTimeFormatOptions = {
-    month: 'long',
-    year: 'numeric',
+    month: "long",
+    year: "numeric",
   };
 
   // Convertir la fecha al formato deseado utilizando la configuración regional 'es-ES'
-  return date.toLocaleDateString('es-ES', options).toUpperCase();
+  return date.toLocaleDateString("es-ES", options).toUpperCase();
 }
 
 export const agruparFechasConsecutivas = (fechas: string[]) => {
@@ -219,7 +230,7 @@ export const agruparFechasConsecutivas = (fechas: string[]) => {
   });
 };
 
-export function formatDateShort(dateStr : Date | undefined) : string {
+export function formatDateShort(dateStr: Date | undefined): string {
   if (!dateStr) return "";
 
   try {
@@ -229,14 +240,11 @@ export function formatDateShort(dateStr : Date | undefined) : string {
     const day = date.getDate().toString().padStart(2, "0");
 
     // Obtener el mes abreviado en minúsculas
-    const month = date
-      .toLocaleString("es", { month: "short" })
-      .toLowerCase();
+    const month = date.toLocaleString("es", { month: "short" }).toLowerCase();
 
     // Devolver formato "DD-MMM"
     return `${day}-${month}`;
-  } catch (error) {
-    console.error("Error formatting date:", error);
-    return "";
+  } catch (error: any) {
+    return error.message || "Error al formatear la fecha";
   }
 }

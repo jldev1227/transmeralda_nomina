@@ -6,6 +6,7 @@ import * as React from "react";
 import { HeroUIProvider } from "@heroui/system";
 import { useRouter } from "next/navigation";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
+
 import { NominaProvider } from "@/context/NominaContext";
 import { NotificationContainer } from "@/components/ui/notificacionContainer";
 import { NotificationProvider } from "@/context/NotificacionContext";
@@ -30,7 +31,7 @@ export function Providers({ children, themeProps }: ProvidersProps) {
     <HeroUIProvider navigate={router.push}>
       <NotificationProvider>
         <NominaProvider>
-        <NotificationContainer />
+          <NotificationContainer />
           <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>
         </NominaProvider>
       </NotificationProvider>

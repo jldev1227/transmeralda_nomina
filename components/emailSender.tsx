@@ -1,13 +1,23 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { EmailData, useNomina } from '@/context/NominaContext';
-import { Button } from '@heroui/button';
-import { Loader2, Mail, MailsIcon, X, WifiOff, RefreshCw } from 'lucide-react';
-import { Chip, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Textarea } from '@nextui-org/react';
-import Cookies from 'js-cookie';
-import socketService from '@/services/socketServices';
-import { toast } from 'react-hot-toast';
+import React, { useEffect, useState } from "react";
+import { Button } from "@heroui/button";
+import { Loader2, Mail, MailsIcon, X, WifiOff, RefreshCw } from "lucide-react";
+import {
+  Chip,
+  Input,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  Textarea,
+} from "@nextui-org/react";
+import Cookies from "js-cookie";
+import { toast } from "react-hot-toast";
+
+import socketService from "@/services/socketServices";
+import { EmailData, useNomina } from "@/context/NominaContext";
 
 // Interfaz para la información del usuario almacenada en la cookie
 interface UserInfo {
@@ -24,7 +34,7 @@ interface UserInfo {
 }
 
 // Estados posibles del trabajo de envío
-type JobStatus = 'idle' | 'queued' | 'processing' | 'completed' | 'failed';
+type JobStatus = "idle" | "queued" | "processing" | "completed" | "failed";
 
 interface EmailSenderProps {
   selectedIds: string[];
@@ -36,11 +46,17 @@ const EmailSender = ({ selectedIds }: EmailSenderProps) => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
-  const [status, setStatus] = useState<JobStatus>('idle');
-  const [progress, setProgress] = useState({ current: 0, total: 1, message: 'Preparando...' });
+  const [status, setStatus] = useState<JobStatus>("idle");
+  const [progress, setProgress] = useState({
+    current: 0,
+    total: 1,
+    message: "Preparando...",
+  });
   const [socketConnected, setSocketConnected] = useState(false);
   const [socketAttempted, setSocketAttempted] = useState(false);
-  const [emailSubject, setEmailSubject] = useState('Desprendible de nómina - Transmeralda');
+  const [emailSubject, setEmailSubject] = useState(
+    "Desprendible de nómina - Transmeralda",
+  );
   const [emailBody, setEmailBody] = useState(`Estimado conductor,
   
 Adjunto encontrará su desprendible de nómina correspondiente al período actual.
@@ -53,16 +69,19 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
 
   // Obtener el userInfo de la cookie al montar el componente
   useEffect(() => {
-    const userInfoStr = Cookies.get('userInfo');
+    const userInfoStr = Cookies.get("userInfo");
+
     if (userInfoStr) {
       try {
         const parsedUserInfo: UserInfo = JSON.parse(userInfoStr);
+
         setUserInfo(parsedUserInfo);
-      } catch (error) {
-        console.error('Error al parsear la información del usuario:', error);
+      } catch (error: any) {
+        toast.error(
+          `Error: ${error.message ? error.message : "No se pudo obtener información del usuario"}`,
+        );
       }
     } else {
-      console.warn('No se encontró la cookie userInfo');
     }
   }, []);
 
@@ -73,12 +92,10 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
       // Suscribirse a eventos de conexión/desconexión
       const handleSocketConnect = () => {
         setSocketConnected(true);
-        console.log('Socket conectado exitosamente');
       };
 
       const handleSocketDisconnect = () => {
         setSocketConnected(false);
-        console.log('Socket desconectado');
       };
 
       // Conectar con el ID del usuario
@@ -86,11 +103,11 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
       setSocketAttempted(true);
 
       // Registrar listeners para eventos
-      socketService.on('connect', handleSocketConnect);
-      socketService.on('disconnect', handleSocketDisconnect);
-      socketService.on('job:progress', handleJobProgress);
-      socketService.on('job:completed', handleJobCompleted);
-      socketService.on('job:failed', handleJobFailed);
+      socketService.on("connect", handleSocketConnect);
+      socketService.on("disconnect", handleSocketDisconnect);
+      socketService.on("job:progress", handleJobProgress);
+      socketService.on("job:completed", handleJobCompleted);
+      socketService.on("job:failed", handleJobFailed);
 
       // Verificar si ya está conectado
       if (socketService.isConnected()) {
@@ -99,14 +116,14 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
 
       // Limpiar al desmontar
       return () => {
-        socketService.off('connect');
-        socketService.off('disconnect');
-        socketService.off('job:progress');
-        socketService.off('job:completed');
-        socketService.off('job:failed');
+        socketService.off("connect");
+        socketService.off("disconnect");
+        socketService.off("job:progress");
+        socketService.off("job:completed");
+        socketService.off("job:failed");
 
         // Solo desconectar si no hay un trabajo activo
-        if (status !== 'processing' && status !== 'queued') {
+        if (status !== "processing" && status !== "queued") {
           socketService.disconnect();
         }
       };
@@ -167,25 +184,25 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
   // Manejadores de eventos socket
   const handleJobProgress = (data: { jobId: string; progress: number }) => {
     if (data.jobId === jobId) {
-      setStatus('processing');
+      setStatus("processing");
       setProgress({
         current: Math.floor((data.progress / 100) * selectedIds.length),
         total: selectedIds.length,
-        message: 'Procesando liquidaciones...'
+        message: "Procesando liquidaciones...",
       });
     }
   };
 
   const handleJobCompleted = (data: { jobId: string; result: any }) => {
     if (data.jobId === jobId) {
-      setStatus('completed');
+      setStatus("completed");
       setProgress({
         current: selectedIds.length,
         total: selectedIds.length,
-        message: '¡Envío completado!'
+        message: "¡Envío completado!",
       });
 
-      toast.success('¡Correos enviados exitosamente!');
+      toast.success("¡Correos enviados exitosamente!");
 
       // Cerrar modal después de un tiempo
       setTimeout(() => {
@@ -198,8 +215,8 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
 
   const handleJobFailed = (data: { jobId: string; error: string }) => {
     if (data.jobId === jobId) {
-      setStatus('failed');
-      toast.error(`Error: ${data.error || 'No se pudo completar el envío'}`);
+      setStatus("failed");
+      toast.error(`Error: ${data.error || "No se pudo completar el envío"}`);
       setSending(false);
       setJobId(null);
     }
@@ -219,16 +236,19 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
 
   // Calcular los emails de los destinatarios
   const destinatariosEmails = liquidaciones
-    .filter(item => selectedIds.includes(item.id))
-    .map(item => item.conductor?.email)
+    .filter((item) => selectedIds.includes(item.id))
+    .map((item) => item.conductor?.email)
     .filter(Boolean) as string[];
 
   const handleOpen = () => setIsOpen(true);
 
   const handleClose = () => {
     // Si hay un envío en curso, pedir confirmación
-    if (sending && status !== 'completed') {
-      const confirmar = window.confirm('¿Estás seguro de que deseas cancelar el envío en curso?');
+    if (sending && status !== "completed") {
+      const confirmar = window.confirm(
+        "¿Estás seguro de que deseas cancelar el envío en curso?",
+      );
+
       if (!confirmar) return;
     }
 
@@ -238,7 +258,7 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
   // Intentar reconectar el socket manualmente
   const reconnectSocket = () => {
     if (userInfo && userInfo.id) {
-      toast.success('Intentando reconectar...');
+      toast.success("Intentando reconectar...");
       socketService.disconnect();
 
       // Pequeña pausa antes de reintentar
@@ -251,25 +271,44 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
   // Enviar correos con los PDFs adjuntos
   const sendEmails = async () => {
     if (selectedIds.length === 0) {
-      toast.error('No hay liquidaciones seleccionadas');
+      toast.error("No hay liquidaciones seleccionadas");
+
       return;
     }
 
     setSending(true);
-    setStatus('queued');
-    setProgress({ current: 0, total: selectedIds.length, message: 'Preparando envíos...' });
+    setStatus("queued");
+    setProgress({
+      current: 0,
+      total: selectedIds.length,
+      message: "Preparando envíos...",
+    });
 
     try {
       // 1. Obtener las liquidaciones seleccionadas
-      const selectedLiquidaciones = liquidaciones.filter(item => selectedIds.includes(item.id));
+      const selectedLiquidaciones = liquidaciones.filter((item) =>
+        selectedIds.includes(item.id),
+      );
 
       // 2. Verificar que todos los conductores tengan correo electrónico
-      const missingEmails = selectedLiquidaciones.filter(item => !item.conductor?.email);
+      const missingEmails = selectedLiquidaciones.filter(
+        (item) => !item.conductor?.email,
+      );
+
       if (missingEmails.length > 0) {
-        const names = missingEmails.map(item => `${item.conductor?.nombre || ''} ${item.conductor?.apellido || ''}`).join(', ');
-        toast.error(`Los siguientes conductores no tienen correo electrónico: ${names}`);
+        const names = missingEmails
+          .map(
+            (item) =>
+              `${item.conductor?.nombre || ""} ${item.conductor?.apellido || ""}`,
+          )
+          .join(", ");
+
+        toast.error(
+          `Los siguientes conductores no tienen correo electrónico: ${names}`,
+        );
         setSending(false);
-        setStatus('idle');
+        setStatus("idle");
+
         return;
       }
 
@@ -277,29 +316,28 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
       const emailData: EmailData = {
         subject: emailSubject,
         body: emailBody,
-        recipients: destinatariosEmails
+        recipients: destinatariosEmails,
       };
 
       // 4. Enviar solicitud al backend para iniciar el proceso (generación de PDFs + envío de emails)
-      const response = await generatePDFS(selectedIds, emailData);
-      console.log(response)
-
-
+      await generatePDFS(selectedIds, emailData);
     } catch (error: any) {
-      console.error('Error al enviar emails:', error);
-      toast.error(`Error: ${error.message || 'Error desconocido al enviar emails'}`);
-      setStatus('failed');
+      toast.error(
+        `Error: ${error.message || "Error desconocido al enviar emails"}`,
+      );
+      setStatus("failed");
       setSending(false);
     }
   };
 
   // Determinar si el botón de envío debe estar deshabilitado
   const isSubmitDisabled = (): boolean | undefined => {
-
     // Deshabilitado si:
-    if (sending || // Ya se está enviando
+    if (
+      sending || // Ya se está enviando
       selectedIds.length === 0 || // No hay liquidaciones seleccionadas
-      (!socketConnected && socketAttempted)) {
+      (!socketConnected && socketAttempted)
+    ) {
       return false;
     } else {
       return true;
@@ -308,14 +346,19 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
 
   return (
     <>
-      <Button className='rounded-md' color='primary' onPress={handleOpen}>
+      <Button className="rounded-md" color="primary" onPress={handleOpen}>
         <MailsIcon />
         Enviar desprendibles ({selectedIds.length})
       </Button>
 
-      <Modal size='5xl' isOpen={isOpen} onOpenChange={setIsOpen} onClose={handleClose}>
+      <Modal
+        isOpen={isOpen}
+        size="5xl"
+        onClose={handleClose}
+        onOpenChange={setIsOpen}
+      >
         <ModalContent>
-          <ModalHeader className='flex-col md:flex-row md:items-center gap-3'>
+          <ModalHeader className="flex-col md:flex-row md:items-center gap-3">
             <div className="flex items-center gap-2">
               <MailsIcon className="h-6 w-6" />
               Enviar desprendibles por correo
@@ -324,61 +367,85 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
               <div className="flex items-center md:ml-auto text-xs text-amber-500">
                 <WifiOff className="h-4 w-4 mr-1" />
                 <span>Sin actualizaciones en tiempo real</span>
-                <Button isIconOnly size="sm" variant="light" className="ml-2 p-1" onPress={reconnectSocket}>
+                <Button
+                  isIconOnly
+                  className="ml-2 p-1"
+                  size="sm"
+                  variant="light"
+                  onPress={reconnectSocket}
+                >
                   <RefreshCw className="h-3 w-3" />
                 </Button>
               </div>
             )}
           </ModalHeader>
           <ModalBody className="flex gap-2">
-
             <div className="space-y-4 py-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Destinatarios: {selectedIds.length} liquidaciones seleccionadas</span>
+                <span className="text-sm font-medium">
+                  Destinatarios: {selectedIds.length} liquidaciones
+                  seleccionadas
+                </span>
               </div>
 
-              <div className='flex md:flex-wrap py-3 gap-2 max-md:overflow-x-scroll max-w-full'>
+              <div className="flex md:flex-wrap py-3 gap-2 max-md:overflow-x-scroll max-w-full">
                 {destinatariosEmails.length > 0 ? (
                   destinatariosEmails.map((email, idx) => (
-                    <Chip key={idx} color='primary' size='sm'>{email}</Chip>
+                    <Chip key={idx} color="primary" size="sm">
+                      {email}
+                    </Chip>
                   ))
                 ) : (
-                  <span className="text-sm text-gray-500 italic">No hay destinatarios con correo electrónico</span>
+                  <span className="text-sm text-gray-500 italic">
+                    No hay destinatarios con correo electrónico
+                  </span>
                 )}
               </div>
 
               <div>
-                <label className="text-sm font-medium">Asunto del correo:</label>
+                <label className="text-sm font-medium" htmlFor="asunto">
+                  Asunto del correo:
+                </label>
                 <Input
+                  className="mt-1"
+                  disabled={sending}
+                  id="asunto"
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}
-                  disabled={sending}
-                  className="mt-1"
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium">Cuerpo del correo:</label>
+                <label className="text-sm font-medium" htmlFor="body">
+                  Cuerpo del correo:
+                </label>
                 <Textarea
+                  className="mt-1"
+                  disabled={sending}
+                  id="body"
+                  rows={8}
                   value={emailBody}
                   onChange={(e) => setEmailBody(e.target.value)}
-                  disabled={sending}
-                  rows={8}
-                  className="mt-1"
                 />
               </div>
 
               {sending && (
                 <div className="bg-slate-50 rounded-md p-3 mt-2">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">{progress.message}</span>
-                    <span className="text-sm text-slate-500">{progress.current} / {progress.total}</span>
+                    <span className="text-sm font-medium">
+                      {progress.message}
+                    </span>
+                    <span className="text-sm text-slate-500">
+                      {progress.current} / {progress.total}
+                    </span>
                   </div>
                   <div className="w-full bg-slate-200 rounded-full h-2">
                     <div
                       className="bg-primary h-2 rounded-full transition-all duration-300 ease-in-out"
-                      style={{ width: `${(progress.current / progress.total) * 100}%` }}
-                    ></div>
+                      style={{
+                        width: `${(progress.current / progress.total) * 100}%`,
+                      }}
+                    />
                   </div>
                 </div>
               )}
@@ -386,15 +453,25 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
           </ModalBody>
 
           <ModalFooter>
-            <Button className='bg-red-100 text-red-800' onPress={handleClose} disabled={sending && status === 'processing' && progress.current < progress.total}>
+            <Button
+              className="bg-red-100 text-red-800"
+              disabled={
+                sending &&
+                status === "processing" &&
+                progress.current < progress.total
+              }
+              onPress={handleClose}
+            >
               <X className="h-4 w-4 mr-2" />
-              {sending && status === 'processing' ? 'Procesando...' : 'Cancelar'}
+              {sending && status === "processing"
+                ? "Procesando..."
+                : "Cancelar"}
             </Button>
 
             <Button
               className="bg-emerald-600 text-white"
-              onPress={sendEmails}
               disabled={isSubmitDisabled()}
+              onPress={sendEmails}
             >
               {sending ? (
                 <>
