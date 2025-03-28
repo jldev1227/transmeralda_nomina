@@ -45,11 +45,6 @@ interface Recargo {
     [key: string]: any;
 }
 
-type PeriodoVacaciones = {
-    start: RangeValue<DateValue>;
-    end: RangeValue<DateValue>;
-};
-
 interface VehiculoDetalle {
     vehiculo: {
         value: string;
@@ -71,19 +66,11 @@ interface VehiculoDetalle {
     recargos: Recargo[];
 }
 
-// Puedes exportarlo así
-type Anticipo = {
-    id: number;
-    valor: number;
-    fecha: string;
-    fechaFormateada?: string;
-};
-
 type DetallesVehiculos = VehiculoDetalle[];
 
 interface LiquidacionFormProps {
     mode: 'create' | 'edit' | string;
-    initialData?: Liquidacion;
+    initialData?: Liquidacion | null;
     onSubmit: (data: any) => Promise<void>;
     loading?: boolean;
 }

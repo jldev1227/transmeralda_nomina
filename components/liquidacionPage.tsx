@@ -188,7 +188,7 @@ const LiquidacionPage = ({ mode = 'create' }) => {
         <div className="p-2">
           <LiquidacionForm
             mode={mode}
-            initialData={mode === 'edit' ? liquidacionActual : undefined}
+            initialData={mode === 'edit' ? liquidacionActual : null}
             onSubmit={handleSubmit}
             loading={saving}
           />
