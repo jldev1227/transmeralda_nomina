@@ -3,11 +3,15 @@
 import React, { useState } from 'react';
 import {
   Search, Filter, Calendar, ChevronDown, ChevronUp,
-  Download, Eye, Edit, Trash2, FileText,
-  AlertCircle, Check, X, ArrowUpDown, RefreshCw
+  Download, FileText,
+  AlertCircle, RefreshCw
 } from 'lucide-react';
 import { useNomina } from '@/context/NominaContext';
 import { useRouter } from 'next/navigation';
+import LoadingPage from '@/components/loadingPage';
+import LiquidacionesTable from '@/components/liquidacionesTable';
+import GenericExportButton from '@/components/genericExportButton';
+import EmailSender from '@/components/emailSender';
 
 const LiquidacionesDashboard: React.FC = () => {
   const {
@@ -15,8 +19,6 @@ const LiquidacionesDashboard: React.FC = () => {
     liquidacionesFiltradas,
     loading,
     error,
-    abrirModalDetalle,
-    abrirModalEditar,
     filtros,
     setFiltros,
     resetearFiltros,
@@ -34,6 +36,8 @@ const LiquidacionesDashboard: React.FC = () => {
 
   // Estado para mostrar/ocultar filtros avanzados
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [dialogEmailsSend, setDialogEmailsSend] = useState(false)
 
   // Cálculos para paginación
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -63,16 +67,25 @@ const LiquidacionesDashboard: React.FC = () => {
     }).format(value);
   };
 
-  // Función para formatear fechas
-  const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('es-CO', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }).format(date);
+  // Esta función obtiene solo las liquidaciones seleccionadas
+  const getSelectedLiquidaciones = async () => {
+    // Filtrar solo las liquidaciones seleccionadas
+    return liquidaciones.filter(item => selectedIds.includes(item.id));
   };
+
+  const handleSelectItem = (id: string) => {
+    setSelectedIds(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(item => item !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
+  };
+
+  const handleOpenDialogSendEmails = () => {
+    setDialogEmailsSend(!dialogEmailsSend)
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -117,16 +130,25 @@ const LiquidacionesDashboard: React.FC = () => {
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition flex items-center justify-center"
-                  onClick={()=>router.push('/conductores/agregar')}
+                  onClick={() => router.push('/conductores/agregar')}
                 >
                   <FileText className="w-4 h-4 mr-2" />
                   Nueva Liquidación
                 </button>
 
-                <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition flex items-center justify-center">
-                  <Download className="w-4 h-4 mr-2" />
-                  Exportar
-                </button>
+                {/* Reemplazar el botón anidado con el componente directo */}
+                <GenericExportButton
+                  getData={getSelectedLiquidaciones}
+                  label={`Exportar (${selectedIds.length})`}
+                  options={{ filePrefix: 'liquidaciones_seleccionadas' }}
+                  buttonClassName="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition w-full"
+                  buttonProps={{
+                    disabled: selectedIds.length === 0,
+                    startContent: <Download className="w-4 h-4 mr-2" />
+                  }}
+                />
+
+                <EmailSender selectedIds={selectedIds}/>
               </div>
             </div>
 
@@ -223,7 +245,7 @@ const LiquidacionesDashboard: React.FC = () => {
                         return conductor ? { id: conductorId, nombre: `${conductor.nombre} ${conductor.apellido}` } : null;
                       })
                       .filter(Boolean)
-                      .sort((a:any, b:any) => a.nombre.localeCompare(b.nombre))
+                      .sort((a: any, b: any) => a.nombre.localeCompare(b.nombre))
                       .map(conductor => (
                         <option key={conductor?.id} value={conductor?.id}>
                           {conductor?.nombre}
@@ -246,6 +268,7 @@ const LiquidacionesDashboard: React.FC = () => {
                     <option value="10">10 por página</option>
                     <option value="20">20 por página</option>
                     <option value="50">50 por página</option>
+                    <option value={liquidaciones.length}>Todos</option>
                   </select>
                 </div>
 
@@ -264,177 +287,32 @@ const LiquidacionesDashboard: React.FC = () => {
 
           {/* Tabla de liquidaciones */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-            {loading ? (
-              <div className="p-8 text-center">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-500 mx-auto"></div>
-                <p className="mt-4 text-gray-500">Cargando liquidaciones...</p>
-              </div>
-            ) : error ? (
-              <div className="p-8 text-center">
-                <AlertCircle className="h-10 w-10 text-red-500 mx-auto" />
-                <p className="mt-4 text-gray-700">{error}</p>
-                <button
-                  className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
-                  onClick={() => window.location.reload()}
-                >
-                  Intentar nuevamente
-                </button>
-              </div>
-            ) : liquidacionesFiltradas.length === 0 ? (
-              <div className="p-8 text-center">
-                <p className="text-gray-500">No se encontraron liquidaciones con los filtros aplicados.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                        onClick={() => requestSort('periodoStart')}
-                      >
-                        <div className="flex items-center">
-                          Período
-                          <ArrowUpDown className="ml-1 h-4 w-4" />
-                        </div>
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                        onClick={() => requestSort('conductor')}
-                      >
-                        <div className="flex items-center">
-                          Conductor
-                          <ArrowUpDown className="ml-1 h-4 w-4" />
-                        </div>
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                        onClick={() => requestSort('diasLaborados')}
-                      >
-                        <div className="flex items-center">
-                          Días Lab.
-                          <ArrowUpDown className="ml-1 h-4 w-4" />
-                        </div>
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                        onClick={() => requestSort('sueldoTotal')}
-                      >
-                        <div className="flex items-center">
-                          Monto
-                          <ArrowUpDown className="ml-1 h-4 w-4" />
-                        </div>
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                        onClick={() => requestSort('estado')}
-                      >
-                        <div className="flex items-center">
-                          Estado
-                          <ArrowUpDown className="ml-1 h-4 w-4" />
-                        </div>
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Acciones
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {currentItems.map((liquidacion) => (
-                      <tr key={liquidacion.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {formatDate(liquidacion.periodoStart)}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            hasta {formatDate(liquidacion.periodoEnd)}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {liquidacion.conductor?.nombre} {liquidacion.conductor?.apellido}
-                          </div>
-                          <div className="text-xs text-gray-500 truncate max-w-xs">
-                            ID: {liquidacion.conductor_id.slice(0, 8)}...
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 font-medium">
-                            {liquidacion.diasLaborados}
-                          </div>
-                          {liquidacion.diasLaboradosVillanueva > 0 && (
-                            <div className="text-xs text-gray-500">
-                              {liquidacion.diasLaboradosVillanueva} en Villa.
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {formatCurrency(liquidacion.sueldoTotal)}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            Devengado: {formatCurrency(liquidacion.salarioDevengado)}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center px-2 text-xs leading-5 font-semibold rounded-full ${liquidacion.estado === 'Liquidado'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                              }`}
-                          >
-                            {liquidacion.estado === 'Liquidado' ? (
-                              <Check className="mr-1 h-3 w-3" />
-                            ) : (
-                              <AlertCircle className="mr-1 h-3 w-3" />
-                            )}
-                            {liquidacion.estado}
-                          </span>
-                          {liquidacion.fechaLiquidacion && (
-                            <div className="text-xs text-gray-500 mt-1">
-                              {new Date(liquidacion.fechaLiquidacion).toLocaleDateString()}
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex space-x-2">
-                            <button
-                              className="text-emerald-600 hover:text-emerald-900 transition-colors"
-                              title="Ver detalle"
-                              onClick={() => abrirModalDetalle(liquidacion.id)}
-                            >
-                              <Eye className="h-5 w-5" />
-                            </button>
-                            <button
-                              className="text-blue-600 hover:text-blue-900 transition-colors"
-                              title="Editar"
-                              onClick={() => router.push(`/conductores/editar/${liquidacion.id}`)}
-                            >
-                              <Edit className="h-5 w-5" />
-                            </button>
-                            <button
-                            onClick={()=>confirmarEliminarLiquidacion(liquidacion.id, liquidacion.conductor?.nombre)}
-                              className="text-red-600 hover:text-red-900 transition-colors"
-                              title="Eliminar"
-                            >
-                              <Trash2 className="h-5 w-5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            {loading ? <LoadingPage />
+              : error ? (
+                <div className="p-8 text-center">
+                  <AlertCircle className="h-10 w-10 text-red-500 mx-auto" />
+                  <p className="mt-4 text-gray-700">{error}</p>
+                  <button
+                    className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
+                    onClick={() => window.location.reload()}
+                  >
+                    Intentar nuevamente
+                  </button>
+                </div>
+              ) : liquidacionesFiltradas.length === 0 ? (
+                <div className="p-8 text-center">
+                  <p className="text-gray-500">No se encontraron liquidaciones con los filtros aplicados.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <LiquidacionesTable
+                    currentItems={currentItems}
+                    requestSort={requestSort}
+                    confirmarEliminarLiquidacion={confirmarEliminarLiquidacion}
+                    selectedIds={selectedIds}
+                    onSelectItem={handleSelectItem}
+                  />                </div>
+              )}
 
             {/* Paginación */}
             {!loading && !error && liquidacionesFiltradas.length > 0 && (
@@ -448,8 +326,8 @@ const LiquidacionesDashboard: React.FC = () => {
                     onClick={prevPage}
                     disabled={currentPage === 1}
                     className={`px-3 py-1 border rounded-md ${currentPage === 1
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
                       }`}
                   >
                     Anterior
@@ -475,8 +353,8 @@ const LiquidacionesDashboard: React.FC = () => {
                         key={pageNum}
                         onClick={() => paginate(pageNum)}
                         className={`px-3 py-1 border rounded-md ${currentPage === pageNum
-                            ? 'bg-emerald-600 text-white'
-                            : 'bg-white text-gray-700 hover:bg-gray-50'
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-50'
                           }`}
                       >
                         {pageNum}
@@ -488,8 +366,8 @@ const LiquidacionesDashboard: React.FC = () => {
                     onClick={nextPage}
                     disabled={currentPage === Math.ceil(liquidacionesFiltradas.length / itemsPerPage)}
                     className={`px-3 py-1 border rounded-md ${currentPage === Math.ceil(liquidacionesFiltradas.length / itemsPerPage)
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
                       }`}
                   >
                     Siguiente

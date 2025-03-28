@@ -15,7 +15,7 @@ interface DetalleRecargo {
 }
 
 const LiquidacionDetalleModal: React.FC = () => {
-  const { liquidacionActual, showDetalleModal, cerrarModales, abrirModalEditar } = useNomina();
+  const { liquidacionActual, showDetalleModal, cerrarModales } = useNomina();
   const [activeTab, setActiveTab] = useState<string>('general');
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
     recargos: false,
@@ -56,7 +56,7 @@ const LiquidacionDetalleModal: React.FC = () => {
 
   // Calcular totales
   const totalDeducciones = (liquidacionActual.salud || 0) + (liquidacionActual.pension || 0);
-  const netoAPagar = Math.max(0, liquidacionActual.sueldoTotal || 0);
+  const netoAPagar = Math.max(0, liquidacionActual.sueldo_total || 0);
 
   // Obtener nombre del conductor
   const conductorNombre = liquidacionActual.conductor ?
@@ -64,22 +64,19 @@ const LiquidacionDetalleModal: React.FC = () => {
     'No especificado';
 
   // Obtener periodos formateados
-  const periodoInicio = formatDate(liquidacionActual.periodoStart);
-  const periodoFin = formatDate(liquidacionActual.periodoEnd);
-
-
-  console.log(liquidacionActual)
+  const periodoInicio = formatDate(liquidacionActual.periodo_start);
+  const periodoFin = formatDate(liquidacionActual.periodo_end);
 
   // Información de usuarios
-  const creadoPor = liquidacionActual.creadoPor ?
+  const creadoPor = liquidacionActual.creado_por_id ?
     liquidacionActual.creadoPor.nombre.trim() :
     'No registrado';
 
-  const actualizadoPor = liquidacionActual.actualizadoPor ?
+  const actualizadoPor = liquidacionActual.actualizado_por_id ?
     liquidacionActual.actualizadoPor.nombre.trim() :
     'No registrado';
 
-  const liquidadoPor = liquidacionActual.liquidadoPor ?
+  const liquidadoPor = liquidacionActual.liquidado_por_id ?
     liquidacionActual.liquidadoPor.nombre.trim() :
     'No registrado';
 
@@ -164,11 +161,11 @@ const LiquidacionDetalleModal: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Salario Devengado</p>
-                    <p className="text-base font-medium">{formatCurrency(liquidacionActual.salarioDevengado)}</p>
+                    <p className="text-base font-medium">{formatCurrency(liquidacionActual.salario_devengado)}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Sueldo Total</p>
-                    <p className="text-base font-medium text-emerald-600">{formatCurrency(liquidacionActual.sueldoTotal)}</p>
+                    <p className="text-base font-medium text-emerald-600">{formatCurrency(liquidacionActual.sueldo_total)}</p>
                   </div>
                 </div>
               </div>
@@ -178,15 +175,15 @@ const LiquidacionDetalleModal: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Total Días</p>
-                    <p className="text-base font-medium">{liquidacionActual.diasLaborados} días</p>
+                    <p className="text-base font-medium">{liquidacionActual.dias_laborados} días</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Días en Villanueva</p>
-                    <p className="text-base font-medium">{liquidacionActual.diasLaboradosVillanueva} días</p>
+                    <p className="text-base font-medium">{liquidacionActual.dias_laborados_villanueva} días</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Días Anuales</p>
-                    <p className="text-base font-medium">{liquidacionActual.diasLaboradosAnual} días</p>
+                    <p className="text-base font-medium">{liquidacionActual.dias_laborados_anual} días</p>
                   </div>
                 </div>
               </div>
@@ -213,7 +210,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                   <div>
                     <p className="text-sm text-gray-500">Total Ingresos</p>
                     <p className="text-base font-medium text-emerald-600">
-                      {formatCurrency(liquidacionActual.sueldoTotal + totalDeducciones)}
+                      {formatCurrency(liquidacionActual.sueldo_total + totalDeducciones)}
                     </p>
                   </div>
                   <div>
@@ -254,13 +251,13 @@ const LiquidacionDetalleModal: React.FC = () => {
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-500">Salario Base</span>
                         <span className="text-sm font-medium">
-                          {formatCurrency(liquidacionActual.salarioDevengado)}
+                          {formatCurrency(liquidacionActual.salario_devengado)}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-500">Auxilio Transporte</span>
                         <span className="text-sm font-medium">
-                          {formatCurrency(liquidacionActual.auxilioTransporte)}
+                          {formatCurrency(liquidacionActual.auxilio_transporte)}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
@@ -276,7 +273,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                           </button>
                         </div>
                         <span className="text-sm font-medium">
-                          {formatCurrency(liquidacionActual.totalBonificaciones)}
+                          {formatCurrency(liquidacionActual.total_bonificaciones)}
                         </span>
                       </div>
 
@@ -296,7 +293,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                             if (!bonificacionesPorVehiculo[vehiculoId]) {
                               bonificacionesPorVehiculo[vehiculoId] = {
                                 vehiculo: vehiculoInfo,
-                                totalBonificaciones: 0,
+                                total_bonificaciones: 0,
                                 bonos: []
                               };
                             }
@@ -318,14 +315,8 @@ const LiquidacionDetalleModal: React.FC = () => {
                             });
 
                             // Sumamos al total del vehículo
-                            bonificacionesPorVehiculo[vehiculoId].totalBonificaciones += totalBonificacion;
+                            bonificacionesPorVehiculo[vehiculoId].total_bonificaciones += totalBonificacion;
                           });
-
-                          // Calculamos el total general
-                          const totalGeneral = Object.values(bonificacionesPorVehiculo).reduce(
-                            (sum: number, item: any) => sum + item.totalBonificaciones,
-                            0
-                          );
 
                           // Convertimos a array y ordenamos por placa
                           const vehiculosArray = Object.values(bonificacionesPorVehiculo)
@@ -344,7 +335,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                                           <span className="font-medium">{item.vehiculo.marca} {item.vehiculo.modelo}</span>
                                           <span className="ml-2 text-sm font-bold">({item.vehiculo.placa})</span>
                                         </div>
-                                        <span className="font-bold text-right">{formatCurrency(item.totalBonificaciones)}</span>
+                                        <span className="font-bold text-right">{formatCurrency(item.total_bonificaciones)}</span>
                                       </div>
 
                                       {expandedSections && expandedSections.bonificaciones && (
@@ -389,7 +380,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                           </button>
                         </div>
                         <span className="text-sm font-medium">
-                          {formatCurrency(liquidacionActual.totalRecargos)}
+                          {formatCurrency(liquidacionActual.total_recargos)}
                         </span>
                       </div>
 
@@ -409,7 +400,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                             if (!recargosPorVehiculo[vehiculoId]) {
                               recargosPorVehiculo[vehiculoId] = {
                                 vehiculo: vehiculoInfo,
-                                totalRecargos: 0,
+                                total_recargos: 0,
                                 detalles: []
                               };
                             }
@@ -424,7 +415,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                             });
 
                             // Sumamos al total del vehículo
-                            recargosPorVehiculo[vehiculoId].totalRecargos += valor;
+                            recargosPorVehiculo[vehiculoId].total_recargos += valor;
                           });
 
                           // Calculamos el total general y totales por tipo de pago
@@ -432,7 +423,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                           let totalPagadoPorCliente = 0;
 
                           Object.values(recargosPorVehiculo).forEach((item: any) => {
-                            totalGeneral += item.totalRecargos;
+                            totalGeneral += item.total_recargos;
 
                             // Calculamos cuánto paga el cliente
                             item.detalles.forEach((detalle: DetalleRecargo) => {
@@ -464,7 +455,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                                           <span className="font-medium">{item.vehiculo.marca} {item.vehiculo.modelo}</span>
                                           <span className="ml-2 text-sm font-bold">({item.vehiculo.placa})</span>
                                         </div>
-                                        <span className="font-bold text-right">{formatCurrency(item.totalRecargos)}</span>
+                                        <span className="font-bold text-right">{formatCurrency(item.total_recargos)}</span>
                                       </div>
 
                                       {expandedSections && expandedSections.recargos && (
@@ -547,39 +538,143 @@ const LiquidacionDetalleModal: React.FC = () => {
                           </button>
                         </div>
                         <span className="text-sm font-medium">
-                          {formatCurrency(liquidacionActual.totalPernotes)}
+                          {formatCurrency(liquidacionActual.total_pernotes)}
                         </span>
                       </div>
 
                       {/* Detalle de pernotes */}
                       {expandedSections.pernotes && liquidacionActual.pernotes && liquidacionActual.pernotes.length > 0 && (
-                        <div className="pl-4 border-l-2 border-gray-200 my-2">
-                          {liquidacionActual.pernotes.map((pernote: any) => (
-                            <div key={pernote.id} className="flex justify-between text-xs my-1">
-                              <span className="text-gray-600">{pernote.lugar || 'Pernote'} {pernote.fecha && `(${formatDate(pernote.fecha)})`}</span>
-                              <span className="font-medium">{formatCurrency(pernote.valor)}</span>
+                        (() => {
+                          // Creamos un objeto para agrupar los pernotes por vehículo
+                          const pernotesPorVehiculo = {};
+
+                          // Recorremos todos los pernotes
+                          liquidacionActual.pernotes.forEach(pernote => {
+                            const vehiculoId = pernote.vehiculo_id;
+                            const vehiculoInfo = pernote.vehiculo;
+                            const valor = Number(pernote.valor);
+                            const cantidad = pernote.cantidad || (pernote.fechas ? pernote.fechas.length : 0);
+
+                            // Inicializamos el vehículo si no existe
+                            if (!pernotesPorVehiculo[vehiculoId]) {
+                              pernotesPorVehiculo[vehiculoId] = {
+                                vehiculo: vehiculoInfo,
+                                total_pernotes: 0,
+                                cantidad_total: 0,
+                                detalles: []
+                              };
+                            }
+
+                            // Agregamos este pernote a la lista de detalles del vehículo
+                            pernotesPorVehiculo[vehiculoId].detalles.push({
+                              id: pernote.id,
+                              empresa_id: pernote.empresa_id,
+                              fechas: pernote.fechas || [],
+                              valor: valor,
+                              cantidad: cantidad
+                            });
+
+                            // Sumamos al total del vehículo
+                            pernotesPorVehiculo[vehiculoId].total_pernotes += valor;
+                            pernotesPorVehiculo[vehiculoId].cantidad_total += cantidad;
+                          });
+
+                          // Calculamos el total general
+                          let totalGeneral = 0;
+                          Object.values(pernotesPorVehiculo).forEach((item) => {
+                            totalGeneral += item.total_pernotes;
+                          });
+
+                          // Convertimos a array y ordenamos por placa
+                          const vehiculosArray = Object.values(pernotesPorVehiculo)
+                            .sort((a, b) => {
+                              if (a.vehiculo && b.vehiculo) {
+                                return a.vehiculo.placa.localeCompare(b.vehiculo.placa);
+                              }
+                              return 0;
+                            });
+
+                          // Función para formatear fechas
+                          const formatDateShort = (dateStr) => {
+                            if (!dateStr) return '';
+                            const date = new Date(dateStr);
+                            const day = date.getDate().toString().padStart(2, '0');
+                            const month = date.toLocaleString('es', { month: 'short' }).toLowerCase();
+                            return `${day}-${month}`;
+                          };
+
+                          return (
+                            <div className="space-y-3">
+                              <h3 className="text-base font-semibold mb-2">Resumen de Pernotes por Vehículo</h3>
+
+                              {vehiculosArray.length > 0 ? (
+                                <div className="space-y-4">
+                                  {vehiculosArray.map((item : any) => (
+                                    <div key={item.vehiculo?.id || 'sin-vehiculo'} className="border rounded-md overflow-hidden">
+                                      <div className="bg-gray-100 px-4 py-2 flex justify-between items-center">
+                                        <div>
+                                          <span className="font-medium">{item.vehiculo.marca} {item.vehiculo.modelo}</span>
+                                          <span className="ml-2 text-sm font-bold">({item.vehiculo.placa})</span>
+                                          <span className="ml-2 text-sm text-gray-600">({item.cantidad_total} noches)</span>
+                                        </div>
+                                        <span className="font-bold text-right">{formatCurrency(item.total_pernotes * item.cantidad_total)}</span>
+                                      </div>
+
+                                      {expandedSections && expandedSections.pernotes && (
+                                        <div className="pl-4 border-l-2 border-gray-200 p-2">
+                                          {item.detalles.length > 0 ? (
+                                            item.detalles.map((detalle : any) => (
+                                              <div key={detalle.id} className="my-2">
+                                                <div className="flex justify-between text-xs mb-1">
+                                                  <div>
+                                                    <span className="text-gray-600">Cantidad: {detalle.cantidad} {detalle.cantidad > 1 ? 'noches' : 'noche'}</span>
+                                                  </div>
+                                                  <span className="text-gray-600">valor unitario: {formatCurrency(detalle.valor)}</span>
+                                                </div>
+                                                {detalle.fechas && detalle.fechas.length > 0 && (
+                                                  <div className="flex flex-wrap gap-1 text-xs text-gray-500 mt-1">
+                                                    {detalle.fechas.map((fecha : Date, index : number) => (
+                                                      <span key={index} className="bg-gray-100 px-1.5 py-0.5 rounded">
+                                                        {formatDateShort(fecha)}
+                                                      </span>
+                                                    ))}
+                                                  </div>
+                                                )}
+                                              </div>
+                                            ))
+                                          ) : (
+                                            <div className="text-xs text-gray-500">No hay fechas registradas</div>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-gray-500 italic">No hay pernotes registrados</div>
+                              )}
                             </div>
-                          ))}
-                        </div>
+                          );
+                        })()
                       )}
 
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-500">Vacaciones</span>
                         <span className="text-sm font-medium">
-                          {formatCurrency(liquidacionActual.totalVacaciones)}
+                          {formatCurrency(liquidacionActual.total_vacaciones)}
                         </span>
                       </div>
 
-                      {liquidacionActual.periodoStartVacaciones && liquidacionActual.periodoEndVacaciones && (
+                      {liquidacionActual.periodo_start_vacaciones && liquidacionActual.periodo_end_vacaciones && (
                         <div className="text-xs text-gray-600 italic pl-4">
-                          Período: {formatDate(liquidacionActual.periodoStartVacaciones)} - {formatDate(liquidacionActual.periodoEndVacaciones)}
+                          Período: {formatDate(liquidacionActual.periodo_start_vacaciones)} - {formatDate(liquidacionActual.periodo_end_vacaciones)}
                         </div>
                       )}
 
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-500">Ajuste Salarial</span>
                         <span className="text-sm font-medium">
-                          {formatCurrency(liquidacionActual.ajusteSalarial)}
+                          {formatCurrency(liquidacionActual.ajuste_salarial)}
                         </span>
                       </div>
 
@@ -596,7 +691,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                           </button>
                         </div>
                         <span className="text-sm font-medium text-red-600">
-                          -{formatCurrency(liquidacionActual.totalAnticipos)}
+                          -{formatCurrency(liquidacionActual.total_anticipos)}
                         </span>
                       </div>
 
@@ -617,7 +712,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                       <div className="flex justify-between font-semibold">
                         <span>Total</span>
                         <span className="text-emerald-600">
-                          {formatCurrency(liquidacionActual.sueldoTotal + totalDeducciones)}
+                          {formatCurrency(liquidacionActual.sueldo_total + totalDeducciones)}
                         </span>
                       </div>
                     </div>
@@ -672,7 +767,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-500">Interés de Cesantías</span>
                           <span className="text-sm font-medium">
-                            {formatCurrency(liquidacionActual.interesCesantias)}
+                            {formatCurrency(liquidacionActual.interes_cesantias)}
                           </span>
                         </div>
                       </div>
@@ -720,6 +815,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                             <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mes</th>
                             <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
                             <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor por mes</th>
+                            <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor unitario</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -780,6 +876,9 @@ const LiquidacionDetalleModal: React.FC = () => {
                                   </td>
                                   <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
                                     {formatCurrency(entry.totalValue)}
+                                  </td>
+                                  <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
+                                    {formatCurrency(entry.totalValue / entry.quantity)}
                                   </td>
                                 </tr>
                               ));
@@ -873,6 +972,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                       <thead className="bg-gray-50">
                         <tr>
                           <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha(s)</th>
+                          <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Empresa</th>
                           <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehículo</th>
                           <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
                           <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
@@ -900,26 +1000,17 @@ const LiquidacionDetalleModal: React.FC = () => {
                               )}
                             </td>
                             <td className="px-3 py-2 text-xs">
+                              {pernote.empresa ? `${pernote.empresa.Nombre}` : 'No asociada'}
+                            </td>
+                            <td className="px-3 py-2 text-xs">
                               {pernote.vehiculo ? `${pernote.vehiculo.marca} ${pernote.vehiculo.modelo} (${pernote.vehiculo.placa})` : 'No asociado'}
                             </td>
-                            <td className="px-3 py-2 text-xs text-center">{pernote.cantidad || pernote.fechas?.length || 0}</td>
-                            <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">{formatCurrency(parseFloat(pernote.valor) / (pernote.cantidad || pernote.fechas?.length || 1))}</td>
-                            <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">{formatCurrency(pernote.valor)}</td>
+                            <td className="px-3 py-2 text-xs">{pernote.cantidad || pernote.fechas?.length || 0}</td>
+                            <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">{formatCurrency(parseFloat(pernote.valor))}</td>
+                            <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">{formatCurrency(pernote.valor * pernote.cantidad)}</td>
                           </tr>
                         ))}
                       </tbody>
-                      {/* Footer con totales */}
-                      <tfoot className="bg-gray-50">
-                        <tr>
-                          <td colSpan={3} className="px-3 py-2 text-xs font-medium text-right">Total pernotes:</td>
-                          <td colSpan={2} className="px-3 py-2 whitespace-nowrap text-xs font-bold">
-                            {formatCurrency(
-                              liquidacionActual.pernotes.reduce((sum: number, pernote: any) =>
-                                sum + parseFloat(pernote.valor || 0), 0)
-                            )}
-                          </td>
-                        </tr>
-                      </tfoot>
                     </table>
                   </div>
                 ) : (
@@ -1085,9 +1176,9 @@ const LiquidacionDetalleModal: React.FC = () => {
                         <DollarSign className="w-3 h-3 mr-1 text-gray-400" />
                         {liquidadoPor}
                       </p>
-                      {liquidacionActual.fechaLiquidacion && (
+                      {liquidacionActual.fecha_liquidacion && (
                         <p className="text-xs text-gray-500 mt-1">
-                          {formatDateTime(liquidacionActual.fechaLiquidacion)}
+                          {formatDateTime(liquidacionActual.fecha_liquidacion)}
                         </p>
                       )}
                     </div>
@@ -1128,11 +1219,11 @@ const LiquidacionDetalleModal: React.FC = () => {
                     <p className="text-sm font-medium">{periodoInicio} - {periodoFin}</p>
                   </div>
 
-                  {liquidacionActual.periodoStartVacaciones && liquidacionActual.periodoEndVacaciones && (
+                  {liquidacionActual.periodo_start_vacaciones && liquidacionActual.periodo_end_vacaciones && (
                     <div className="bg-white p-3 rounded border border-gray-200">
                       <p className="text-xs text-gray-500">Período de Vacaciones</p>
                       <p className="text-sm font-medium">
-                        {formatDate(liquidacionActual.periodoStartVacaciones)} - {formatDate(liquidacionActual.periodoEndVacaciones)}
+                        {formatDate(liquidacionActual.periodo_start_vacaciones)} - {formatDate(liquidacionActual.periodo_end_vacaciones)}
                       </p>
                     </div>
                   )}
@@ -1147,16 +1238,6 @@ const LiquidacionDetalleModal: React.FC = () => {
             }} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition flex items-center">
               <Download className="w-4 h-4 mr-2" />
               Descargar PDF
-            </button>
-            <button
-              className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition flex items-center"
-              onClick={() => {
-                cerrarModales();
-                abrirModalEditar(liquidacionActual.id);
-              }}
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Editar
             </button>
           </div>
         </div>

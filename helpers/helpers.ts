@@ -163,3 +163,72 @@ export function MesyAño(dateString: string | undefined): string {
   // Convertir la fecha al formato deseado utilizando la configuración regional 'es-ES'
   return date.toLocaleDateString('es-ES', options).toUpperCase();
 }
+
+export const agruparFechasConsecutivas = (fechas: string[]) => {
+  if (!fechas || fechas.length === 0) return [];
+
+  // Convertir strings a objetos Date y ordenar
+  const fechasOrdenadas = fechas
+    .filter((f) => f)
+    .map((f) => new Date(f))
+    .sort((a, b) => a - b);
+
+  const rangos = [];
+  let rangoActual = {
+    inicio: fechasOrdenadas[0],
+    fin: fechasOrdenadas[0],
+  };
+
+  for (let i = 1; i < fechasOrdenadas.length; i++) {
+    const fechaActual = fechasOrdenadas[i];
+    const fechaAnterior = fechasOrdenadas[i - 1];
+
+    // Verificar si son consecutivas (diferencia de 1 día)
+    const diffTime = Math.abs(fechaActual - fechaAnterior);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) {
+      // Son consecutivas, extender el rango actual
+      rangoActual.fin = fechaActual;
+    } else {
+      // No son consecutivas, guardar el rango actual y empezar uno nuevo
+      rangos.push(rangoActual);
+      rangoActual = { inicio: fechaActual, fin: fechaActual };
+    }
+  }
+
+  // Añadir el último rango
+  rangos.push(rangoActual);
+
+  // Formatear rangos
+  return rangos.map((rango) => {
+    const inicioStr = formatDateShort(rango.inicio);
+    const finStr = formatDateShort(rango.fin);
+
+    return inicioStr === finStr
+      ? inicioStr // Fecha individual
+      : `${inicioStr}~${finStr}`; // Rango
+  });
+};
+
+export function formatDateShort(dateStr : Date | undefined) : string {
+  if (!dateStr) return "";
+
+  try {
+    const date = new Date(dateStr);
+
+    // Obtener el día con dos dígitos
+    const day = date.getDate().toString().padStart(2, "0");
+
+    // Obtener el mes abreviado en minúsculas
+    const month = date
+      .toLocaleString("es", { month: "short" })
+      .toLowerCase();
+
+    // Devolver formato "DD-MMM"
+    return `${day}-${month}`;
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return "";
+  }
+}
