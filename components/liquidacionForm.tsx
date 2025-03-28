@@ -259,10 +259,10 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                     .filter((r: any) => r.vehiculoId === vehiculo.id)
                     .map((
                         r: any) => ({
-                        ...r,
-                        empresa_id: r.empresa_id || '',
-                        pag_cliente: r.pag_cliente || false
-                    }))
+                            ...r,
+                            empresa_id: r.empresa_id || '',
+                            pag_cliente: r.pag_cliente || false
+                        }))
             }));
 
             setDetallesVehiculos(detalles);
@@ -310,11 +310,11 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
             const detallesMap = new Map(
                 detallesVehiculos.map(detalle => [detalle.vehiculo.value, detalle])
             );
-    
+
             // Generar nuevos detalles para cada vehículo seleccionado
             const nuevosDetalles = vehiculosSelected.map(vehiculo => {
                 const detalleExistente = detallesMap.get(vehiculo.value);
-    
+
                 // Si ya existe el detalle, actualizar con nuevos meses
                 if (detalleExistente) {
                     return {
@@ -345,7 +345,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                             }],
                     };
                 }
-    
+
                 // Si no existe, crear nuevo detalle con nombres de bonos predefinidos
                 const bonos = [
                     "Bono de alimentación",
@@ -358,7 +358,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                     value: Number(configuracion?.find(config => config.nombre === nombre)?.valor || 0),
                     vehiculoId: vehiculo.value,
                 }));
-    
+
                 return {
                     vehiculo,
                     bonos,
@@ -371,12 +371,12 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                     recargos: [],
                 };
             });
-    
+
             // Tipo asegurado antes de la asignación
             setDetallesVehiculos(nuevosDetalles);
         }
     }, [vehiculosSelected, mesesRange, configuracion]);
-    
+
     // Manejadores de eventos
     const handleDateChange = (value: RangeValue<DateValue> | null) => {
         if (value === null) {
@@ -588,7 +588,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
 
     // Función para manejar cambio de fecha
     const handleDateChangeAnticipo = (date: string | null) => {
-        if(date === null) {
+        if (date === null) {
             setAnticipoDate('');
             return;
         }
@@ -1765,7 +1765,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                             <div className="text-sm text-gray-500 mb-1">Período de liquidación</div>
                                             <div className="text-base font-medium">
                                                 {dateSelected?.start && dateSelected?.end ?
-                                                    `${formatDate(dateSelected.start)} - ${formatDate(dateSelected.end)}` :
+                                                    `${formatDate(dateSelected.start.toString())} - ${formatDate(dateSelected.end.toString())}` :
                                                     'No seleccionado'
                                                 }
                                             </div>
