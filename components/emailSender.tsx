@@ -31,7 +31,7 @@ interface EmailSenderProps {
 }
 
 const EmailSender = ({ selectedIds }: EmailSenderProps) => {
-  const { liquidaciones, sendsEmailsNominaConductores, generatePDFS } = useNomina();
+  const { liquidaciones, generatePDFS } = useNomina();
   const [isOpen, setIsOpen] = useState(false);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
@@ -75,28 +75,28 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
         setSocketConnected(true);
         console.log('Socket conectado exitosamente');
       };
-  
+
       const handleSocketDisconnect = () => {
         setSocketConnected(false);
         console.log('Socket desconectado');
       };
-  
+
       // Conectar con el ID del usuario
       socketService.connect(userInfo.id);
       setSocketAttempted(true);
-  
+
       // Registrar listeners para eventos
       socketService.on('connect', handleSocketConnect);
       socketService.on('disconnect', handleSocketDisconnect);
       socketService.on('job:progress', handleJobProgress);
       socketService.on('job:completed', handleJobCompleted);
       socketService.on('job:failed', handleJobFailed);
-  
+
       // Verificar si ya está conectado
       if (socketService.isConnected()) {
         setSocketConnected(true);
       }
-  
+
       // Limpiar al desmontar
       return () => {
         socketService.off('connect');
@@ -104,7 +104,7 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
         socketService.off('job:progress');
         socketService.off('job:completed');
         socketService.off('job:failed');
-  
+
         // Solo desconectar si no hay un trabajo activo
         if (status !== 'processing' && status !== 'queued') {
           socketService.disconnect();
@@ -206,16 +206,16 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
   };
 
   // Obtener mensaje según el estado del trabajo
-  const getStatusMessage = (jobStatus: JobStatus): string => {
-    switch (jobStatus) {
-      case 'idle': return 'Listo para enviar';
-      case 'queued': return 'En cola para procesamiento...';
-      case 'processing': return 'Procesando liquidaciones...';
-      case 'completed': return '¡Envío completado!';
-      case 'failed': return 'Error en el envío';
-      default: return 'Estado desconocido';
-    }
-  };
+  // const getStatusMessage = (jobStatus: JobStatus): string => {
+  //   switch (jobStatus) {
+  //     case 'idle': return 'Listo para enviar';
+  //     case 'queued': return 'En cola para procesamiento...';
+  //     case 'processing': return 'Procesando liquidaciones...';
+  //     case 'completed': return '¡Envío completado!';
+  //     case 'failed': return 'Error en el envío';
+  //     default: return 'Estado desconocido';
+  //   }
+  // };
 
   // Calcular los emails de los destinatarios
   const destinatariosEmails = liquidaciones
@@ -282,7 +282,7 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
 
       // 4. Enviar solicitud al backend para iniciar el proceso (generación de PDFs + envío de emails)
       const response = await generatePDFS(selectedIds, emailData);
-
+      console.log(response)
 
 
     } catch (error: any) {

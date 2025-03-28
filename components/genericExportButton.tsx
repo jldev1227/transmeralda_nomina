@@ -21,8 +21,8 @@ const GenericExportButton = ({
   buttonProps = {}
 } : GenericExportButtonProps) => {
   const { exportExcel } = useNomina();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [isLoading, _setIsLoading] = useState(false);
+  const [error, _setError] = useState(null);
 
   const handleExport = async () => {
     await exportExcel(options, getData)
