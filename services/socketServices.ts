@@ -1,6 +1,15 @@
 // src/services/socketService.ts
 import { io, Socket } from 'socket.io-client';
 
+interface SocketServiceOptions {
+  transports?: ["polling"]; // Tipos de transporte a usar (websocket, polling, etc.)
+  timeout?: number; // Timeout para la conexión
+  reconnectionAttempts?: number; // Número de intentos de reconexión
+  reconnectionDelay?: number; // Retraso entre intentos de reconexión
+  query?: { [key: string]: string }; // Parámetros de consulta para la conexión
+  withCredentials?: boolean; // Si se deben enviar cookies en solicitudes cross-domain
+}
+
 class SocketService {
   private socket: Socket | null = null;
   private reconnectAttempts = 0;
@@ -59,8 +68,8 @@ class SocketService {
     console.error('Error de conexión socket:', error);
     
     // Si estamos usando el transporte polling y falla, intentemos solo websocket
-    if (this.socket && this.socket.io.opts.transports?.includes('polling')) {
-      console.log('Intentando conectar solo con websocket...');
+    if (this.socket && this.socket.io.opts.transports?.includes('polling' as any)) {
+            console.log('Intentando conectar solo con websocket...');
       this.disconnect();
       
       // Intentar reconectar con solo websocket después de un retraso
