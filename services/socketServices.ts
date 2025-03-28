@@ -1,15 +1,6 @@
 // src/services/socketService.ts
 import { io, Socket } from 'socket.io-client';
 
-interface SocketServiceOptions {
-  transports?: ["polling"]; // Tipos de transporte a usar (websocket, polling, etc.)
-  timeout?: number; // Timeout para la conexión
-  reconnectionAttempts?: number; // Número de intentos de reconexión
-  reconnectionDelay?: number; // Retraso entre intentos de reconexión
-  query?: { [key: string]: string }; // Parámetros de consulta para la conexión
-  withCredentials?: boolean; // Si se deben enviar cookies en solicitudes cross-domain
-}
-
 class SocketService {
   private socket: Socket | null = null;
   private reconnectAttempts = 0;

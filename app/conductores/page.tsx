@@ -37,7 +37,6 @@ const LiquidacionesDashboard: React.FC = () => {
   // Estado para mostrar/ocultar filtros avanzados
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [dialogEmailsSend, setDialogEmailsSend] = useState(false)
 
   // Cálculos para paginación
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -82,10 +81,6 @@ const LiquidacionesDashboard: React.FC = () => {
       }
     });
   };
-
-  const handleOpenDialogSendEmails = () => {
-    setDialogEmailsSend(!dialogEmailsSend)
-  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
