@@ -75,38 +75,36 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
         setSocketConnected(true);
         console.log('Socket conectado exitosamente');
       };
-
+  
       const handleSocketDisconnect = () => {
         setSocketConnected(false);
         console.log('Socket desconectado');
       };
-
-      // Registrar manejadores
-      socketService.connect(handleSocketConnect);
-      socketService.disconnect(handleSocketDisconnect);
-
-      // Configurar listeners para el trabajo
+  
+      // Conectar con el ID del usuario
+      socketService.connect(userInfo.id);
+      setSocketAttempted(true);
+  
+      // Registrar listeners para eventos
+      socketService.on('connect', handleSocketConnect);
+      socketService.on('disconnect', handleSocketDisconnect);
       socketService.on('job:progress', handleJobProgress);
       socketService.on('job:completed', handleJobCompleted);
       socketService.on('job:failed', handleJobFailed);
-
-      // Intentar conectar
-      socketService.connect(userInfo.id);
-      setSocketAttempted(true);
-
+  
       // Verificar si ya está conectado
       if (socketService.isConnected()) {
         setSocketConnected(true);
       }
-
+  
       // Limpiar al desmontar
       return () => {
-        socketService.off(handleSocketConnect);
-        socketService.disconnect(handleSocketDisconnect);
+        socketService.off('connect');
+        socketService.off('disconnect');
         socketService.off('job:progress');
         socketService.off('job:completed');
         socketService.off('job:failed');
-
+  
         // Solo desconectar si no hay un trabajo activo
         if (status !== 'processing' && status !== 'queued') {
           socketService.disconnect();
@@ -116,55 +114,55 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
   }, [isOpen, userInfo, status]);
 
   // Si hay un jobId, verificar el estado periódicamente como respaldo
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout;
+  // useEffect(() => {
+  //   let intervalId: NodeJS.Timeout;
 
-    if (jobId && (status === 'queued' || status === 'processing')) {
-      // Crear un intervalo para verificar el estado del trabajo
-      intervalId = setInterval(async () => {
-        try {
-          const response = await apiClient.get(`/api/pdf/job-status/${jobId}`);
-          const jobData = response.data.data;
+  //   if (jobId && (status === 'queued' || status === 'processing')) {
+  //     // // Crear un intervalo para verificar el estado del trabajo
+  //     intervalId = setInterval(async () => {
+  //       try {
+  //         const response = await apiClient.get(`/api/pdf/job-status/${jobId}`);
+  //         const jobData = response.data.data;
 
-          // Actualizar estado y progreso
-          setStatus(jobData.status as JobStatus);
-          setProgress({
-            current: Math.round((jobData.progress / 100) * jobData.totalEmails),
-            total: jobData.totalEmails || selectedIds.length,
-            message: getStatusMessage(jobData.status)
-          });
+  //         // Actualizar estado y progreso
+  //         setStatus(jobData.status as JobStatus);
+  //         setProgress({
+  //           current: Math.round((jobData.progress / 100) * jobData.totalEmails),
+  //           total: jobData.totalEmails || selectedIds.length,
+  //           message: getStatusMessage(jobData.status)
+  //         });
 
-          // Si el trabajo terminó, limpiar el intervalo
-          if (jobData.status === 'completed' || jobData.status === 'failed') {
-            clearInterval(intervalId);
+  //         // Si el trabajo terminó, limpiar el intervalo
+  //         if (jobData.status === 'completed' || jobData.status === 'failed') {
+  //           clearInterval(intervalId);
 
-            if (jobData.status === 'completed') {
-              toast.success(`¡Correos enviados exitosamente!`);
+  //           if (jobData.status === 'completed') {
+  //             toast.success(`¡Correos enviados exitosamente!`);
 
-              // Cerrar modal después de un tiempo
-              setTimeout(() => {
-                setSending(false);
-                setJobId(null);
-                handleClose();
-              }, 3000);
-            } else if (jobData.status === 'failed') {
-              toast.error(`Error: ${jobData.error || 'No se pudo completar el envío'}`);
-              setSending(false);
-              setJobId(null);
-            }
-          }
-        } catch (error) {
-          console.error('Error al consultar estado del trabajo:', error);
-        }
-      }, 3000); // Verificar cada 3 segundos
-    }
+  //             // Cerrar modal después de un tiempo
+  //             setTimeout(() => {
+  //               setSending(false);
+  //               setJobId(null);
+  //               handleClose();
+  //             }, 3000);
+  //           } else if (jobData.status === 'failed') {
+  //             toast.error(`Error: ${jobData.error || 'No se pudo completar el envío'}`);
+  //             setSending(false);
+  //             setJobId(null);
+  //           }
+  //         }
+  //       } catch (error) {
+  //         console.error('Error al consultar estado del trabajo:', error);
+  //       }
+  //     }, 3000); // Verificar cada 3 segundos
+  //   }
 
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [jobId, status, selectedIds.length]);
+  //   return () => {
+  //     if (intervalId) {
+  //       clearInterval(intervalId);
+  //     }
+  //   };
+  // }, [jobId, status, selectedIds.length]);
 
   // Manejadores de eventos socket
   const handleJobProgress = (data: { jobId: string; progress: number }) => {
