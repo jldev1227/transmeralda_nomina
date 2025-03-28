@@ -542,7 +542,7 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
           </View>
 
           {/* Pensión */}
-          <View style={item.anticipos.length == 0 ? [styles.tableRowLast, styles.flex] : [styles.tableRow, styles.flex]}>
+          <View style={item.anticipos && item.anticipos.length == 0 ? [styles.tableRowLast, styles.flex] : [styles.tableRow, styles.flex]}>
             <View>
               <Text style={styles.labelText}>Pensión</Text>
             </View>
@@ -555,7 +555,7 @@ export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recarg
 
 
           {/* Anticipos */}
-          {item?.anticipos.length > 0 && (
+          {item.anticipos && item?.anticipos.length > 0 && (
             <View style={[styles.tableRowLast, styles.flex]}>
               <View>
                 <Text style={styles.labelText}>Anticipos</Text>

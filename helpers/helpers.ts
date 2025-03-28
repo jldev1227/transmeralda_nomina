@@ -34,34 +34,42 @@ export const formatCurrency = (value: number): string => {
  * @param date - Objeto de fecha (DateValue o Date)
  * @returns String con la fecha formateada
  */
-export function formatDate(dateString: string | undefined): string {
-  if (!dateString) {
-    throw new Error('La fecha debe ser una cadena válida.');
+export function formatDate(date: string | DateValue | undefined): string {
+  if (!date) {
+    return 'Fecha no especificada';
   }
 
-  // Crear un objeto Date a partir de la cadena en formato 'YYYY-MM-DD'
-  const date = new Date(dateString);
+  let dateObj: Date;
+
+  // Determinar si el argumento es un string o un objeto DateValue
+  if (typeof date === 'string') {
+    // Si es string, convertir a Date
+    dateObj = new Date(date);
+  } else {
+    // Si es DateValue/CalendarDate, extraer los componentes
+    if ('year' in date && 'month' in date && 'day' in date) {
+      // Es un CalendarDate
+      dateObj = new Date(date.year, date.month - 1, date.day);
+    } else {
+      // Si no se puede procesar, devolver mensaje de error
+      return 'Formato de fecha no válido';
+    }
+  }
 
   // Verificar si la fecha es válida
-  if (isNaN(date.getTime())) {
-    throw new Error('Fecha no válida.');
+  if (isNaN(dateObj.getTime())) {
+    return 'Fecha no válida';
   }
 
-  // Establecer la hora a medianoche para evitar problemas de zona horaria
-  date.setHours(0, 0, 0, 0);
-
-  // Sumar 1 al día
-  date.setDate(date.getDate() + 1);
-
-  // Definir opciones para el formato de fecha con tipos correctos
+  // Definir opciones para el formato de fecha
   const options: Intl.DateTimeFormatOptions = {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   };
 
-  // Convertir la fecha al formato deseado utilizando la configuración regional 'es-ES'
-  return date.toLocaleDateString('es-ES', options);
+  // Formatear y devolver la fecha
+  return dateObj.toLocaleDateString('es-ES', options);
 }
 /**
  * Formatea un DateValue a formato YYYY-MM-DD
@@ -171,7 +179,7 @@ export const agruparFechasConsecutivas = (fechas: string[]) => {
   const fechasOrdenadas = fechas
     .filter((f) => f)
     .map((f) => new Date(f))
-    .sort((a, b) => a - b);
+    .sort((a, b) => a.getTime() - b.getTime());
 
   const rangos = [];
   let rangoActual = {
@@ -183,8 +191,8 @@ export const agruparFechasConsecutivas = (fechas: string[]) => {
     const fechaActual = fechasOrdenadas[i];
     const fechaAnterior = fechasOrdenadas[i - 1];
 
-    // Verificar si son consecutivas (diferencia de 1 día)
-    const diffTime = Math.abs(fechaActual - fechaAnterior);
+    // Convertir a números (timestamps) antes de la operación aritmética
+    const diffTime = Math.abs(fechaActual.getTime() - fechaAnterior.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays === 1) {

@@ -20,11 +20,8 @@ import { Tabs, Tab } from '@nextui-org/tabs';
 import { Tooltip } from '@nextui-org/tooltip';
 import { Badge } from '@nextui-org/badge';
 import { formatCurrency, formatToCOP, formatDate, obtenerMesesEntreFechas, obtenerDiferenciaDias, dateToDateValue } from '@/helpers/helpers';
-import { AnyCalendarDate, parseDate } from '@internationalized/date';
-import { DateRangePicker, CalendarDate } from '@nextui-org/react';
-import {
-    createCalendar
-} from '@internationalized/date';
+import { parseDate } from '@internationalized/date';
+import { DateRangePicker } from '@nextui-org/react';
 import { DateValue } from '@nextui-org/system/node_modules/@internationalized/date/dist/types';
 import { RangeValue } from '@react-types/shared';
 
@@ -96,30 +93,6 @@ const normalizeNumber = (value: any): number => {
     return isNaN(num) ? 0 : num;
 }
 
-function convertToDateValue(calendarDate: CalendarDate | null): DateValue | null {
-    if (!calendarDate) return null;
-
-    try {
-        return createCalendar(
-            calendarDate.year,
-            calendarDate.month,
-            calendarDate.day
-        ) as unknown as DateValue;
-    } catch (error) {
-        console.error('Error converting date:', error);
-        return null;
-    }
-}
-
-function convertToDateRangeValue(periodo: PeriodoVacaciones | null): RangeValue<DateValue> | null {
-    if (!periodo || !periodo.start || !periodo.end) return null;
-
-    return {
-        start: convertToDateValue(periodo.start),
-        end: convertToDateValue(periodo.end)
-    };
-}
-
 const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     mode = 'create',
     initialData,
@@ -133,7 +106,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
         empresas
     } = useNomina();
 
-    console.log(initialData)
 
     // Estados principales
     const [currentStep, setCurrentStep] = useState(1);
@@ -155,7 +127,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     const [periodoVacaciones, setPeriodoVacaciones] = useState<RangeValue<DateValue> | null>(null);
     const [mesesRange, setMesesRange] = useState<string[]>([]);
     const [detallesVehiculos, setDetallesVehiculos] = useState<DetallesVehiculos>([]);
-    const [anticipos, setAnticipos] = useState<Anticipo[]>([])
+    const [anticipos, setAnticipos] = useState<any[]>([]);
 
     // Estados para cálculos
     const [isCheckedAjuste, setIsCheckedAjuste] = useState(false);
@@ -231,6 +203,11 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
         }
     }, [mode, initialData, conductoresOptions, vehiculosOptions]);
 
+    function toDateValue(date: any): DateValue {
+        // Aquí puedes agregar lógica específica para la conversión si es necesario
+        return date as DateValue;
+    }
+
     // Función para cargar datos de liquidación existente
     const cargarDatosLiquidacion = () => {
         // Cargar conductor
@@ -246,8 +223,8 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
         // Cargar fechas
         if (initialData?.periodo_start && initialData?.periodo_end) {
             setDateSelected({
-                start: parseDate(initialData.periodo_start),
-                end: parseDate(initialData.periodo_end),
+                start: toDateValue(parseDate(initialData.periodo_start)),
+                end: toDateValue(parseDate(initialData.periodo_end)),
             });
 
             // Actualizar meses
@@ -262,8 +239,8 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
         // Cargar vacaciones
         if (initialData?.periodo_start_vacaciones && initialData?.periodo_end_vacaciones) {
             setPeriodoVacaciones({
-                start: parseDate(initialData.periodo_start_vacaciones),
-                end: parseDate(initialData.periodo_end_vacaciones),
+                start: toDateValue(parseDate(initialData.periodo_start_vacaciones)),
+                end: toDateValue(parseDate(initialData.periodo_end_vacaciones)),
             });
             setIsVacaciones(true);
         }
@@ -276,24 +253,25 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                     label: vehiculo.placa,
                 },
                 bonos: (initialData.bonificaciones || [])
-                    .filter((b: any) => b.vehiculo_id === vehiculo.id)
+                    .filter((b: any) => b.vehiculoId === vehiculo.id)
                     .map((bono: any) => ({
                         name: bono.name,
                         values: bono.values || [{ mes: "Mes no definido", quantity: 0 }],
                         value: normalizeNumber(bono.value),
-                        vehiculo_id: bono.vehiculo_id
+                        vehiculoId: bono.vehiculoId
                     })),
                 mantenimientos: (initialData?.mantenimientos || [])
-                    .filter((m: any) => m.vehiculo_id === vehiculo.id)
+                    .filter((m: any) => m.vehiculoId === vehiculo.id)
                     .map((m: any) => ({
                         values: m.values || [{ mes: "Mes no definido", quantity: 0 }],
                         value: normalizeNumber(m.value),
-                        vehiculo_id: m.vehiculo_id
+                        vehiculoId: m.vehiculoId
                     })),
-                pernotes: (initialData.pernotes || []).filter((p: any) => p.vehiculo_id === vehiculo.id),
+                pernotes: (initialData.pernotes || []).filter((p: any) => p.vehiculoId === vehiculo.id),
                 recargos: (initialData.recargos || [])
-                    .filter((r: any) => r.vehiculo_id === vehiculo.id)
-                    .map((r: any) => ({
+                    .filter((r: any) => r.vehiculoId === vehiculo.id)
+                    .map((
+                        r: any) => ({
                         ...r,
                         empresa_id: r.empresa_id || '',
                         pag_cliente: r.pag_cliente || false
@@ -302,13 +280,12 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
 
             setDetallesVehiculos(detalles);
         }
-
-        if (initialData.anticipos.length > 0) {
+        if (initialData && initialData.anticipos && initialData.anticipos.length > 0) {
             setAnticipos(initialData.anticipos)
         }
 
         // Cargar otros valores
-        setAnticipos(initialData.anticipos)
+        setAnticipos(initialData?.anticipos || [])
         setDiasLaborados(initialData?.dias_laborados || 0);
         setDiasLaboradosVillanueva(initialData?.dias_laborados_villanueva || 0);
         setDiasLaboradosAnual(initialData?.dias_laborados_anual || 0);
@@ -346,12 +323,11 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
             const detallesMap = new Map(
                 detallesVehiculos.map(detalle => [detalle.vehiculo.value, detalle])
             );
-
+    
             // Generar nuevos detalles para cada vehículo seleccionado
             const nuevosDetalles = vehiculosSelected.map(vehiculo => {
                 const detalleExistente = detallesMap.get(vehiculo.value);
-
-
+    
                 // Si ya existe el detalle, actualizar con nuevos meses
                 if (detalleExistente) {
                     return {
@@ -367,20 +343,22 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                         mantenimientos: detalleExistente.mantenimientos.length > 0
                             ? detalleExistente.mantenimientos.map(mantenimiento => ({
                                 ...mantenimiento,
-                                value: configuracion?.find(config => config.nombre === "Mantenimiento")?.valor || 0,
+                                // Asegurar que value sea siempre un número
+                                value: Number(configuracion?.find(config => config.nombre === "Mantenimiento")?.valor || 0),
                                 values: mesesRange.map(mes => {
                                     const mantenimientoExistente = mantenimiento.values.find(val => val.mes === mes);
                                     return mantenimientoExistente || { mes, quantity: 0 };
                                 }),
                             }))
                             : [{
-                                value: configuracion?.find(config => config.nombre === "Mantenimiento")?.valor || 0,
+                                // Asegurar que value sea siempre un número
+                                value: Number(configuracion?.find(config => config.nombre === "Mantenimiento")?.valor || 0),
                                 values: mesesRange.map(mes => ({ mes, quantity: 0 })),
                                 vehiculoId: vehiculo.value
                             }],
                     };
                 }
-
+    
                 // Si no existe, crear nuevo detalle con nombres de bonos predefinidos
                 const bonos = [
                     "Bono de alimentación",
@@ -390,10 +368,10 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                 ].map(nombre => ({
                     name: nombre,
                     values: mesesRange.map(mes => ({ mes, quantity: 0 })),
-                    value: configuracion?.find(config => config.nombre === nombre)?.valor || 0,
+                    value: Number(configuracion?.find(config => config.nombre === nombre)?.valor || 0),
                     vehiculoId: vehiculo.value,
                 }));
-
+    
                 return {
                     vehiculo,
                     bonos,
@@ -406,11 +384,12 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                     recargos: [],
                 };
             });
-
+    
+            // Tipo asegurado antes de la asignación
             setDetallesVehiculos(nuevosDetalles);
         }
     }, [vehiculosSelected, mesesRange, configuracion]);
-
+    
     // Manejadores de eventos
     const handleDateChange = (value: RangeValue<DateValue> | null) => {
         if (value === null) {
@@ -621,7 +600,11 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     };
 
     // Función para manejar cambio de fecha
-    const handleDateChangeAnticipo = (date: string) => {
+    const handleDateChangeAnticipo = (date: string | null) => {
+        if(date === null) {
+            setAnticipoDate('');
+            return;
+        }
         setAnticipoDate(date);
         setIsInvalidDateAnticipo(false);
     };
@@ -1437,11 +1420,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                                                             <div key={`${pernoteIndex}-${dateIndex}`} className="col-span-1 md:col-span-3">
                                                                                 <DatePicker
                                                                                     label={`Fecha ${dateIndex + 1}`}
-                                                                                    value={
-                                                                                        fecha
-                                                                                            ? (parseDate(fecha) as DateValue)
-                                                                                            : null
-                                                                                    }
+                                                                                    value={fecha ? (parseDate(fecha) as unknown as DateValue) : null}
                                                                                     onChange={(value: DateValue | null) => {
                                                                                         if (value) {
                                                                                             const jsDate = new Date(

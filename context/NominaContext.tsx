@@ -73,7 +73,7 @@ export interface Recargo {
 }
 
 export interface Anticipo {
-    id?: string;
+    id?: string | number;
     liquidacionId: string;
     valor: number;
     fecha?: string;
@@ -124,7 +124,7 @@ export interface Liquidacion {
     bonificaciones?: Bonificacion[];
     pernotes?: Pernote[];
     recargos?: Recargo[];
-    anticipos: Anticipo[];
+    anticipos?: Anticipo[];
     mantenimientos?: Mantenimiento[];
     actualizado_por_id?: string;
     creado_por_id?: string;
