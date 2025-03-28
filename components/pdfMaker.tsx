@@ -8,7 +8,7 @@ import {
   Image,
 } from "@react-pdf/renderer";
 import { BonificacionesAcc, Bonificacion, Liquidacion, Recargo } from "@/context/NominaContext";
-import { formatDate, formatToCOP, MesyAño, obtenerDiferenciaDias } from "@/helpers/helpers";
+import { agruparFechasConsecutivas, formatDate, formatToCOP, MesyAño, obtenerDiferenciaDias } from "@/helpers/helpers";
 import { parseDate } from "@internationalized/date";
 
 // Estilos para el PDF con un diseño más elegante tipo tabla
@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     paddingVertical: 30,
     backgroundColor: "#FFF",
-    fontSize: 10,
+    fontSize: 12,
   },
   header: {
     fontWeight: "bold",
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     color: "#2E8B57",
   },
   subHeader: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: "medium",
   },
   comprobante: {
@@ -51,86 +51,144 @@ const styles = StyleSheet.create({
     width: "100%",
     borderColor: "#E0E0E0",
     borderWidth: 1,
-    borderRadius: 4,
     marginBottom: 15,
   },
   tableRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: "#E0E0E0",
-    minHeight: 24,
     alignItems: "center",
   },
   tableRowLast: {
     flexDirection: "row",
-    minHeight: 24,
     alignItems: "center",
   },
+
   tableHeader: {
     backgroundColor: "#2E8B5715",
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: "#E0E0E0",
-    minHeight: 26,
     alignItems: "center",
+    width: "100%", // Asegúrate que ocupe todo el ancho disponible
   },
-  tableCol1: {
-    width: "40%",
-    paddingLeft: 8,
+
+  // Estilos para cada columna con proporciones específicas
+  tableColHeader1: {
+    width: "30%",
     paddingVertical: 5,
+    paddingHorizontal: 5,
+    borderRightWidth: 1,
+    borderColor: "#E0E0E0",
+    fontWeight: "bold"
+  },
+  tableColHeader2: {
+    width: "40%",
+    paddingVertical: 5,
+    paddingHorizontal: 5,
+    borderRightWidth: 1,
+    borderColor: "#E0E0E0",
+    fontWeight: "bold"
+  },
+  tableColHeader3: {
+    width: "15%",
+    paddingVertical: 5,
+    paddingHorizontal: 5,
+    borderRightWidth: 1,
+    borderColor: "#E0E0E0",
+    fontWeight: "bold"
+  },
+  tableColHeader4: {
+    width: "15%",
+    paddingVertical: 5,
+    paddingHorizontal: 5,
+    textAlign: "center",
+    borderRightWidth: 1,
+    borderColor: "#E0E0E0",
+    fontWeight: "bold"
+  },
+
+  // Estilos similares para las filas de datos (no solo el encabezado)
+  tableCol1: {
+    width: "30%",
+    paddingVertical: 5,
+    paddingHorizontal: 5,
+    borderRightWidth: 1,
+    borderColor: "#E0E0E0",
+    height: "100%", // Ocupar toda la altura disponible
+
   },
   tableCol2: {
-    width: "30%",
-    paddingHorizontal: 8,
+    width: "40%",
     paddingVertical: 5,
-    textAlign: "center",
+    paddingHorizontal: 5,
+    borderRightWidth: 1,
+    borderColor: "#E0E0E0",
+    height: "100%", // Ocupar toda la altura disponible
+
   },
   tableCol3: {
-    width: "30%",
-    paddingRight: 8,
+    width: "15%",
     paddingVertical: 5,
-    textAlign: "right",
+    paddingHorizontal: 5,
+    textAlign: "center",
+    borderRightWidth: 1,
+    borderColor: "#E0E0E0",
+    height: "100%", // Ocupar toda la altura disponible
+
+  },
+  tableCol4: {
+    width: "15%",
+    paddingVertical: 5,
+    paddingHorizontal: 5,
+    textAlign: "center",
+    borderRightWidth: 1,
+    borderColor: "#E0E0E0",
+    height: "100%", // Ocupar toda la altura disponible
+
   },
   // Text styles
   labelText: {
-    fontWeight: "semibold",
-    fontSize: 10,
+    fontSize: 12,
   },
   valueText: {
-    fontSize: 10,
+    fontSize: 12,
+  },
+  flex: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 4
   },
   // Value styles with color
   blueValue: {
     color: "#007AFF",
-    backgroundColor: "#007AFF10",
+    backgroundColor: "#F0F7FF",
     padding: 3,
     borderRadius: 3,
-    fontSize: 10,
-    fontWeight: "semibold",
+    fontSize: 12,
   },
   grayValue: {
     color: "#00000074",
-    backgroundColor: "#00000010",
+    backgroundColor: "#F0F0F0",
     padding: 3,
     borderRadius: 3,
-    fontSize: 10,
-    fontWeight: "semibold",
+    fontSize: 12,
   },
   orangeValue: {
     color: "#FF9500",
-    backgroundColor: "#FF950010",
+    backgroundColor: "#FFF9F0",
     padding: 3,
-    borderRadius: 3, 
-    fontSize: 10,
-    fontWeight: "semibold",
+    borderRadius: 3,
+    fontSize: 12,
   },
   redValue: {
     color: "#e60f0f",
-    backgroundColor: "#e60f0f10",
+    backgroundColor: "#FDF1F1",
     padding: 3,
     borderRadius: 3,
-    fontSize: 10,
-    fontWeight: "semibold",
+    fontSize: 12,
   },
   greenValue: {
     color: "#2E8B57",
@@ -138,12 +196,6 @@ const styles = StyleSheet.create({
     padding: 3,
     borderRadius: 3,
     fontSize: 12,
-    fontWeight: "semibold",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#E0E0E0",
-    marginVertical: 1,
   },
   footer: {
     position: "absolute",
@@ -159,8 +211,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "bold",
     color: "#2E8B57",
-    marginTop: 15,
-    marginBottom: 5,
+    marginBottom: 15,
   }
 });
 
@@ -172,12 +223,12 @@ type LiquidacionPDFProps = {
 };
 
 // Función para manejar valores undefined/null
-const safeValue = (value, defaultValue = "") => {
+const safeValue = (value: any, defaultValue = "") => {
   return value !== undefined && value !== null ? value : defaultValue;
 };
 
 // Componente que genera el PDF con la información del item
-const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recargosActualizados }: LiquidacionPDFProps) => {
+export const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recargosActualizados }: LiquidacionPDFProps) => {
   if (!item) {
     return (
       <Document>
@@ -198,10 +249,10 @@ const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recargosActua
               TRANSPORTES Y SERVICIOS ESMERALDA S.A.S ZOMAC
             </Text>
             <Text style={styles.subHeader}>
-              NIT: 901528440
+              NIT: 901528440-3
             </Text>
             <Text style={styles.comprobante}>
-              Comprobante de nomina - {MesyAño(item.periodoEnd)}
+              COMPROBANTE DE NOMINA - {MesyAño(item.periodo_end)}
             </Text>
           </View>
           <Image
@@ -218,69 +269,69 @@ const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recargosActua
 
         {/* Datos del empleado */}
         <View style={styles.table}>
-          <View style={styles.tableRow}>
-            <View style={styles.tableCol1}>
+          <View style={[styles.tableRow, styles.flex]}>
+            <View>
               <Text style={styles.labelText}>Nombre</Text>
             </View>
-            <View style={[styles.tableCol2, styles.tableCol3, { width: "60%", textAlign: "right" }]}>
+            <View>
               <Text style={styles.valueText}>
                 {safeValue(item.conductor?.nombre)} {safeValue(item.conductor?.apellido)}
               </Text>
             </View>
           </View>
-          
-          <View style={styles.tableRow}>
-            <View style={styles.tableCol1}>
+
+          <View style={[styles.tableRow, styles.flex]}>
+            <View>
               <Text style={styles.labelText}>C.C.</Text>
             </View>
-            <View style={[styles.tableCol2, styles.tableCol3, { width: "60%", textAlign: "right" }]}>
+            <View>
               <Text style={styles.valueText}>{safeValue(item.conductor?.numero_identificacion)}</Text>
             </View>
           </View>
-          
-          <View style={styles.tableRow}>
-            <View style={styles.tableCol1}>
+
+          <View style={[styles.tableRow, styles.flex]}>
+            <View>
               <Text style={styles.labelText}>Días laborados</Text>
             </View>
-            <View style={[styles.tableCol2, styles.tableCol3, { width: "60%", textAlign: "right" }]}>
-              <Text style={styles.valueText}>{safeValue(item.diasLaborados, 0)}</Text>
+            <View>
+              <Text style={styles.valueText}>{safeValue(item.dias_laborados, '0')}</Text>
             </View>
           </View>
-          
-          <View style={styles.tableRow}>
-            <View style={styles.tableCol1}>
+
+          <View style={[styles.tableRow, styles.flex]}>
+            <View>
               <Text style={styles.labelText}>Salario devengado</Text>
             </View>
-            <View style={[styles.tableCol2, styles.tableCol3, { width: "60%", textAlign: "right" }]}>
+            <View>
               <Text style={styles.blueValue}>
-                {formatToCOP(safeValue(item.salarioDevengado, 0))}
+                {formatToCOP(safeValue(item.salario_devengado, '0'))}
               </Text>
             </View>
           </View>
-          
-          <View style={styles.tableRow}>
-            <View style={styles.tableCol1}>
+
+          <View style={[styles.tableRow, styles.flex]}>
+            <View>
               <Text style={styles.labelText}>Auxilio de transporte</Text>
             </View>
-            <View style={[styles.tableCol2, styles.tableCol3, { width: "60%", textAlign: "right" }]}>
+            <View>
               <Text style={styles.grayValue}>
-                {formatToCOP(safeValue(item.auxilioTransporte, 0))}
+                {formatToCOP(safeValue(item.auxilio_transporte, '0'))}
               </Text>
             </View>
           </View>
-          
-          <View style={styles.tableRowLast}>
-            <View style={styles.tableCol1}>
+
+          <View style={[styles.tableRowLast, styles.flex]}>
+            <View>
               <Text style={styles.labelText}>Ajuste villanueva</Text>
             </View>
-            <View style={[styles.tableCol2, { width: "30%", textAlign: "center" }]}>
+            <View>
               <Text style={styles.valueText}>
-                {safeValue(item.diasLaboradosVillanueva, 0)} días
+                {safeValue(item.dias_laborados_villanueva, '0')} días
               </Text>
             </View>
-            <View style={[styles.tableCol3, { width: "30%" }]}>
+            <View>
               <Text style={styles.orangeValue}>
-                {formatToCOP(safeValue(item.ajusteSalarial, 0))}
+                {formatToCOP(safeValue(item.ajuste_salarial, '0'))}
               </Text>
             </View>
           </View>
@@ -288,34 +339,34 @@ const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recargosActua
 
         {/* Periodo */}
         <Text style={styles.period}>
-          {formatDate(item.periodoStart)} - {formatDate(item.periodoEnd)}
+          {formatDate(item.periodo_start)} - {formatDate(item.periodo_end)}
         </Text>
 
         {/* Tabla de Conceptos */}
         <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <View style={styles.tableCol1}>
-              <Text style={[styles.labelText, { color: "#2E8B57" }]}>Concepto</Text>
+            <View style={styles.tableColHeader1}>
+              <Text style={[styles.labelText, { color: "#2E8B57", fontSize: 10 }]}>CONCEPTO</Text>
             </View>
-            <View style={styles.tableCol2}>
-              <Text style={[styles.labelText, { color: "#2E8B57" }]}>Observación</Text>
+            <View style={styles.tableColHeader2}>
+              <Text style={[styles.labelText, { color: "#2E8B57", fontSize: 10 }]}>OBSERVACIÓN</Text>
             </View>
-            <View style={[styles.tableCol2, { width: "15%" }]}>
-              <Text style={[styles.labelText, { color: "#2E8B57" }]}>Cantidad</Text>
+            <View style={styles.tableColHeader3}>
+              <Text style={[styles.labelText, { color: "#2E8B57", fontSize: 10, textAlign: "center" }]}>CANTIDAD</Text>
             </View>
-            <View style={[styles.tableCol3, { width: "15%" }]}>
-              <Text style={[styles.labelText, { color: "#2E8B57" }]}>Valor</Text>
+            <View style={styles.tableColHeader4}>
+              <Text style={[styles.labelText, { color: "#2E8B57", fontSize: 10 }]}>VALOR</Text>
             </View>
           </View>
 
           {/* Mapping bonificaciones */}
-          {item.bonificaciones && item.bonificaciones.length > 0 ? 
+          {item.bonificaciones && item.bonificaciones.length > 0 ?
             Object.values(
               item.bonificaciones.reduce(
                 (acc: BonificacionesAcc, bonificacion: Bonificacion) => {
                   // Sumamos la cantidad de bonificaciones y el valor total
                   const totalQuantity = bonificacion.values.reduce(
-                    (sum, val) => sum + (val.quantity || 0),
+                    (sum: number, val: any) => sum + (val.quantity || 0),
                     0
                   );
 
@@ -337,25 +388,25 @@ const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recargosActua
             ).map((bono: any, index, array) => (
               <View key={bono.name} style={index === array.length - 1 && recargosActualizados.length === 0 && recargosParex.length === 0 && (!item.pernotes || item.pernotes.length === 0) ? styles.tableRowLast : styles.tableRow}>
                 <View style={styles.tableCol1}>
-                  <Text style={styles.valueText}>{bono.name || ""}asas</Text>
+                  <Text style={styles.valueText}>{bono.name || ""}</Text>
                 </View>
                 <View style={styles.tableCol2}>
                   <Text style={styles.valueText}></Text>
                 </View>
-                <View style={[styles.tableCol2, { width: "15%" }]}>
+                <View style={styles.tableCol3}>
                   <Text style={styles.valueText}>{bono.quantity}</Text>
                 </View>
-                <View style={[styles.tableCol3, { width: "15%" }]}>
+                <View style={styles.tableCol4}>
                   <Text style={styles.valueText}>{formatToCOP(bono.totalValue)}</Text>
                 </View>
               </View>
             ))
-          : 
+            :
             // Bonificaciones por defecto si el array está vacío o no existe
             [
-              "Bono de alimentación", 
-              "Bono día trabajado", 
-              "Bono día trabajado doble", 
+              "Bono de alimentación",
+              "Bono día trabajado",
+              "Bono día trabajado doble",
               "Bono festividades"
             ].map((conceptName, index) => (
               <View key={index} style={styles.tableRow}>
@@ -365,10 +416,10 @@ const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recargosActua
                 <View style={styles.tableCol2}>
                   <Text style={styles.valueText}></Text>
                 </View>
-                <View style={[styles.tableCol2, { width: "15%" }]}>
+                <View style={styles.tableCol3}>
                   <Text style={styles.valueText}>0</Text>
                 </View>
-                <View style={[styles.tableCol3, { width: "15%" }]}>
+                <View style={styles.tableCol4}>
                   <Text style={styles.valueText}>{formatToCOP(0)}</Text>
                 </View>
               </View>
@@ -376,22 +427,22 @@ const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recargosActua
           }
 
           {/* Recargos */}
-          <View style={recargosParex.length === 0 && (!item.pernotes || item.pernotes.length === 0) ? styles.tableRowLast : styles.tableRow}>
+          <View style={styles.tableRow}>
             <View style={styles.tableCol1}>
               <Text style={styles.valueText}>Recargos</Text>
             </View>
             <View style={styles.tableCol2}>
               <Text style={styles.valueText}></Text>
             </View>
-            <View style={[styles.tableCol2, { width: "15%" }]}>
+            <View style={styles.tableCol3}>
               <Text style={styles.valueText}>{recargosActualizados?.length}</Text>
             </View>
-            <View style={[styles.tableCol3, { width: "15%" }]}>
+            <View style={styles.tableCol4}>
               <Text style={styles.valueText}>
                 {formatToCOP(
-                  totalRecargosParex !== undefined && item.totalRecargos !== undefined
-                    ? item.totalRecargos - totalRecargosParex
-                    : item.totalRecargos || 0
+                  totalRecargosParex !== undefined && item.total_recargos !== undefined
+                    ? item.total_recargos - totalRecargosParex
+                    : item.total_recargos || 0
                 )}
               </Text>
             </View>
@@ -406,10 +457,10 @@ const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recargosActua
               <View style={styles.tableCol2}>
                 <Text style={styles.valueText}></Text>
               </View>
-              <View style={[styles.tableCol2, { width: "15%" }]}>
+              <View style={styles.tableCol3}>
                 <Text style={styles.valueText}>{recargosParex.length}</Text>
               </View>
-              <View style={[styles.tableCol3, { width: "15%" }]}>
+              <View style={styles.tableCol4}>
                 <Text style={styles.valueText}>{formatToCOP(totalRecargosParex)}</Text>
               </View>
             </View>
@@ -422,48 +473,52 @@ const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recargosActua
                 <Text style={styles.valueText}>Pernotes</Text>
               </View>
               <View style={styles.tableCol2}>
-                <Text style={[styles.valueText, { fontSize: 8 }]}>
-                  {item.pernotes.map((pernote) => {
+                <Text style={[styles.valueText, { fontSize: 10 }]}>
+                  {(() => {
                     try {
-                      const fechas = pernote.fechas || [];
-                      return fechas.map((fecha) => {
-                        if (!fecha) return '';
-                        const fechaFormateada = safeFormatDate(fecha);
-                        const fechaSeparada = fechaFormateada.split("-");
-                        return `${fechaSeparada[0]}-${fechaSeparada[1]} `;
+                      // Recolectar todas las fechas de todos los pernotes
+                      const todasLasFechas: string[] = [];
+                      item.pernotes.forEach(pernote => {
+                        if (pernote.fechas && pernote.fechas.length > 0) {
+                          todasLasFechas.push(...pernote.fechas);
+                        }
                       });
+
+                      // Usar la función agruparFechasConsecutivas
+                      const rangos = agruparFechasConsecutivas(todasLasFechas);
+                      return rangos.join(", ");
                     } catch (error) {
-                      console.error("Error formatting pernote date:", error);
+                      console.error("Error al agrupar fechas de pernotes:", error);
                       return '';
                     }
-                  })}
+                  })()}
                 </Text>
               </View>
-              <View style={[styles.tableCol2, { width: "15%" }]}>
+              <View style={styles.tableCol3}>
                 <Text style={styles.valueText}>
                   {item.pernotes.reduce((total, pernote) => {
                     return total + (pernote.fechas ? pernote.fechas.length : 0);
                   }, 0) || 0}
                 </Text>
               </View>
-              <View style={[styles.tableCol3, { width: "15%" }]}>
+              <View style={styles.tableCol4}>
                 <Text style={styles.valueText}>
-                  {formatToCOP(safeValue(item.totalPernotes, 0))}
+                  {formatToCOP(safeValue(item.total_pernotes, '0'))}
                 </Text>
               </View>
             </View>
           ) : (
             <View style={styles.tableRowLast}>
-              <View style={styles.tableCol1}>
+              <View>
                 <Text style={styles.valueText}>Pernotes</Text>
               </View>
-              <View style={styles.tableCol2}>
+              <View>
                 <Text style={styles.valueText}></Text>
               </View>
-              <View style={[styles.tableCol2, { width: "15%" }]}>
-                <Text style={styles.valueText}>0</Text>
+              <View>
+                <Text style={styles.valueText}></Text>
               </View>
-              <View style={[styles.tableCol3, { width: "15%" }]}>
+              <View>
                 <Text style={styles.valueText}>{formatToCOP(0)}</Text>
               </View>
             </View>
@@ -471,113 +526,101 @@ const LiquidacionPDF = ({ item, totalRecargosParex, recargosParex, recargosActua
         </View>
 
         {/* Deducciones */}
-        <Text style={styles.sectionHeader}>Deducciones</Text>
-        <View style={styles.table}>
-          {/* Vacaciones (si existen) */}
-          {(safeValue(item.totalVacaciones, 0) > 0) && (
-            <View style={styles.tableRow}>
-              <View style={styles.tableCol1}>
-                <Text style={styles.labelText}>Vacaciones</Text>
-              </View>
-              <View style={[styles.tableCol2, { width: "30%" }]}>
-                <Text style={styles.valueText}>
-                  {
-                    item.periodoStartVacaciones && item.periodoEndVacaciones ?
-                    obtenerDiferenciaDias({
-                      start: parseDate(item.periodoStartVacaciones),
-                      end: parseDate(item.periodoEndVacaciones),
-                    }) :
-                    0
-                  } días
-                </Text>
-              </View>
-              <View style={[styles.tableCol3, { width: "30%" }]}>
-                <Text style={styles.orangeValue}>
-                  {formatToCOP(safeValue(item.totalVacaciones, 0))}
-                </Text>
-              </View>
-            </View>
-          )}
-          
-          {/* Cesantías (si existen) */}
-          {safeValue(item.cesantias, 0) > 0 && (
-            <View style={styles.tableRow}>
-              <View style={styles.tableCol1}>
-                <Text style={styles.labelText}>Cesantias</Text>
-              </View>
-              <View style={[styles.tableCol2, { width: "30%" }]}>
-                <Text style={styles.valueText}>
-                  {safeValue(item.diasLaboradosAnual, 0)} días
-                </Text>
-              </View>
-              <View style={[styles.tableCol3, { width: "30%" }]}>
-                <Text style={styles.blueValue}>
-                  {formatToCOP(safeValue(item.cesantias, 0))}
-                </Text>
-              </View>
-            </View>
-          )}
+        <Text style={styles.sectionHeader}>DEDUCCIONES</Text>
 
+        <View style={styles.table}>
           {/* Salud */}
-          <View style={styles.tableRow}>
-            <View style={styles.tableCol1}>
+          <View style={[styles.tableRow, styles.flex]}>
+            <View>
               <Text style={styles.labelText}>Salud</Text>
             </View>
-            <View style={[styles.tableCol2, styles.tableCol3, { width: "60%", textAlign: "right" }]}>
+            <View>
               <Text style={styles.redValue}>
-                {formatToCOP(safeValue(item.salud, 0))}
+                {formatToCOP(safeValue(item.salud, '0'))}
               </Text>
             </View>
           </View>
 
           {/* Pensión */}
-          <View style={styles.tableRow}>
-            <View style={styles.tableCol1}>
+          <View style={item.anticipos.length == 0 ? [styles.tableRowLast, styles.flex] : [styles.tableRow, styles.flex]}>
+            <View>
               <Text style={styles.labelText}>Pensión</Text>
             </View>
-            <View style={[styles.tableCol2, styles.tableCol3, { width: "60%", textAlign: "right" }]}>
+            <View>
               <Text style={styles.redValue}>
-                {formatToCOP(safeValue(item.pension, 0))}
+                {formatToCOP(safeValue(item.pension, '0'))}
               </Text>
             </View>
           </View>
 
-          {/* Interés Cesantías (si existe) */}
-          {safeValue(item.interesCesantias, 0) > 0 && (
-            <View style={styles.tableRow}>
-              <View style={styles.tableCol1}>
-                <Text style={styles.labelText}>Interes cesantias</Text>
+
+          {/* Anticipos */}
+          {item?.anticipos.length > 0 && (
+            <View style={[styles.tableRowLast, styles.flex]}>
+              <View>
+                <Text style={styles.labelText}>Anticipos</Text>
               </View>
-              <View style={[styles.tableCol2, styles.tableCol3, { width: "60%", textAlign: "right" }]}>
+              <View>
                 <Text style={styles.redValue}>
-                  {formatToCOP(safeValue(item.interesCesantias, 0))}
+                  {formatToCOP(safeValue(item.total_anticipos, '0'))}
+                </Text>
+              </View>
+            </View>
+          )}
+        </View>
+
+
+        <Text style={styles.sectionHeader}>RESUMEN FINAL</Text>
+
+
+        {/* Total */}
+        <View style={[styles.table]}>
+          {/* Vacaciones (si existen) */}
+          {(safeValue(item.total_vacaciones, '0') > 0) && (
+            <View style={[styles.tableRow, styles.flex]}>
+              <View>
+                <Text style={styles.labelText}>Vacaciones</Text>
+              </View>
+              <View>
+                <Text style={styles.valueText}>
+                  {
+                    item.periodo_start_vacaciones && item.periodo_end_vacaciones ?
+                      obtenerDiferenciaDias({
+                        start: parseDate(item.periodo_start_vacaciones),
+                        end: parseDate(item.periodo_end_vacaciones),
+                      }) :
+                      0
+                  } días
+                </Text>
+              </View>
+              <View>
+                <Text style={styles.orangeValue}>
+                  {formatToCOP(safeValue(item.total_vacaciones, '0'))}
                 </Text>
               </View>
             </View>
           )}
 
-          {/* Anticipos */}
-          <View style={styles.tableRowLast}>
-            <View style={styles.tableCol1}>
-              <Text style={styles.labelText}>Anticipos</Text>
+          {/* Interés Cesantías (si existe) */}
+          {safeValue(item.interes_cesantias, '0') > 0 && (
+            <View style={[styles.tableRow, styles.flex]}>
+              <View>
+                <Text style={styles.labelText}>Interes cesantias</Text>
+              </View>
+              <View>
+                <Text style={styles.blueValue}>
+                  {formatToCOP(safeValue(item.interes_cesantias, '0'))}
+                </Text>
+              </View>
             </View>
-            <View style={[styles.tableCol2, styles.tableCol3, { width: "60%", textAlign: "right" }]}>
-              <Text style={styles.redValue}>
-                {formatToCOP(safeValue(item.totalAnticipos, 0))}
-              </Text>
+          )}
+          <View style={[styles.tableRowLast, styles.flex]}>
+            <View>
+              <Text style={[styles.labelText]}>Salario total</Text>
             </View>
-          </View>
-        </View>
-
-        {/* Total */}
-        <View style={[styles.table, { marginTop: 5 }]}>
-          <View style={styles.tableRowLast}>
-            <View style={styles.tableCol1}>
-              <Text style={[styles.labelText, { fontSize: 11 }]}>Salario total</Text>
-            </View>
-            <View style={[styles.tableCol2, styles.tableCol3, { width: "60%", textAlign: "right" }]}>
+            <View>
               <Text style={styles.greenValue}>
-                {formatToCOP(safeValue(item.sueldoTotal, 0))}
+                {formatToCOP(safeValue(item.sueldo_total, '0'))}
               </Text>
             </View>
           </View>
@@ -599,10 +642,11 @@ const handleGeneratePDF = async (item: Liquidacion | null): Promise<void> => {
       console.error("No se proporcionaron datos para generar el PDF");
       return;
     }
-    
+
+
     // Filtrar recargos de PAREX
     const recargosParex = item?.recargos?.filter(recargo =>
-      recargo.empresa_id === "cfb258a6-448c-4469-aa71-8eeafa4530ef" || recargo.id === "1768"
+      recargo.empresa_id === "cfb258a6-448c-4469-aa71-8eeafa4530ef"
     ) || [];
 
     // Calcular el total de recargos PAREX
@@ -612,14 +656,16 @@ const handleGeneratePDF = async (item: Liquidacion | null): Promise<void> => {
 
     // Obtener recargos que no son de PAREX
     const recargosActualizados = item?.recargos?.filter(recargo =>
-      recargo.empresa_id !== "cfb258a6-448c-4469-aa71-8eeafa4530ef" && recargo.id !== "1768"
+      recargo.empresa_id !== "cfb258a6-448c-4469-aa71-8eeafa4530ef"
     ) || [];
+
+    console.log(recargosActualizados, recargosParex, totalRecargosParex)
 
     // Generar el PDF con los datos filtrados
     const blob = await pdf(
       <LiquidacionPDF
         item={item}
-        totalRecargosParex={totalRecargosParex}
+        totalRecargosParex={Number(totalRecargosParex)}
         recargosParex={recargosParex}
         recargosActualizados={recargosActualizados}
       />
@@ -627,11 +673,11 @@ const handleGeneratePDF = async (item: Liquidacion | null): Promise<void> => {
 
     const url = URL.createObjectURL(blob);
     const pdfWindow = window.open(url, '_blank');
-    
+
     if (!pdfWindow) {
       alert("El navegador bloqueó la apertura del PDF. Por favor, permita ventanas emergentes.");
     }
-    
+
     // Limpiar URL después de abrir el PDF
     setTimeout(() => {
       URL.revokeObjectURL(url);

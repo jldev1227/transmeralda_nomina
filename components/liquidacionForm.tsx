@@ -7,7 +7,7 @@ import {
     Trash2,
     X
 } from 'lucide-react';
-import { useNomina } from '@/context/NominaContext';
+import { Liquidacion, useNomina } from '@/context/NominaContext';
 import SelectReact, { ActionMeta, CSSObjectWithLabel, MultiValue } from 'react-select';
 import { DatePicker, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@nextui-org/react';
 import { Input } from '@nextui-org/input';
@@ -49,8 +49,8 @@ interface Recargo {
 }
 
 type PeriodoVacaciones = {
-    start: AnyCalendarDate | null;
-    end: AnyCalendarDate | null;
+    start: RangeValue<DateValue>;
+    end: RangeValue<DateValue>;
 };
 
 interface VehiculoDetalle {
@@ -85,8 +85,8 @@ type Anticipo = {
 type DetallesVehiculos = VehiculoDetalle[];
 
 interface LiquidacionFormProps {
-    mode: 'create' | 'edit';
-    initialData?: any;
+    mode: 'create' | 'edit' | string;
+    initialData?: Liquidacion;
     onSubmit: (data: any) => Promise<void>;
     loading?: boolean;
 }
@@ -124,7 +124,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     mode = 'create',
     initialData,
     onSubmit,
-    loading = false
+    loading = false,
 }) => {
     const {
         conductores,
@@ -132,6 +132,8 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
         configuracion,
         empresas
     } = useNomina();
+
+    console.log(initialData)
 
     // Estados principales
     const [currentStep, setCurrentStep] = useState(1);
@@ -150,7 +152,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     }>>([]);
 
     const [dateSelected, setDateSelected] = useState<RangeValue<DateValue> | null>(null);
-    const [periodoVacaciones, setPeriodoVacaciones] = useState<PeriodoVacaciones | null>(null);
+    const [periodoVacaciones, setPeriodoVacaciones] = useState<RangeValue<DateValue> | null>(null);
     const [mesesRange, setMesesRange] = useState<string[]>([]);
     const [detallesVehiculos, setDetallesVehiculos] = useState<DetallesVehiculos>([]);
     const [anticipos, setAnticipos] = useState<Anticipo[]>([])
@@ -242,27 +244,26 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
         ));
 
         // Cargar fechas
-        if (initialData?.periodoStart && initialData?.periodoEnd) {
+        if (initialData?.periodo_start && initialData?.periodo_end) {
             setDateSelected({
-                start: parseDate(initialData.periodoStart),
-                end: parseDate(initialData.periodoEnd),
+                start: parseDate(initialData.periodo_start),
+                end: parseDate(initialData.periodo_end),
             });
 
             // Actualizar meses
             const nuevosMeses = obtenerMesesEntreFechas(
-                initialData.periodoStart,
-                initialData.periodoEnd
+                initialData.periodo_start,
+                initialData.periodo_end
             )
 
-            console.log(nuevosMeses)
             setMesesRange(nuevosMeses);
         }
 
         // Cargar vacaciones
-        if (initialData?.periodoStartVacaciones && initialData?.periodoEndVacaciones) {
+        if (initialData?.periodo_start_vacaciones && initialData?.periodo_end_vacaciones) {
             setPeriodoVacaciones({
-                start: parseDate(initialData.periodoStartVacaciones),
-                end: parseDate(initialData.periodoEndVacaciones),
+                start: parseDate(initialData.periodo_start_vacaciones),
+                end: parseDate(initialData.periodo_end_vacaciones),
             });
             setIsVacaciones(true);
         }
@@ -308,15 +309,15 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
 
         // Cargar otros valores
         setAnticipos(initialData.anticipos)
-        setDiasLaborados(initialData?.diasLaborados || 0);
-        setDiasLaboradosVillanueva(initialData?.diasLaboradosVillanueva || 0);
-        setDiasLaboradosAnual(initialData?.diasLaboradosAnual || 0);
+        setDiasLaborados(initialData?.dias_laborados || 0);
+        setDiasLaboradosVillanueva(initialData?.dias_laborados_villanueva || 0);
+        setDiasLaboradosAnual(initialData?.dias_laborados_anual || 0);
         setCesantias(initialData?.cesantias || 0);
-        setInteresCesantias(initialData?.interesCesantias || 0);
-        setIsCheckedAjuste((initialData?.ajusteSalarial ?? 0) > 0);
+        setInteresCesantias(initialData?.interes_cesantias || 0);
+        setIsCheckedAjuste((initialData?.ajuste_salarial ?? 0) > 0);
         setIsCesantias(
             (initialData?.cesantias ?? 0) > 0 ||
-            (initialData?.interesCesantias ?? 0) > 0
+            (initialData?.interes_cesantias ?? 0) > 0
         );
     };
 
@@ -350,7 +351,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
             const nuevosDetalles = vehiculosSelected.map(vehiculo => {
                 const detalleExistente = detallesMap.get(vehiculo.value);
 
-                console.log("detalle", detalleExistente)
 
                 // Si ya existe el detalle, actualizar con nuevos meses
                 if (detalleExistente) {
@@ -428,8 +428,8 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
             setPeriodoVacaciones(null);
         } else {
             setPeriodoVacaciones({
-                start: value.start ? { toString: () => value.start.toString() } as AnyCalendarDate : null,
-                end: value.end ? { toString: () => value.end.toString() } as AnyCalendarDate : null
+                start: value.start,
+                end: value.end
             });
         }
     };
@@ -604,7 +604,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
         );
     };
 
-    const handleOnchangeAnticipo = (value : string) => {
+    const handleOnchangeAnticipo = (value: string) => {
         if (value === '') {
             setValorAnticipo('');
             return;
@@ -621,7 +621,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     };
 
     // Función para manejar cambio de fecha
-    const handleDateChangeAnticipo = (date : string) => {
+    const handleDateChangeAnticipo = (date: string) => {
         setAnticipoDate(date);
         setIsInvalidDateAnticipo(false);
     };
@@ -667,7 +667,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     };
 
     // Función para eliminar un anticipo
-    const handleDeleteAnticipo = (id) => {
+    const handleDeleteAnticipo = (id: number) => {
         setAnticipos(anticipos.filter(anticipo => anticipo.id !== id));
     };
 
@@ -765,19 +765,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
             salud -
             pension;
 
-        console.log(
-            "salarioDevengado:", salarioDevengado,
-            "\nauxilioTransporte:", auxilioTransporte,
-            "\ntotalBonificaciones:", totalBonificaciones,
-            "\ntotalPernotes:", totalPernotes,
-            "\ntotalRecargos:", totalRecargos,
-            "\ntotalVacaciones:", totalVacaciones,
-            "\nbonificacionVillanueva:", bonificacionVillanueva,
-            "\ninteresCesantias:", interesCesantias,
-            "\ntotalAnticipos:", totalAnticipos,
-            "\nsalud:", salud,
-            "\npension:", pension
-        );
+        console.log(salarioDevengado, auxilioTransporte, totalBonificaciones, totalPernotes, totalRecargos, totalVacaciones, bonificacionVillanueva, interesCesantias, totalAnticipos)
 
         return {
             auxilioTransporte,
@@ -806,26 +794,26 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
         return {
             id: initialData?.id,
             conductor_id: conductorSelected.value,
-            periodoStart: formatDateValue(dateSelected.start),
-            periodoEnd: formatDateValue(dateSelected.end),
-            periodoStartVacaciones: periodoVacaciones?.start ? formatDateValue(periodoVacaciones.start) : null,
-            periodoEndVacaciones: periodoVacaciones?.end ? formatDateValue(periodoVacaciones.end) : null,
-            auxilioTransporte: totales.auxilioTransporte,
-            sueldoTotal: totales.sueldoTotal,
-            salarioDevengado: totales.salarioDevengado,
-            totalPernotes: totales.totalPernotes,
-            totalBonificaciones: totales.totalBonificaciones,
-            totalRecargos: totales.totalRecargos,
-            totalVacaciones: totales.totalVacaciones,
-            totalAnticipos: totales.totalAnticipos,
-            diasLaborados,
-            diasLaboradosVillanueva,
-            diasLaboradosAnual,
-            ajusteSalarial: bonificacionVillanueva,
+            periodo_start: formatDateValue(dateSelected.start),
+            periodo_end: formatDateValue(dateSelected.end),
+            periodo_start_vacaciones: periodoVacaciones?.start ? formatDateValue(periodoVacaciones.start) : null,
+            periodo_end_vacaciones: periodoVacaciones?.end ? formatDateValue(periodoVacaciones.end) : null,
+            auxilio_transporte: totales.auxilioTransporte,
+            sueldo_total: totales.sueldoTotal,
+            salario_devengado: totales.salarioDevengado,
+            total_pernotes: totales.totalPernotes,
+            total_bonificaciones: totales.totalBonificaciones,
+            total_recargos: totales.totalRecargos,
+            total_vacaciones: totales.totalVacaciones,
+            total_anticipos: totales.totalAnticipos,
+            dias_laborados: diasLaborados,
+            dias_laborados_villanueva: diasLaboradosVillanueva,
+            dias_laborados_anual: diasLaboradosAnual,
+            ajuste_salarial: bonificacionVillanueva,
             salud: totales.salud,
             pension: totales.pension,
             cesantias,
-            interesCesantias,
+            interes_cesantias: interesCesantias,
             estado: totales.salud > 0 && totales.pension > 0 ? 'Liquidado' : 'Pendiente',
 
             // Arrays relacionados
@@ -856,7 +844,8 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                     ...recargo,
                     vehiculoId: detalle.vehiculo.value
                 }))
-            )
+            ),
+            anticipos
         };
     };
 
@@ -896,6 +885,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     const handleSubmit = async () => {
         const liquidacionData = prepararDatosLiquidacion();
 
+
         if (!liquidacionData) {
             alert('Por favor complete los campos obligatorios');
             return;
@@ -924,15 +914,31 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     return (
         <>
             {/* Indicador de progreso */}
-            <div className="px-6 py-4 bg-white border-b">
-                <div className="flex items-center justify-between">
+            <div className="p-6">
+                <div className="flex items-center justify-between relative">
+                    {/* Líneas de fondo que cubren todo el ancho */}
+                    <div className="absolute top-1/2 left-4 right-4 h-1 bg-gray-50 transform -translate-y-1/2 z-0"></div>
+
+                    {/* Líneas de progreso que se ajustan según el paso actual */}
+                    <div
+                        className="absolute top-1/2 h-1 bg-emerald-600 transform -translate-y-1/2 z-0 transition-all duration-300 ease-in-out"
+                        style={{
+                            width: `${currentStep > 1 ? (currentStep >= totalSteps ? '100%' : `${(currentStep - 1) * 100 / (totalSteps - 1)}%`) : '0%'}`
+                        }}
+                    ></div>
+
+                    {/* Círculos de pasos */}
                     {Array.from({ length: totalSteps }).map((_, i) => (
-                        <div key={i} className="flex items-center">
+                        <div
+                            key={i}
+                            className="flex items-center justify-center z-10 bg-white rounded-full"
+                        >
                             <div
                                 className={`
-                  flex items-center justify-center w-8 h-8 rounded-full 
-                  ${currentStep > i ? 'bg-emerald-600' : currentStep === i + 1 ? 'bg-white border-2 border-emerald-600' : 'bg-gray-50'}
-                `}
+            flex items-center justify-center w-10 h-10 rounded-full
+            ${currentStep > i ? 'bg-emerald-600' : currentStep === i + 1 ? 'bg-white border-2 border-emerald-600' : 'bg-gray-50 border border-gray-200'}
+            transition-all duration-300 ease-in-out
+          `}
                             >
                                 {currentStep > i ? (
                                     <CheckCircle className="w-5 h-5 text-white" />
@@ -942,12 +948,11 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                     </span>
                                 )}
                             </div>
-                            {i < totalSteps - 1 && (
-                                <div className={`h-1 w-24 md:w-40 lg:w-52 mx-2 ${currentStep > i + 1 ? 'bg-emerald-600' : 'bg-gray-50'}`}></div>
-                            )}
                         </div>
                     ))}
                 </div>
+
+                {/* Etiquetas debajo de los círculos */}
                 <div className="flex justify-between mt-2 px-1">
                     <div className="text-xs font-medium text-gray-600">Información</div>
                     <div className="text-xs font-medium text-gray-600">Conceptos</div>
@@ -1135,7 +1140,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                                         onChange={handleDateVacacionesChange}
                                                         label="Período de vacaciones"
                                                         lang="es-ES"
-                                                        value={convertToDateRangeValue(periodoVacaciones)}
+                                                        value={periodoVacaciones}
                                                         classNames={{
                                                             base: "max-w-md"
                                                         }}
@@ -1675,9 +1680,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                                                 className="max-w-full"
                                                                 value={valorAnticipo ? formatCurrency(Number(valorAnticipo)) : ''}
                                                                 onChange={(e) => {
-                                                                    console.log(e.target.value)
                                                                     const inputVal = e.target.value.replace(/[^\d]/g, "");
-                                                                    console.log(inputVal)
                                                                     handleOnchangeAnticipo(inputVal)
                                                                 }}
                                                                 isRequired
@@ -1731,15 +1734,15 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                                             Añadir anticipo
                                                         </Button>
                                                     </div>
-                                                    <Table isStriped className="w-full">
+                                                    <Table className="w-full">
                                                         <TableHeader>
-                                                            <TableColumn className="py-2 px-4 font-medium">FECHA</TableColumn>
-                                                            <TableColumn className="py-2 px-4 font-medium">VALOR</TableColumn>
-                                                            <TableColumn className="py-2 px-4 font-medium text-right">ACCIONES</TableColumn>
+                                                            <TableColumn className="bg-red-50 text-red-600 py-2 px-4 font-medium">FECHA</TableColumn>
+                                                            <TableColumn className="bg-red-50 text-red-600 py-2 px-4 font-medium">VALOR</TableColumn>
+                                                            <TableColumn className="bg-red-50 text-red-600 py-2 px-4 font-medium text-right">ACCIONES</TableColumn>
                                                         </TableHeader>
                                                         <TableBody>
                                                             {anticipos.map((anticipo) => (
-                                                                <TableRow key={anticipo.id} className="hover:opacity-50">
+                                                                <TableRow key={anticipo.id} className="hover:bg-gray-50 transition-colors">
                                                                     <TableCell className="py-3 px-4">{anticipo.fechaFormateada || new Date(anticipo.fecha).toLocaleDateString()}</TableCell>
                                                                     <TableCell className="py-3 px-4">{formatCurrency(anticipo.valor)}</TableCell>
                                                                     <TableCell className="py-3 px-4 text-right">
@@ -1820,12 +1823,12 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                     <div className="space-y-3">
                                         <div className="flex justify-between items-center py-1 border-b border-gray-100">
                                             <span className="text-sm text-gray-700">Salario devengado</span>
-                                            <span className="font-medium">{formatToCOP(totales.salarioDevengado)}</span>
+                                            <span className="font-medium text-emerald-600">{formatToCOP(totales.salarioDevengado)}</span>
                                         </div>
 
                                         <div className="flex justify-between items-center py-1 border-b border-gray-100">
                                             <span className="text-sm text-gray-700">Auxilio de transporte</span>
-                                            <span className="font-medium">{formatToCOP(totales.auxilioTransporte)}</span>
+                                            <span className="font-medium text-emerald-600">{formatToCOP(totales.auxilioTransporte)}</span>
                                         </div>
 
                                         {bonificacionVillanueva > 0 && (
@@ -1866,7 +1869,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                         {cesantias > 0 && (
                                             <div className="flex justify-between items-center py-1 border-b border-gray-100">
                                                 <span className="text-sm text-gray-700">Cesantías</span>
-                                                <span className="font-medium text-emerald-600">{formatToCOP(cesantias)}</span>
+                                                <span className="font-medium text-primary">{formatToCOP(cesantias)}</span>
                                             </div>
                                         )}
 
@@ -2059,7 +2062,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                                                                         color="primary"
                                                                                         className="text-xs px-1"
                                                                                     >
-                                                                                        {formatDate(fecha)}
+                                                                                        {formatDate(fecha)} {fidx + 1 === pernote.fechas?.length ? '' : '-'}
                                                                                     </Badge>
                                                                                 ))}
                                                                                 {(!pernote.fechas || pernote.fechas.length === 0) && '-'}
@@ -2086,7 +2089,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
             </div>
 
             {/* Botones de navegación */}
-            <div className="flex justify-between items-center mt-6 pt-6 border-t border-gray-100">
+            <div className="flex justify-between items-center mt-6 pt-6 pb-2 border-t border-gray-100">
                 {currentStep > 1 ? (
                     <Button
                         variant="flat"
@@ -2105,7 +2108,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                 {currentStep < totalSteps ? (
                     <Button
                         size="md"
-                        color="primary"
                         onPress={avanzarPaso}
                         endContent={<ChevronRight size={18} />}
                         className="font-medium bg-emerald-600 text-white"
