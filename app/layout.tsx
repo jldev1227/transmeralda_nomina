@@ -1,6 +1,5 @@
 import "@/styles/globals.css";
 import { Metadata, Viewport } from "next";
-import { Link } from "@heroui/link";
 import clsx from "clsx";
 
 import { Providers } from "./providers";
@@ -43,10 +42,8 @@ export default function RootLayout({
       >
         <Providers themeProps={{ attribute: "class", defaultTheme: "light" }}>
           <div className="relative flex flex-col h-screen">
-            <main>
-              {children}
-            </main>
-            <LiquidacionDetalleModal/>
+            <main>{children}</main>
+            <LiquidacionDetalleModal />
           </div>
         </Providers>
       </body>

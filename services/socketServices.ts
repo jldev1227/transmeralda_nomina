@@ -1,5 +1,6 @@
 // src/services/socketService.ts
-import { io, Socket } from 'socket.io-client';
+import toast from "react-hot-toast";
+import { io, Socket } from "socket.io-client";
 
 class SocketService {
   private socket: Socket | null = null;
@@ -12,7 +13,6 @@ class SocketService {
   // Método para conectar con el socket
   connect(userId: string): void {
     if (this.socket && this.socket.connected) {
-      console.log('Socket ya está conectado');
       return;
     }
 
@@ -21,10 +21,10 @@ class SocketService {
 
     // Configuración para la conexión
     const socketUrl = process.env.NEXT_PUBLIC_API_URL;
-    console.log(socketUrl)
+
     try {
       this.socket = io(socketUrl, {
-        transports: ['websocket', 'polling'], // Intentar websocket primero, luego polling
+        transports: ["websocket", "polling"], // Intentar websocket primero, luego polling
         timeout: 10000, // 10 segundos de timeout
         reconnectionAttempts: 3, // Socket.io intentará reconectar 3 veces
         reconnectionDelay: 1000, // 1 segundo entre intentos
@@ -33,20 +33,17 @@ class SocketService {
       });
 
       // Manejadores de eventos de conexión
-      this.socket.on('connect', this.handleConnect);
-      this.socket.on('connect_error', this.handleConnectError);
-      this.socket.on('disconnect', this.handleDisconnect);
-      this.socket.on('error', this.handleError);
-
-      console.log('Iniciando conexión socket para el usuario:', userId);
-    } catch (error) {
-      console.error('Error al inicializar el socket:', error);
+      this.socket.on("connect", this.handleConnect);
+      this.socket.on("connect_error", this.handleConnectError);
+      this.socket.on("disconnect", this.handleDisconnect);
+      this.socket.on("error", this.handleError);
+    } catch (error: any) {
+      toast.error(error ? error.message : "Error al conectar con el socket");
     }
   }
 
   // Manejador de conexión exitosa
   private handleConnect = () => {
-    console.log('Socket conectado exitosamente');
     this.reconnectAttempts = 0; // Resetear conteo de intentos al conectar
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
@@ -55,14 +52,14 @@ class SocketService {
   };
 
   // Manejador de error de conexión
-  private handleConnectError = (error: Error) => {
-    console.error('Error de conexión socket:', error);
-    
+  private handleConnectError = () => {
     // Si estamos usando el transporte polling y falla, intentemos solo websocket
-    if (this.socket && this.socket.io.opts.transports?.includes('polling' as any)) {
-            console.log('Intentando conectar solo con websocket...');
+    if (
+      this.socket &&
+      this.socket.io.opts.transports?.includes("polling" as any)
+    ) {
       this.disconnect();
-      
+
       // Intentar reconectar con solo websocket después de un retraso
       this.attemptReconnect();
     }
@@ -70,46 +67,44 @@ class SocketService {
 
   // Manejador de desconexión
   private handleDisconnect = (reason: string) => {
-    console.log('Socket desconectado:', reason);
-    
     // Intentar reconectar si la desconexión no fue intencional
-    if (reason !== 'io client disconnect' && this.userId) {
+    if (reason !== "io client disconnect" && this.userId) {
       this.attemptReconnect();
     }
   };
 
   // Manejador de errores generales
-  private handleError = (error: Error) => {
-    console.error('Error en el socket:', error);
-  };
+  private handleError = () => {};
 
   // Lógica de reconexión manual
   private attemptReconnect = () => {
     if (this.reconnectAttempts < this.maxReconnectAttempts && this.userId) {
       this.reconnectAttempts++;
-      
+
       // Calcular retraso exponencial
-      const delay = this.reconnectDelay * Math.pow(1.5, this.reconnectAttempts - 1);
-      console.log(`Intentando reconectar en ${delay}ms (intento ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-      
+      const delay =
+        this.reconnectDelay * Math.pow(1.5, this.reconnectAttempts - 1);
+
       this.reconnectTimer = setTimeout(() => {
-        console.log(`Reconectando socket para el usuario: ${this.userId}`);
         if (this.userId) {
           // En el último intento, probar solo con websocket
           if (this.reconnectAttempts === this.maxReconnectAttempts) {
-            this.socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://midominio.local:5000', {
-              transports: ['websocket'], // Solo usar websocket como último recurso
-              timeout: 10000,
-              query: { userId: this.userId },
-              withCredentials: true,
-            });
+            this.socket = io(
+              process.env.NEXT_PUBLIC_SOCKET_URL ||
+                "http://midominio.local:5000",
+              {
+                transports: ["websocket"], // Solo usar websocket como último recurso
+                timeout: 10000,
+                query: { userId: this.userId },
+                withCredentials: true,
+              },
+            );
           } else {
             this.connect(this.userId);
           }
         }
       }, delay);
     } else {
-      console.error('No se pudo reconectar después de varios intentos');
     }
   };
 
@@ -118,7 +113,6 @@ class SocketService {
     if (this.socket && this.socket.connected) {
       this.socket.emit(event, data);
     } else {
-      console.warn('No se puede emitir evento, socket no conectado:', event);
     }
   }
 
@@ -127,7 +121,6 @@ class SocketService {
     if (this.socket) {
       this.socket.on(event, callback);
     } else {
-      console.warn('No se puede escuchar evento, socket no inicializado:', event);
     }
   }
 
@@ -148,13 +141,13 @@ class SocketService {
       this.socket.disconnect();
       this.socket = null;
     }
-    
+
     // Limpiar el timer de reconexión si existe
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
-    
+
     this.userId = null;
     this.reconnectAttempts = 0;
   }
@@ -167,4 +160,5 @@ class SocketService {
 
 // Exportar una instancia singleton
 const socketService = new SocketService();
+
 export default socketService;

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 
 const LoadingPage = () => {
   // Opcional: Añadir alguna lógica de tiempo para mostrar mensajes diferentes
@@ -14,17 +14,17 @@ const LoadingPage = () => {
       <div className="flex flex-col items-center">
         {/* Círculo animado con pulso */}
         <div className="relative">
-          <div className="w-16 h-16 rounded-full border-t-2 border-b-2 border-emerald-500 animate-spin"></div>
-          <div className="absolute inset-0 w-16 h-16 rounded-full border-r-2 border-transparent border-opacity-50 animate-pulse"></div>
+          <div className="w-16 h-16 rounded-full border-t-2 border-b-2 border-emerald-500 animate-spin" />
+          <div className="absolute inset-0 w-16 h-16 rounded-full border-r-2 border-transparent border-opacity-50 animate-pulse" />
         </div>
-        
+
         {/* Texto animado con fade-in */}
         <div className="mt-6 opacity-0 animate-fadeIn">
           <p className="text-gray-600 dark:text-gray-300">Cargando</p>
           <div className="flex justify-center mt-1">
-            <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-bounce"></span>
-            <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full mx-1 animate-bounce"></span>
-            <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-bounce"></span>
+            <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-bounce" />
+            <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full mx-1 animate-bounce" />
+            <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-bounce" />
           </div>
         </div>
       </div>

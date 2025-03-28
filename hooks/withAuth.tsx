@@ -1,18 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import { NextPage } from 'next';
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { NextPage } from "next";
 
 // Función para verificar si existe la cookie de token
 const isAuthenticated = (): boolean => {
-  if (typeof document !== 'undefined') {
-    const cookies = document.cookie.split(';');
+  if (typeof document !== "undefined") {
+    const cookies = document.cookie.split(";");
+
     for (let i = 0; i < cookies.length; i++) {
       const cookie = cookies[i].trim();
-      if (cookie.startsWith('token=')) {
+
+      if (cookie.startsWith("token=")) {
         return true;
       }
     }
   }
+
   return false;
 };
 
@@ -26,7 +29,7 @@ export const withAuth = <P extends {}>(Component: NextPage<P>): NextPage<P> => {
       // Verificar autenticación
       if (!isAuthenticated()) {
         // Redireccionar al login si no hay token
-        router.replace('/auth/login');
+        router.replace("/auth/login");
       } else {
         setLoading(false);
       }
@@ -36,7 +39,7 @@ export const withAuth = <P extends {}>(Component: NextPage<P>): NextPage<P> => {
     if (loading) {
       return (
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500" />
           <p className="ml-3 text-gray-600">Verificando sesión...</p>
         </div>
       );
