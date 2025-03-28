@@ -58,6 +58,7 @@ export interface Pernote {
     fechas: string[];
     vehiculo: Vehiculo
     empresa: Empresa
+    empresa_id: string;
 }
 
 export interface Recargo {

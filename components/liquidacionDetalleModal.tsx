@@ -546,7 +546,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                       {expandedSections.pernotes && liquidacionActual.pernotes && liquidacionActual.pernotes.length > 0 && (
                         (() => {
                           // Creamos un objeto para agrupar los pernotes por vehículo
-                          const pernotesPorVehiculo = {};
+                          const pernotesPorVehiculo : any = {};
 
                           // Recorremos todos los pernotes
                           liquidacionActual.pernotes.forEach(pernote => {
@@ -581,13 +581,13 @@ const LiquidacionDetalleModal: React.FC = () => {
 
                           // Calculamos el total general
                           let totalGeneral = 0;
-                          Object.values(pernotesPorVehiculo).forEach((item) => {
+                          Object.values(pernotesPorVehiculo).forEach((item : any) => {
                             totalGeneral += item.total_pernotes;
                           });
 
                           // Convertimos a array y ordenamos por placa
                           const vehiculosArray = Object.values(pernotesPorVehiculo)
-                            .sort((a, b) => {
+                            .sort((a : any, b : any) => {
                               if (a.vehiculo && b.vehiculo) {
                                 return a.vehiculo.placa.localeCompare(b.vehiculo.placa);
                               }
@@ -595,7 +595,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                             });
 
                           // Función para formatear fechas
-                          const formatDateShort = (dateStr) => {
+                          const formatDateShort = (dateStr : string) => {
                             if (!dateStr) return '';
                             const date = new Date(dateStr);
                             const day = date.getDate().toString().padStart(2, '0');
@@ -635,7 +635,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                                                   <div className="flex flex-wrap gap-1 text-xs text-gray-500 mt-1">
                                                     {detalle.fechas.map((fecha : Date, index : number) => (
                                                       <span key={index} className="bg-gray-100 px-1.5 py-0.5 rounded">
-                                                        {formatDateShort(fecha)}
+                                                        {formatDateShort(fecha.toString())}
                                                       </span>
                                                     ))}
                                                   </div>
