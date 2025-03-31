@@ -15,6 +15,7 @@ import {
 } from "@nextui-org/react";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
+import { isAxiosError } from "axios";
 
 import socketService from "@/services/socketServices";
 import { EmailData, useNomina } from "@/context/NominaContext";
@@ -94,12 +95,10 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
     if (isOpen && userInfo && userInfo.id) {
       // Suscribirse a eventos de conexión/desconexión
       const handleSocketConnect = () => {
-        console.log("socket CONTECT");
         setSocketConnected(true);
       };
 
       const handleSocketDisconnect = () => {
-        console.log("socket DISCONNECT");
         setSocketConnected(false);
       };
 
@@ -143,7 +142,7 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
       jobId &&
       (status === "queued" || status === "processing" || status === "completed")
     ) {
-      // // Crear un intervalo para verificar el estado del trabajo
+      // Crear un intervalo para verificar el estado del trabajo
       intervalId = setInterval(async () => {
         try {
           const response = await apiClient.get(`/api/pdf/job-status/${jobId}`);
@@ -178,7 +177,27 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
             }
           }
         } catch (error) {
-          console.error("Error al consultar estado del trabajo:", error);
+          // Limpiar el intervalo para evitar más intentos
+          clearInterval(intervalId);
+          // Manejar el error como un AxiosError
+          if (isAxiosError(error)) {
+            // Extraer el mensaje de error específico si existe
+            const errorMessage =
+              error.response?.data?.message ||
+              error.message ||
+              "Error al verificar el estado del proceso";
+
+            toast.error(`Error: ${errorMessage}`);
+          } else {
+            // Para otros tipos de errores, mostrar mensaje predeterminado
+            toast.error(
+              "Error inesperado al verificar el estado del proceso. Intente nuevamente.",
+            );
+          }
+
+          // Restablecer el estado
+          setSending(false);
+          setJobId(null);
         }
       }, 3000); // Verificar cada 3 segundos
     }
@@ -188,7 +207,7 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
         clearInterval(intervalId);
       }
     };
-  }, [jobId, status, selectedIds.length]);
+  }, [jobId, status, selectedIds.length, notificarCRUD]);
 
   // Manejadores de eventos socket
   const handleJobProgress = (data: { jobId: string; progress: number }) => {
@@ -214,8 +233,6 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
       });
 
       notificarCRUD("enviar", "correos", true);
-
-      console.log("completed 2", newStatus);
       // Cerrar modal después de un tiempo
       setTimeout(() => {
         setSending(false);
@@ -236,7 +253,6 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
 
   // Obtener mensaje según el estado del trabajo
   const getStatusMessage = (jobStatus: JobStatus): string => {
-    console.log(jobStatus, "status");
     switch (jobStatus) {
       case "idle":
         return "Listo para enviar";

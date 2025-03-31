@@ -1,4 +1,3 @@
-// hooks/useSocketLiquidaciones.ts
 import { useEffect, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 
@@ -133,26 +132,18 @@ export const useSocketLiquidaciones = (handlers?: SocketEventHandlers) => {
 
       // Personalizar notificación según el estado
       let toastMessage = `Liquidación cambió de estado: ${data.estadoAnterior} → ${data.nuevoEstado}`;
-      let toastType:
-        | "success"
-        | "error"
-        | "info"
-        | "loading"
-        | "blank"
-        | "custom" = "info";
 
+      // Por esto:
       if (data.nuevoEstado === "Liquidado") {
         toastMessage = `¡Liquidación finalizada por ${data.usuarioResponsable}!`;
-        toastType = "success";
+        toast.success(toastMessage, { duration: 4000 });
       } else if (data.nuevoEstado === "Pendiente") {
         toastMessage = `Liquidación marcada como pendiente por ${data.usuarioResponsable}`;
-        toastType = "info";
+        toast.success(toastMessage, { duration: 4000 });
+      } else {
+        toastMessage = `Liquidación cambió de estado: ${data.estadoAnterior} → ${data.nuevoEstado}`;
+        toast.success(toastMessage, { duration: 4000 });
       }
-
-      //   // Mostrar notificación
-      //   toast[toastType](toastMessage, {
-      //     duration: 4000
-      //   });
 
       // Llamar al manejador personalizado si existe
       if (handlers?.onCambioEstadoLiquidacion) {

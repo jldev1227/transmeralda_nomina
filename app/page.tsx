@@ -12,13 +12,13 @@ interface Card {
   path: string;
   available: boolean;
   hasSubmenu: boolean;
-  submenu?: [
-    {
-      title?: string;
-      path?: string;
-      available?: boolean;
-    },
-  ];
+  submenu: SubmenuItem[];
+}
+
+interface SubmenuItem {
+  title: string;
+  path: string;
+  available: boolean;
 }
 
 const NominaDashboard = () => {
@@ -51,7 +51,7 @@ const NominaDashboard = () => {
       description: "Generación de informes y estadísticas de nómina",
       icon: <FileText size={40} />,
       path: "/reportes",
-      available: true,
+      available: false,
       hasSubmenu: false,
       submenu: [],
     },
@@ -82,12 +82,13 @@ const NominaDashboard = () => {
       description: "Ajustes y preferencias del sistema de nómina",
       icon: <Settings size={40} />,
       path: "/configuracion",
-      available: true,
+      available: false,
       hasSubmenu: false,
+      submenu: [],
     },
   ];
 
-  const [expandedCard, setExpandedCard] = useState(null);
+  const [expandedCard, setExpandedCard] = useState<number | null>(null);
   const router = useRouter();
 
   const handleCardClick = (card: Card) => {
@@ -104,7 +105,11 @@ const NominaDashboard = () => {
     }
   };
 
-  const handleSubmenuClick = (path: string, available: boolean, e) => {
+  const handleSubmenuClick = (
+    path: string,
+    available: boolean,
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ) => {
     e.stopPropagation(); // Evita que se active el clic de la tarjeta padre
 
     if (!available) {
@@ -139,17 +144,17 @@ const NominaDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative">
             {/* Overlay para submenús en modo popup */}
             {expandedCard !== null && (
-              <div
+              <button
                 className="fixed inset-0 bg-black bg-opacity-20 z-20"
                 onClick={() => setExpandedCard(null)}
               />
             )}
 
             {cards.map((card) => (
-              <div
+              <button
                 key={card.id}
                 className={`
-                  bg-gray-50 rounded-lg shadow-md overflow-hidden 
+                  bg-gray-50 text-start rounded-lg shadow-md overflow-hidden 
                   transition-all duration-300 transform hover:scale-105
                   ${card.available ? "cursor-pointer" : "opacity-75 cursor-not-allowed"}
                   border-t-4 ${card.available ? "border-emerald-600" : "border-gray-400"}
@@ -240,7 +245,7 @@ const NominaDashboard = () => {
                     </span>
                   </div>
                 )}
-              </div>
+              </button>
             ))}
           </div>
 
@@ -282,10 +287,10 @@ const NominaDashboard = () => {
                     {cards
                       .find((card) => card.id === expandedCard)
                       ?.submenu.map((subItem, index) => (
-                        <div
+                        <button
                           key={index}
                           className={`
-                          p-3 rounded-md border border-gray-200 flex items-center justify-between
+                          w-full p-3 rounded-md border border-gray-200 flex items-center justify-between
                           ${
                             subItem.available
                               ? "bg-white hover:bg-emerald-50 cursor-pointer"
@@ -326,7 +331,7 @@ const NominaDashboard = () => {
                               Próximamente
                             </span>
                           )}
-                        </div>
+                        </button>
                       ))}
                   </div>
                 </div>

@@ -38,26 +38,18 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
     // Función para verificar autenticación
     const checkAuth = () => {
-      console.log("Verificando autenticación...");
-      console.log("Cookies actuales:", document.cookie);
-
       // Obtener token y userInfo
       const token = getCookie("token");
       const userInfo = getCookie("userInfo");
 
-      console.log("Token encontrado:", token ? "Sí" : "No");
-      console.log("UserInfo encontrado:", userInfo ? "Sí" : "No");
-
       // Si hay token o userInfo, considerar autenticado
       // (La validación real la hará el middleware)
       if (token || userInfo) {
-        console.log("Usuario autenticado, mostrando contenido");
         setStatus("authenticated");
 
         return;
       }
 
-      console.log("Usuario no autenticado, redirigiendo...");
       setStatus("unauthenticated");
 
       // Redirigir con un pequeño retraso para permitir que los logs se muestren
@@ -66,7 +58,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
           process.env.NEXT_PUBLIC_AUTH_SYSTEM ||
           "https://auth.midominio.com/login";
 
-        window.location.href = `${authSystem}?returnUrl=${encodeURIComponent(window.location.href)}`;
+        window.location.href = authSystem;
       }, 500);
     };
 
@@ -88,7 +80,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
   // Si está en proceso de redirección, mostrar mensaje apropiado
   if (status === "unauthenticated") {
-    return <LoadingPage>Redirigiendo al login</LoadingPage>;
+    return <LoadingPage>Redirigiendo al ingreso</LoadingPage>;
   }
 
   // Si está autenticado, mostrar el contenido

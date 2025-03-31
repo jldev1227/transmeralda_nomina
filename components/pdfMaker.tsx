@@ -427,7 +427,7 @@ export const LiquidacionPDF = ({
                   },
                   {},
                 ),
-              ).map((bono: any, index, array) => (
+              ).map((bono: any) => (
                 <View key={bono.name} style={styles.tableRow}>
                   <View style={styles.tableCol1}>
                     <Text style={styles.valueText}>{bono.name || ""}</Text>
