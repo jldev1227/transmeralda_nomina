@@ -158,17 +158,16 @@ const NominaNavbar = () => {
                       role="menu"
                     >
                       {item.submenu.map((subItem) => (
-                        <a
+                        <button
                           key={subItem.name}
                           className={`
-                            block px-4 py-2 text-sm
+                            flex w-full px-4 py-2 text-sm
                             ${
                               item.disabled
                                 ? "text-gray-400 cursor-not-allowed"
                                 : "text-gray-700 hover:bg-gray-50 hover:text-emerald-600"
                             }
                           `}
-                          href="#"
                           role="menuitem"
                           onClick={(e) => {
                             e.preventDefault();
@@ -176,7 +175,7 @@ const NominaNavbar = () => {
                           }}
                         >
                           {subItem.name}
-                        </a>
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -252,7 +251,7 @@ const NominaNavbar = () => {
                 {item.submenu && activeDropdown === index && (
                   <div className="pl-12 mt-1 space-y-1">
                     {item.submenu.map((subItem) => (
-                      <a
+                      <button
                         key={subItem.name}
                         className={`
                           block py-2 text-base font-medium
@@ -262,14 +261,13 @@ const NominaNavbar = () => {
                               : "text-gray-700 hover:text-emerald-600"
                           }
                         `}
-                        href="#"
                         onClick={(e) => {
                           e.preventDefault();
                           handleNavigation(subItem.path, item.disabled);
                         }}
                       >
                         {subItem.name}
-                      </a>
+                      </button>
                     ))}
                   </div>
                 )}

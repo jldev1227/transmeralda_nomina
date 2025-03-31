@@ -70,8 +70,6 @@ const createApiClient = () => {
         error.response &&
         (error.response.status === 401 || error.response.status === 403)
       ) {
-        console.error("Error de autenticación:", error.response.status);
-
         // Ejecutar logout si hay error de autenticación
         handleLogout();
       }

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { AxiosError, isAxiosError } from "axios";
 
 import { apiClient } from "@/config/apiClient";
 import LoadingPage from "@/components/loadingPage";
@@ -28,6 +29,12 @@ interface AuthContextType {
   error: string | null;
   logout: () => void;
   refreshProfile: () => Promise<void>;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
 }
 
 // Valor predeterminado para el contexto
@@ -99,8 +106,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error("Respuesta no exitosa del servidor");
       }
     } catch (err) {
-      console.error("Error al obtener el perfil:", err);
-      setError("No se pudo obtener la información del usuario");
+      // Manejar diferentes tipos de errores
+      if (isAxiosError(err)) {
+        const axiosError = err as AxiosError<ApiResponse<any>>;
+
+        if (axiosError.response) {
+          // El servidor respondió con un código de estado fuera del rango 2xx
+          const statusCode = axiosError.response.status;
+          const errorMessage = axiosError.response.data?.message;
+
+          if (statusCode === 401) {
+            setError("Sesión expirada o usuario no autenticado");
+            // Aquí podrías redirigir al login si es necesario
+          } else if (statusCode === 403) {
+            setError("No tienes permisos para acceder a esta información");
+          } else if (statusCode === 404) {
+            setError("Información de usuario no encontrada");
+          } else {
+            setError(errorMessage || `Error en la petición (${statusCode})`);
+          }
+        } else if (axiosError.request) {
+          // La petición fue hecha pero no se recibió respuesta
+          setError(
+            "No se pudo conectar con el servidor. Verifica tu conexión a internet",
+          );
+        } else {
+          // Error al configurar la petición
+          setError(`Error al configurar la petición: ${axiosError.message}`);
+        }
+      } else {
+        // Error que no es de Axios
+        setError(
+          `No se pudo obtener la información del usuario: ${(err as Error).message}`,
+        );
+      }
+
       setUser(null);
     } finally {
       setLoading(false);

@@ -776,15 +776,6 @@ const LiquidacionDetalleModal: React.FC = () => {
                               cantidad;
                           });
 
-                          // Calculamos el total general
-                          let totalGeneral = 0;
-
-                          Object.values(pernotesPorVehiculo).forEach(
-                            (item: any) => {
-                              totalGeneral += item.total_pernotes;
-                            },
-                          );
-
                           // Convertimos a array y ordenamos por placa
                           const vehiculosArray = Object.values(
                             pernotesPorVehiculo,

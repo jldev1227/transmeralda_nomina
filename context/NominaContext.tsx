@@ -407,7 +407,6 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
       usuarioActualizador: string;
       cambios: any;
     }) => {
-      console.log(data);
       logSocketEvent("liquidacion_actualizada", data);
 
       // Actualizar la lista de liquidaciones
@@ -1163,6 +1162,11 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
     abrirModalEditar,
     abrirModalDetalle,
     cerrarModales,
+
+    // socket
+    socketConnected,
+    socketEventLogs,
+    clearSocketEventLogs,
   };
 
   return (

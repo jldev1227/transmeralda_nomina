@@ -27,7 +27,35 @@ const COLORS = [
   "#82ca9d",
 ];
 
-const page = () => {
+interface ResultadoBonificacion {
+  placa: string;
+  nombre: string;
+  mes: string;
+  cantidad: number;
+  valorUnitario: number;
+  valorTotal: number;
+  conductor: string;
+}
+
+interface ResultadoRecargo {
+  placa: string;
+  valor: number;
+  pagaCliente: string;
+  empresa_id: string;
+  mes: string;
+  conductor: string;
+}
+
+interface ResultadoPernote {
+  placa: string;
+  cantidad: number;
+  valor: number;
+  valorTotal: number;
+  fechas: string;
+  conductor: string;
+}
+
+const Page = () => {
   const { liquidaciones } = useNomina();
 
   // Estados para filtros
@@ -48,7 +76,7 @@ const page = () => {
       }
     });
 
-    return Array.from(anosSet).sort((a, b) => b - a);
+    return Array.from(anosSet).sort((a: any, b: any) => b - a);
   }, [liquidaciones]);
 
   const meses = [
@@ -111,8 +139,8 @@ const page = () => {
   }, [liquidaciones, filtroPlaca, filtroAno]);
 
   // Función para convertir nombre de mes a número
-  const obtenerNumeroMes = (nombreMes: string) => {
-    const mesesMap = {
+  const obtenerNumeroMes = (nombreMes: string): string => {
+    const mesesMap: Record<string, string> = {
       Enero: "01",
       Febrero: "02",
       Marzo: "03",
@@ -131,8 +159,8 @@ const page = () => {
   };
 
   // Datos para gráficos y tablas
-  const datosBonificaciones = useMemo(() => {
-    const resultado = [];
+  const datosBonificaciones = useMemo<ResultadoBonificacion[]>(() => {
+    const resultado: ResultadoBonificacion[] = [];
 
     liquidacionesFiltradas.forEach((liquidacion) => {
       liquidacion.bonificaciones?.forEach((bonificacion) => {
@@ -146,38 +174,41 @@ const page = () => {
         if (!vehiculo || (filtroPlaca && vehiculo.placa !== filtroPlaca))
           return;
 
-        bonificacion.values?.forEach((item) => {
-          // Si hay filtro de mes y este item no coincide, lo omitimos
-          // Convertimos nombre de mes a número de mes para comparar con el filtro
-          if (filtroMes) {
-            const mesNumero = obtenerNumeroMes(item.mes);
+        bonificacion.values?.forEach(
+          (item: { mes: string; quantity: number }) => {
+            // Si hay filtro de mes y este item no coincide, lo omitimos
+            // Convertimos nombre de mes a número de mes para comparar con el filtro
+            if (filtroMes) {
+              const mesNumero = obtenerNumeroMes(item.mes);
 
-            if (mesNumero !== filtroMes) return;
-          }
+              if (mesNumero !== filtroMes) return;
+            }
 
-          const valorTotal = Number(bonificacion.value) * item.quantity;
+            const valorTotal = Number(bonificacion.value) * item.quantity;
 
-          if (item.quantity > 0) {
-            resultado.push({
-              placa: vehiculo.placa,
-              nombre: bonificacion.name,
-              mes: item.mes,
-              cantidad: item.quantity,
-              valorUnitario: Number(bonificacion.value),
-              valorTotal: valorTotal,
-              conductor:
-                `${liquidacion.conductor?.nombre || ""} ${liquidacion.conductor?.apellido || ""}`.trim(),
-            });
-          }
-        });
+            if (item.quantity > 0) {
+              resultado.push({
+                placa: vehiculo.placa,
+                nombre: bonificacion.name,
+                mes: item.mes,
+                cantidad: item.quantity,
+                valorUnitario: Number(bonificacion.value),
+                valorTotal: valorTotal,
+                conductor:
+                  `${liquidacion.conductor?.nombre || ""} ${liquidacion.conductor?.apellido || ""} `.trim(),
+              });
+            }
+          },
+        );
       });
     });
 
     return resultado;
   }, [liquidacionesFiltradas, filtroPlaca, filtroMes]);
 
-  const datosRecargos = useMemo(() => {
-    const resultado = [];
+  // Para el bloque de datosRecargos
+  const datosRecargos = useMemo<ResultadoRecargo[]>(() => {
+    const resultado: ResultadoRecargo[] = [];
 
     liquidacionesFiltradas.forEach((liquidacion) => {
       liquidacion.recargos?.forEach((recargo) => {
@@ -213,8 +244,9 @@ const page = () => {
     return resultado;
   }, [liquidacionesFiltradas, filtroPlaca, filtroMes]);
 
-  const datosPernotes = useMemo(() => {
-    const resultado = [];
+  // Para el bloque de datosPernotes
+  const datosPernotes = useMemo<ResultadoPernote[]>(() => {
+    const resultado: ResultadoPernote[] = [];
 
     liquidacionesFiltradas.forEach((liquidacion) => {
       liquidacion.pernotes?.forEach((pernote) => {
@@ -262,10 +294,9 @@ const page = () => {
 
     return resultado;
   }, [liquidacionesFiltradas, filtroPlaca, filtroMes]);
-
   // Datos agrupados para gráficos
   const bonificacionesPorPlaca = useMemo(() => {
-    const agrupado = {};
+    const agrupado: Record<string, number> = {};
 
     datosBonificaciones.forEach((item) => {
       if (!agrupado[item.placa]) {
@@ -281,7 +312,7 @@ const page = () => {
   }, [datosBonificaciones]);
 
   const recargosPorPlaca = useMemo(() => {
-    const agrupado = {};
+    const agrupado: Record<string, number> = {};
 
     datosRecargos.forEach((item) => {
       if (!agrupado[item.placa]) {
@@ -297,7 +328,7 @@ const page = () => {
   }, [datosRecargos]);
 
   const pernotesPorPlaca = useMemo(() => {
-    const agrupado = {};
+    const agrupado: Record<string, number> = {};
 
     datosPernotes.forEach((item) => {
       if (!agrupado[item.placa]) {
@@ -351,7 +382,7 @@ const page = () => {
                 onChange={(e) => setFiltroPlaca(e.target.value)}
               >
                 <option value="">Todas las placas</option>
-                {placas.map((placa) => (
+                {placas.map((placa: any) => (
                   <option key={placa} value={placa}>
                     {placa}
                   </option>
@@ -395,7 +426,7 @@ const page = () => {
                 onChange={(e) => setFiltroAno(e.target.value)}
               >
                 <option value="">Todos los años</option>
-                {anos.map((ano) => (
+                {anos.map((ano: any) => (
                   <option key={ano} value={ano.toString()}>
                     {ano}
                   </option>
@@ -408,31 +439,31 @@ const page = () => {
             <div className="border-b border-gray-200">
               <nav className="flex -mb-px">
                 <button
-                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${
+                  className={`mr - 6 py - 4 px - 1 border - b - 2 font - medium text - sm ${
                     activeTab === "bonificaciones"
                       ? "border-blue-500 text-blue-600"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
+                  } `}
                   onClick={() => setActiveTab("bonificaciones")}
                 >
                   Bonificaciones
                 </button>
                 <button
-                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${
+                  className={`mr - 6 py - 4 px - 1 border - b - 2 font - medium text - sm ${
                     activeTab === "recargos"
                       ? "border-blue-500 text-blue-600"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
+                  } `}
                   onClick={() => setActiveTab("recargos")}
                 >
                   Recargos
                 </button>
                 <button
-                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${
+                  className={`mr - 6 py - 4 px - 1 border - b - 2 font - medium text - sm ${
                     activeTab === "pernotes"
                       ? "border-blue-500 text-blue-600"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
+                  } `}
                   onClick={() => setActiveTab("pernotes")}
                 >
                   Pernotes
@@ -461,7 +492,7 @@ const page = () => {
                         <YAxis />
                         <Tooltip
                           formatter={(value) => [
-                            `$${value.toLocaleString()}`,
+                            `$${value.toLocaleString()} `,
                             "Total",
                           ]}
                         />
@@ -573,7 +604,7 @@ const page = () => {
                           <YAxis />
                           <Tooltip
                             formatter={(value) => [
-                              `$${value.toLocaleString()}`,
+                              `$${value.toLocaleString()} `,
                               "Total",
                             ]}
                           />
@@ -597,21 +628,21 @@ const page = () => {
                             dataKey="value"
                             fill="#8884d8"
                             label={({ name, percent }) =>
-                              `${name}: ${(percent * 100).toFixed(0)}%`
+                              `${name}: ${(percent * 100).toFixed(0)}% `
                             }
                             labelLine={false}
                             outerRadius={80}
                           >
                             {recargosClientePie.map((entry, index) => (
                               <Cell
-                                key={`cell-${index}`}
+                                key={`cell - ${index} `}
                                 fill={COLORS[index % COLORS.length]}
                               />
                             ))}
                           </Pie>
                           <Tooltip
                             formatter={(value) => [
-                              `$${value.toLocaleString()}`,
+                              `$${value.toLocaleString()} `,
                               "Valor",
                             ]}
                           />
@@ -706,7 +737,7 @@ const page = () => {
                         <YAxis />
                         <Tooltip
                           formatter={(value) => [
-                            `$${value.toLocaleString()}`,
+                            `$${value.toLocaleString()} `,
                             "Total",
                           ]}
                         />
@@ -846,4 +877,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

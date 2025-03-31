@@ -27,7 +27,6 @@ export const useNotificaciones = (options: UseNotificacionesOptions = {}) => {
       duracion?: number,
     ) => {
       if (!enabled) return;
-      console.log("no enabled");
       addNotification(tipo, mensaje, duracion);
     },
     [enabled, addNotification],
@@ -96,8 +95,6 @@ export const useNotificaciones = (options: UseNotificacionesOptions = {}) => {
 
       if (exito) {
         addNotification("success", mensajes[operacion].success);
-
-        console.log("success");
       } else {
         addNotification("error", error || mensajes[operacion].error);
       }
