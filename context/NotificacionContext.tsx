@@ -51,6 +51,8 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
 }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
+  console.log(notifications);
+
   // Generar un ID único para las notificaciones
   const generateId = (): string => {
     return Math.random().toString(36).substring(2, 9);
@@ -66,6 +68,8 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
         message,
         duration,
       };
+
+      console.log(notification, "");
 
       setNotifications((prev) => [...prev, notification]);
 

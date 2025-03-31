@@ -1,12 +1,14 @@
+// RootLayout.tsx (componente servidor)
 import "@/styles/globals.css";
 import { Metadata, Viewport } from "next";
 import clsx from "clsx";
 
 import { Providers } from "./providers";
+import { ClientLayout } from "./client-layout"; // Componente cliente que crearemos
 
 import { siteConfig } from "@/config/site";
 import { fontSans } from "@/config/fonts";
-import LiquidacionDetalleModal from "@/components/liquidacionDetalleModal";
+import { AuthGuard } from "@/components/authGuard";
 
 export const metadata: Metadata = {
   title: {
@@ -15,7 +17,7 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   icons: {
-    icon: "/favicon.ico",
+    icon: "/assets/favicon.ico",
   },
 };
 
@@ -26,6 +28,7 @@ export const viewport: Viewport = {
   ],
 };
 
+// Componente servidor principal sin 'use client'
 export default function RootLayout({
   children,
 }: {
@@ -41,10 +44,9 @@ export default function RootLayout({
         )}
       >
         <Providers themeProps={{ attribute: "class", defaultTheme: "light" }}>
-          <div className="relative flex flex-col h-screen">
-            <main>{children}</main>
-            <LiquidacionDetalleModal />
-          </div>
+          <AuthGuard>
+            <ClientLayout>{children}</ClientLayout>
+          </AuthGuard>
         </Providers>
       </body>
     </html>

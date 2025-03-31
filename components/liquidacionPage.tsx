@@ -91,7 +91,11 @@ const LiquidacionPage = ({ mode = "create" }) => {
 
   // Mostrar pantalla de carga
   if (loading || nominaLoading) {
-    return <LoadingPage />;
+    return (
+      <LoadingPage>
+        {params.id ? "Obteniendo liquidación" : "Cargando formulario"}
+      </LoadingPage>
+    );
   }
 
   // Mostrar error si estamos editando y no hay liquidación

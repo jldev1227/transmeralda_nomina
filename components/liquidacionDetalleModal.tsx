@@ -13,6 +13,7 @@ import {
   DollarSign,
   CalendarClock,
 } from "lucide-react";
+import { Button } from "@nextui-org/react";
 
 import handleGeneratePDF from "./pdfMaker";
 
@@ -1817,15 +1818,16 @@ const LiquidacionDetalleModal: React.FC = () => {
           )}
 
           <div className="flex justify-end space-x-3 mt-6">
-            <button
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition flex items-center"
-              onClick={() => {
+            <Button
+              className="rounded-md"
+              color="primary"
+              onPress={() => {
                 handleGeneratePDF(liquidacionActual);
               }}
             >
               <Download className="w-4 h-4 mr-2" />
               Descargar PDF
-            </button>
+            </Button>
           </div>
         </div>
       </div>

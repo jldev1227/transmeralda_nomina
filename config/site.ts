@@ -1,69 +1,72 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "Next.js + HeroUI",
-  description: "Make beautiful websites regardless of your design experience.",
+  name: "Sistema de Nómina",
+  description: "Gestión centralizada de nóminas de personal.",
   navItems: [
     {
-      label: "Home",
+      label: "Inicio",
       href: "/",
     },
     {
-      label: "Docs",
-      href: "/docs",
+      label: "Conductores",
+      href: "/conductores",
     },
     {
-      label: "Pricing",
-      href: "/pricing",
+      label: "Administrativo",
+      href: "/administrativo",
     },
     {
-      label: "Blog",
-      href: "/blog",
+      label: "Reportes",
+      href: "/reportes",
     },
     {
-      label: "About",
-      href: "/about",
+      label: "Análisis",
+      href: "/analisis",
+    },
+    {
+      label: "Configuración",
+      href: "/configuracion",
     },
   ],
   navMenuItems: [
     {
-      label: "Profile",
-      href: "/profile",
+      label: "Perfil",
+      href: "/perfil",
     },
     {
       label: "Dashboard",
-      href: "/dashboard",
+      href: "/",
     },
     {
-      label: "Projects",
-      href: "/projects",
+      label: "Conductores",
+      href: "/conductores",
     },
     {
-      label: "Team",
-      href: "/team",
+      label: "Administrativo",
+      href: "/administrativo",
     },
     {
-      label: "Calendar",
-      href: "/calendar",
+      label: "Reportes",
+      href: "/reportes",
     },
     {
-      label: "Settings",
-      href: "/settings",
+      label: "Configuración",
+      href: "/configuracion",
     },
     {
-      label: "Help & Feedback",
-      href: "/help-feedback",
+      label: "Ayuda",
+      href: "/ayuda",
     },
     {
-      label: "Logout",
+      label: "Cerrar Sesión",
       href: "/logout",
     },
   ],
-  links: {
-    github: "https://github.com/heroui-inc/heroui",
-    twitter: "https://twitter.com/hero_ui",
-    docs: "https://heroui.com",
-    discord: "https://discord.gg/9b6yyZKmH4",
-    sponsor: "https://patreon.com/jrgarciadev",
-  },
+  // links: {
+  //   github: "https://github.com/tu-usuario/sistema-nomina",
+  //   twitter: "https://twitter.com/tu-usuario",
+  //   docs: "https://tudominio.com/docs",
+  //   support: "https://tudominio.com/soporte",
+  // },
 };

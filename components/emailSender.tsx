@@ -18,6 +18,8 @@ import { toast } from "react-hot-toast";
 
 import socketService from "@/services/socketServices";
 import { EmailData, useNomina } from "@/context/NominaContext";
+import { apiClient } from "@/config/apiClient";
+import { useNotificaciones } from "@/hooks/useNotificaciones";
 
 // Interfaz para la información del usuario almacenada en la cookie
 interface UserInfo {
@@ -42,6 +44,7 @@ interface EmailSenderProps {
 
 const EmailSender = ({ selectedIds }: EmailSenderProps) => {
   const { liquidaciones, generatePDFS } = useNomina();
+  const { notificarCRUD } = useNotificaciones();
   const [isOpen, setIsOpen] = useState(false);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
@@ -91,10 +94,12 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
     if (isOpen && userInfo && userInfo.id) {
       // Suscribirse a eventos de conexión/desconexión
       const handleSocketConnect = () => {
+        console.log("socket CONTECT");
         setSocketConnected(true);
       };
 
       const handleSocketDisconnect = () => {
+        console.log("socket DISCONNECT");
         setSocketConnected(false);
       };
 
@@ -131,55 +136,59 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
   }, [isOpen, userInfo, status]);
 
   // Si hay un jobId, verificar el estado periódicamente como respaldo
-  // useEffect(() => {
-  //   let intervalId: NodeJS.Timeout;
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
 
-  //   if (jobId && (status === 'queued' || status === 'processing')) {
-  //     // // Crear un intervalo para verificar el estado del trabajo
-  //     intervalId = setInterval(async () => {
-  //       try {
-  //         const response = await apiClient.get(`/api/pdf/job-status/${jobId}`);
-  //         const jobData = response.data.data;
+    if (
+      jobId &&
+      (status === "queued" || status === "processing" || status === "completed")
+    ) {
+      // // Crear un intervalo para verificar el estado del trabajo
+      intervalId = setInterval(async () => {
+        try {
+          const response = await apiClient.get(`/api/pdf/job-status/${jobId}`);
+          const jobData = response.data.data;
 
-  //         // Actualizar estado y progreso
-  //         setStatus(jobData.status as JobStatus);
-  //         setProgress({
-  //           current: Math.round((jobData.progress / 100) * jobData.totalEmails),
-  //           total: jobData.totalEmails || selectedIds.length,
-  //           message: getStatusMessage(jobData.status)
-  //         });
+          setStatus(jobData.status as JobStatus);
+          setProgress({
+            current: Math.round((jobData.progress / 100) * jobData.totalEmails),
+            total: jobData.totalEmails || selectedIds.length,
+            message: getStatusMessage(jobData.status),
+          });
 
-  //         // Si el trabajo terminó, limpiar el intervalo
-  //         if (jobData.status === 'completed' || jobData.status === 'failed') {
-  //           clearInterval(intervalId);
+          // Si el trabajo terminó, limpiar el intervalo
+          if (jobData.status === "completed" || jobData.status === "failed") {
+            clearInterval(intervalId);
 
-  //           if (jobData.status === 'completed') {
-  //             toast.success(`¡Correos enviados exitosamente!`);
+            if (jobData.status === "completed") {
+              notificarCRUD("enviar", "correos", true);
 
-  //             // Cerrar modal después de un tiempo
-  //             setTimeout(() => {
-  //               setSending(false);
-  //               setJobId(null);
-  //               handleClose();
-  //             }, 3000);
-  //           } else if (jobData.status === 'failed') {
-  //             toast.error(`Error: ${jobData.error || 'No se pudo completar el envío'}`);
-  //             setSending(false);
-  //             setJobId(null);
-  //           }
-  //         }
-  //       } catch (error) {
-  //         console.error('Error al consultar estado del trabajo:', error);
-  //       }
-  //     }, 3000); // Verificar cada 3 segundos
-  //   }
+              // Cerrar modal después de un tiempo
+              setTimeout(() => {
+                setSending(false);
+                setJobId(null);
+                handleClose();
+              }, 3000);
+            } else if (jobData.status === "failed") {
+              toast.error(
+                `Error: ${jobData.error || "No se pudo completar el envío"}`,
+              );
+              setSending(false);
+              setJobId(null);
+            }
+          }
+        } catch (error) {
+          console.error("Error al consultar estado del trabajo:", error);
+        }
+      }, 3000); // Verificar cada 3 segundos
+    }
 
-  //   return () => {
-  //     if (intervalId) {
-  //       clearInterval(intervalId);
-  //     }
-  //   };
-  // }, [jobId, status, selectedIds.length]);
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [jobId, status, selectedIds.length]);
 
   // Manejadores de eventos socket
   const handleJobProgress = (data: { jobId: string; progress: number }) => {
@@ -195,20 +204,23 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
 
   const handleJobCompleted = (data: { jobId: string; result: any }) => {
     if (data.jobId === jobId) {
-      setStatus("completed");
+      const newStatus = "completed";
+
+      setStatus(newStatus);
       setProgress({
         current: selectedIds.length,
         total: selectedIds.length,
         message: "¡Envío completado!",
       });
 
-      toast.success("¡Correos enviados exitosamente!");
+      notificarCRUD("enviar", "correos", true);
 
+      console.log("completed 2", newStatus);
       // Cerrar modal después de un tiempo
       setTimeout(() => {
         setSending(false);
         setJobId(null);
-        handleClose();
+        handleClose(newStatus); // Pasar el estado actualizado como parámetro
       }, 3000);
     }
   };
@@ -223,16 +235,23 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
   };
 
   // Obtener mensaje según el estado del trabajo
-  // const getStatusMessage = (jobStatus: JobStatus): string => {
-  //   switch (jobStatus) {
-  //     case 'idle': return 'Listo para enviar';
-  //     case 'queued': return 'En cola para procesamiento...';
-  //     case 'processing': return 'Procesando liquidaciones...';
-  //     case 'completed': return '¡Envío completado!';
-  //     case 'failed': return 'Error en el envío';
-  //     default: return 'Estado desconocido';
-  //   }
-  // };
+  const getStatusMessage = (jobStatus: JobStatus): string => {
+    console.log(jobStatus, "status");
+    switch (jobStatus) {
+      case "idle":
+        return "Listo para enviar";
+      case "queued":
+        return "En cola para procesamiento...";
+      case "processing":
+        return "Procesando liquidaciones...";
+      case "completed":
+        return "¡Envío completado!";
+      case "failed":
+        return "Error en el envío";
+      default:
+        return "Estado desconocido";
+    }
+  };
 
   // Calcular los emails de los destinatarios
   const destinatariosEmails = liquidaciones
@@ -242,9 +261,12 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
 
   const handleOpen = () => setIsOpen(true);
 
-  const handleClose = () => {
+  const handleClose = (currentStatus?: JobStatus) => {
+    // Usar el parámetro si está disponible, de lo contrario usar el estado
+    const statusToCheck = currentStatus || status;
+
     // Si hay un envío en curso, pedir confirmación
-    if (sending && status !== "completed") {
+    if (sending && statusToCheck !== "completed") {
       const confirmar = window.confirm(
         "¿Estás seguro de que deseas cancelar el envío en curso?",
       );
@@ -319,8 +341,16 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
         recipients: destinatariosEmails,
       };
 
-      // 4. Enviar solicitud al backend para iniciar el proceso (generación de PDFs + envío de emails)
-      await generatePDFS(selectedIds, emailData);
+      // Check for null before assigning
+      const jobId = await generatePDFS(selectedIds, emailData);
+
+      if (jobId) {
+        setJobId(jobId);
+      } else {
+        // Handle the null case
+        notificarCRUD("generar", "pdf", false);
+        // You might want to stop execution or take other actions here
+      }
     } catch (error: any) {
       toast.error(
         `Error: ${error.message || "Error desconocido al enviar emails"}`,
@@ -332,16 +362,13 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
 
   // Determinar si el botón de envío debe estar deshabilitado
   const isSubmitDisabled = (): boolean | undefined => {
-    // Deshabilitado si:
     if (
       sending || // Ya se está enviando
       selectedIds.length === 0 || // No hay liquidaciones seleccionadas
       (!socketConnected && socketAttempted)
-    ) {
-      return false;
-    } else {
-      return true;
-    } // Se intentó conectar socket pero falló
+    )
+      return;
+    // Se intentó conectar socket pero falló
   };
 
   return (
@@ -460,7 +487,7 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
                 status === "processing" &&
                 progress.current < progress.total
               }
-              onPress={handleClose}
+              onPress={() => handleClose(status)}
             >
               <X className="h-4 w-4 mr-2" />
               {sending && status === "processing"
