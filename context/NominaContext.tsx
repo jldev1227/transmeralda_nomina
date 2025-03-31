@@ -7,10 +7,13 @@ import React, {
   useCallback,
   ReactNode,
 } from "react";
-import axios from "axios";
 import toast from "react-hot-toast";
 
+import { useAuth } from "./AuthContext";
+
 import { useNotificaciones } from "@/hooks/useNotificaciones";
+import { apiClient } from "@/config/apiClient";
+import socketService from "@/services/socketServices";
 
 // Definiciones de tipos
 export interface Conductor {
@@ -197,6 +200,12 @@ export interface PDFBlob {
   data: unknown;
 }
 
+export interface SocketEventLog {
+  eventName: string;
+  data: any;
+  timestamp: Date;
+}
+
 // Interfaz para el contexto
 interface NominaContextType {
   // Datos
@@ -228,10 +237,6 @@ interface NominaContextType {
     id: string,
     data: Partial<Liquidacion>,
   ) => Promise<Liquidacion | null>;
-  registrarAnticipos: (
-    anticipos: NuevoAnticipoData[],
-  ) => Promise<Anticipo[] | null>;
-  eliminarAnticipo: (anticipoId: string) => Promise<boolean>;
   obtenerVehiculos: () => Promise<void>;
   confirmarEliminarLiquidacion: (id: string, nombre: string) => Promise<void>;
   ordenarLiquidaciones: (key: string, direction: "asc" | "desc") => void;
@@ -240,7 +245,10 @@ interface NominaContextType {
     emailData: EmailData,
     selectedIds: string[],
   ) => void;
-  generatePDFS: (selectedIds: string[], emailData: EmailData) => void;
+  generatePDFS: (
+    selectedIds: string[],
+    emailData: EmailData,
+  ) => Promise<string | null>;
 
   // Métodos para UI
   setFiltros: React.Dispatch<React.SetStateAction<FiltrosLiquidacion>>;
@@ -249,6 +257,10 @@ interface NominaContextType {
   abrirModalEditar: (id: string) => Promise<void>;
   abrirModalDetalle: (id: string) => Promise<void>;
   cerrarModales: () => void;
+  // Nuevas propiedades para Socket.IO
+  socketConnected?: boolean;
+  socketEventLogs?: SocketEventLog[];
+  clearSocketEventLogs?: () => void;
 }
 
 // Props para el provider
@@ -261,8 +273,6 @@ const NominaContext = createContext<NominaContextType | undefined>(undefined);
 
 // Proveedor del contexto
 export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
-  // Estado para mantener el token de autenticación
-  // Estados para liquidaciones
   const [liquidaciones, setLiquidaciones] = useState<Liquidacion[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [conductores, setConductores] = useState<Conductor[]>([]);
@@ -273,6 +283,11 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { notificarCRUD } = useNotificaciones();
+  const { user } = useAuth();
+
+  // Estados para Socket.IO
+  const [socketConnected, setSocketConnected] = useState<boolean>(false);
+  const [socketEventLogs, setSocketEventLogs] = useState<SocketEventLog[]>([]);
 
   const [sortConfig, setSortConfig] = useState<{
     key: string;
@@ -296,14 +311,173 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
   const [showEditarModal, setShowEditarModal] = useState<boolean>(false);
   const [showDetalleModal, setShowDetalleModal] = useState<boolean>(false);
 
-  // Configuración de axios con token
-  const apiClient = useCallback(() => {
-    return axios.create({
-      baseURL:
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/nomina",
-      headers: { "Content-Type": "application/json" },
-      withCredentials: true, // Esto enviará las cookies automáticamente
-    });
+  // Inicializar Socket.IO cuando el usuario esté autenticado
+  useEffect(() => {
+    if (user?.id) {
+      // Conectar socket
+      socketService.connect(user.id);
+
+      // Verificar conexión inicial y configurar manejo de eventos de conexión
+      const checkConnection = () => {
+        const isConnected = socketService.isConnected();
+
+        setSocketConnected(isConnected);
+
+        if (isConnected) {
+          toast.success("Conectado para actualizaciones en tiempo real", {
+            id: "socket-connect",
+            duration: 3000,
+          });
+        }
+      };
+
+      // Verificar estado inicial
+      checkConnection();
+
+      // Manejar eventos de conexión
+      const handleConnect = () => {
+        setSocketConnected(true);
+        toast.success("Conectado para actualizaciones en tiempo real", {
+          id: "socket-connect",
+          duration: 3000,
+        });
+      };
+
+      const handleDisconnect = () => {
+        setSocketConnected(false);
+        // toast.warning('Desconectado de actualizaciones en tiempo real', {
+        //   id: 'socket-disconnect',
+        //   duration: 3000
+        // });
+      };
+
+      // Registrar manejadores de eventos
+      socketService.on("connect", handleConnect);
+      socketService.on("disconnect", handleDisconnect);
+
+      return () => {
+        // Limpiar al desmontar
+        socketService.off("connect");
+        socketService.off("disconnect");
+      };
+    }
+  }, [user?.id]);
+
+  // Función para añadir eventos al registro (log)
+  const logSocketEvent = useCallback((eventName: string, data: any) => {
+    setSocketEventLogs((prev) => [
+      {
+        eventName,
+        data,
+        timestamp: new Date(),
+      },
+      ...prev,
+    ]);
+  }, []);
+
+  // Configurar listeners para eventos de liquidaciones
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // Manejador para nueva liquidación creada
+    const handleLiquidacionCreada = (data: {
+      liquidacion: Liquidacion;
+      usuarioCreador: string;
+    }) => {
+      logSocketEvent("liquidacion_creada", data);
+
+      // Actualizar la lista de liquidaciones
+      setLiquidaciones((prev) => {
+        // Verificar si la liquidación ya existe
+        const exists = prev.some((liq) => liq.id === data.liquidacion.id);
+
+        if (exists) {
+          return prev.map((liq) =>
+            liq.id === data.liquidacion.id ? data.liquidacion : liq,
+          );
+        } else {
+          return [data.liquidacion, ...prev];
+        }
+      });
+    };
+
+    // Manejador para liquidación actualizada
+    const handleLiquidacionActualizada = (data: {
+      liquidacion: Liquidacion;
+      usuarioActualizador: string;
+      cambios: any;
+    }) => {
+      console.log(data);
+      logSocketEvent("liquidacion_actualizada", data);
+
+      // Actualizar la lista de liquidaciones
+      setLiquidaciones((prev) =>
+        prev.map((liq) =>
+          liq.id === data.liquidacion.id ? data.liquidacion : liq,
+        ),
+      );
+
+      // Si la liquidación actual se está viendo/editando, actualizarla también
+      if (liquidacionActual && liquidacionActual.id === data.liquidacion.id) {
+        setLiquidacionActual(data.liquidacion);
+      }
+    };
+
+    // Manejador para liquidación eliminada
+    const handleLiquidacionEliminada = (data: {
+      liquidacionId: string;
+      usuarioEliminador: string;
+    }) => {
+      logSocketEvent("liquidacion_eliminada", data);
+
+      // Eliminar la liquidación de la lista
+      setLiquidaciones((prev) =>
+        prev.filter((liq) => liq.id !== data.liquidacionId),
+      );
+
+      // Si la liquidación eliminada es la seleccionada actualmente, limpiar la selección
+      if (liquidacionActual && liquidacionActual.id === data.liquidacionId) {
+        setLiquidacionActual(null);
+
+        // Cerrar modales si están abiertos
+        cerrarModales();
+      }
+    };
+
+    // Manejador para cambio de estado
+    const handleCambioEstadoLiquidacion = (data: {
+      liquidacionId: string;
+      estadoAnterior: string;
+      nuevoEstado: string;
+      usuarioResponsable: string;
+      comentario?: string;
+    }) => {
+      logSocketEvent("cambio_estado_liquidacion", data);
+
+      // No actualizamos la liquidación aquí, ya que se actualizará con handleLiquidacionActualizada
+    };
+
+    // Registrar los listeners
+    socketService.on("liquidacion_creada", handleLiquidacionCreada);
+    socketService.on("liquidacion_actualizada", handleLiquidacionActualizada);
+    socketService.on("liquidacion_eliminada", handleLiquidacionEliminada);
+    socketService.on(
+      "cambio_estado_liquidacion",
+      handleCambioEstadoLiquidacion,
+    );
+
+    // Limpiar al desmontar
+    return () => {
+      socketService.off("liquidacion_creada");
+      socketService.off("liquidacion_actualizada");
+      socketService.off("liquidacion_eliminada");
+      socketService.off("cambio_estado_liquidacion");
+    };
+  }, [user?.id, liquidacionActual, logSocketEvent]);
+
+  // Función para limpiar el registro de eventos de socket
+  const clearSocketEventLogs = useCallback(() => {
+    setSocketEventLogs([]);
   }, []);
 
   // Obtener todas las liquidaciones
@@ -311,9 +485,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-
-      const client = apiClient();
-      const response = await client.get("/api/nomina/conductores");
+      const response = await apiClient.get("/api/nomina/conductores");
 
       if (response.data.success) {
         setLiquidaciones(response.data.data);
@@ -331,7 +503,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [apiClient]);
+  }, []);
 
   // Obtener una liquidación por ID
   const obtenerLiquidacionPorId = useCallback(
@@ -340,8 +512,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         setLoading(true);
         setError(null);
 
-        const client = apiClient();
-        const response = await client.get(`/api/nomina/conductores/${id}`);
+        const response = await apiClient.get(`/api/nomina/conductores/${id}`);
 
         if (response.data.success) {
           setLiquidacionActual(response.data.data);
@@ -364,7 +535,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         setLoading(false);
       }
     },
-    [apiClient],
+    [],
   );
 
   const crearLiquidacion = useCallback(
@@ -375,21 +546,15 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         setLoading(true);
         setError(null);
 
-        const client = apiClient();
-        const response = await client.post(
+        const response = await apiClient.post(
           "/api/nomina/conductores",
           liquidacionData,
         );
 
         if (response.data.success) {
-          // Actualizar la lista de liquidaciones
-          setLiquidaciones((prevLiquidaciones) => [
-            ...prevLiquidaciones,
-            response.data.data,
-          ]);
+          // No actualizamos manualmente el estado porque el socket se encargará de notificar
+          // cuando se cree la liquidación a todos los clientes conectados
           setShowCrearModal(false);
-
-          // Notificar éxito
           notificarCRUD("crear", "Liquidación", true);
 
           return response.data.data;
@@ -414,7 +579,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         setLoading(false);
       }
     },
-    [apiClient, notificarCRUD],
+    [notificarCRUD],
   );
 
   // Editar una liquidación existente
@@ -427,25 +592,14 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         setLoading(true);
         setError(null);
 
-        const client = apiClient();
-        const response = await client.put(
+        const response = await apiClient.put(
           `/api/nomina/conductores/${id}`,
           liquidacionData,
         );
 
         if (response.data.success) {
-          // Actualizar la lista de liquidaciones
-          setLiquidaciones((prevLiquidaciones) =>
-            prevLiquidaciones.map((liquidacion) =>
-              liquidacion.id === id ? response.data.data : liquidacion,
-            ),
-          );
-
-          // Actualizar la liquidación actual si está seleccionada
-          if (liquidacionActual && liquidacionActual.id === id) {
-            setLiquidacionActual(response.data.data);
-          }
-
+          // No actualizamos manualmente el estado porque el socket se encargará de notificar
+          // cuando se actualice la liquidación a todos los clientes conectados
           setShowEditarModal(false);
 
           // Notificar éxito
@@ -473,7 +627,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         setLoading(false);
       }
     },
-    [apiClient, liquidacionActual, notificarCRUD],
+    [notificarCRUD],
   );
 
   const eliminarLiquidacion = useCallback(
@@ -481,19 +635,13 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
       try {
         setLoading(true);
         setError(null);
-        const client = apiClient();
-        const response = await client.delete(`/api/nomina/conductores/${id}`);
+        const response = await apiClient.delete(
+          `/api/nomina/conductores/${id}`,
+        );
 
         if (response.data.success) {
-          // Eliminar la liquidación de la lista
-          setLiquidaciones((prevLiquidaciones) =>
-            prevLiquidaciones.filter((liquidacion) => liquidacion.id !== id),
-          );
-
-          // Si la liquidación eliminada es la seleccionada actualmente, limpiar la selección
-          if (liquidacionActual && liquidacionActual.id === id) {
-            setLiquidacionActual(null);
-          }
+          // No actualizamos manualmente el estado porque el socket se encargará de notificar
+          // cuando se elimine la liquidación a todos los clientes conectados
 
           // Notificar éxito
           notificarCRUD("eliminar", "Liquidación", true);
@@ -520,7 +668,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         setLoading(false);
       }
     },
-    [apiClient, liquidacionActual, notificarCRUD],
+    [notificarCRUD],
   );
 
   const confirmarEliminarLiquidacion = useCallback(
@@ -537,116 +685,6 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
       }
     },
     [eliminarLiquidacion],
-  );
-
-  // Registrar anticipos
-  const registrarAnticipos = useCallback(
-    async (anticiposData: NuevoAnticipoData[]): Promise<Anticipo[] | null> => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const client = apiClient();
-        const response = await client.post("/liquidaciones/anticipos", {
-          anticipos: anticiposData,
-        });
-
-        if (response.data.success) {
-          // Actualizar liquidaciones después de registrar anticipos
-          await obtenerLiquidaciones();
-
-          // Si hay una liquidación actual, actualizarla
-          if (liquidacionActual) {
-            await obtenerLiquidacionPorId(liquidacionActual.id);
-          }
-
-          // Notificar éxito
-          notificarCRUD("registrar", "Anticipos", true);
-
-          return response.data.data;
-        } else {
-          throw new Error(
-            response.data.message || "Error al registrar anticipos",
-          );
-        }
-      } catch (err: any) {
-        const mensajeError =
-          err.response?.data?.message ||
-          err.message ||
-          "Error al conectar con el servidor";
-
-        setError(mensajeError);
-
-        // Notificar error
-        notificarCRUD("registrar", "Anticipos", false, mensajeError);
-
-        return null;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [
-      apiClient,
-      liquidacionActual,
-      obtenerLiquidaciones,
-      obtenerLiquidacionPorId,
-      notificarCRUD,
-    ],
-  );
-
-  // Eliminar un anticipo
-  const eliminarAnticipo = useCallback(
-    async (anticipoId: string): Promise<boolean> => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const client = apiClient();
-        const response = await client.delete(
-          `/liquidaciones/anticipos/${anticipoId}`,
-        );
-
-        if (response.data.success) {
-          // Actualizar liquidaciones después de eliminar el anticipo
-          await obtenerLiquidaciones();
-
-          // Si hay una liquidación actual, actualizarla
-          if (liquidacionActual) {
-            await obtenerLiquidacionPorId(liquidacionActual.id);
-          }
-
-          // Notificar éxito
-          notificarCRUD("eliminar", "Anticipo", true);
-
-          return true;
-        } else {
-          throw new Error(
-            response.data.message || "Error al eliminar el anticipo",
-          );
-        }
-      } catch (err: any) {
-        const mensajeError =
-          err.response?.data?.message ||
-          err.message ||
-          "Error al conectar con el servidor";
-
-        setError(mensajeError);
-
-        // Notificar error
-        notificarCRUD("eliminar", "Anticipo", false, mensajeError);
-
-        return false;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [
-      apiClient,
-      liquidacionActual,
-      obtenerLiquidaciones,
-      obtenerLiquidacionPorId,
-      notificarCRUD,
-    ],
   );
 
   const filtrarLiquidaciones = useCallback((): Liquidacion[] => {
@@ -846,8 +884,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      const client = apiClient();
-      const response = await client.get("/api/flota/basicos");
+      const response = await apiClient.get("/api/flota/basicos");
 
       if (response.data.success) {
         setVehiculos(response.data.data);
@@ -872,8 +909,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      const client = apiClient();
-      const response = await client.get("/api/conductores/basicos");
+      const response = await apiClient.get("/api/conductores/basicos");
 
       if (response.data.success) {
         setConductores(response.data.data);
@@ -898,8 +934,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      const client = apiClient();
-      const response = await client.get(
+      const response = await apiClient.get(
         "/api/nomina/conductores/configuracion",
       );
 
@@ -926,8 +961,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      const client = apiClient();
-      const response = await client.get("/api/empresas");
+      const response = await apiClient.get("/api/empresas");
 
       if (response.data.success) {
         setEmpresas(response.data.data);
@@ -1002,10 +1036,8 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         throw new Error("No hay datos para exportar");
       }
 
-      const client = apiClient();
-
       // Importante: configurar la respuesta como blob para recibir archivos binarios
-      const response = await client.post(
+      const response = await apiClient.post(
         "/api/export",
         { data, options },
         {
@@ -1062,9 +1094,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
     selectedIds: string[],
   ) => {
     try {
-      const client = apiClient();
-
-      await client.post("/api/pdf/generate", {
+      await apiClient.post("/api/pdf/generate", {
         liquidacionIds: selectedIds,
         emailConfig: emailData,
       });
@@ -1074,16 +1104,23 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
     }
   };
 
-  const generatePDFS = async (selectedIds: string[], emailData: EmailData) => {
+  const generatePDFS = async (
+    selectedIds: string[],
+    emailData: EmailData,
+  ): Promise<string | null> => {
     try {
-      const client = apiClient();
-
-      await client.post("/api/pdf/generate", {
+      const response = await apiClient.post("/api/pdf/generate", {
         liquidacionIds: selectedIds,
         emailConfig: emailData,
       });
+
+      if (!response.data.success) return null;
+
+      return response.data.jobId;
     } catch (error: any) {
       toast.error(error.message || "Error al generar los PDFs");
+
+      return null; // Add return statement in catch block
     }
   };
   // Valor del contexto
@@ -1114,8 +1151,6 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
     obtenerLiquidacionPorId,
     crearLiquidacion,
     editarLiquidacion,
-    registrarAnticipos,
-    eliminarAnticipo,
     confirmarEliminarLiquidacion,
     exportExcel,
     sendsEmailsNominaConductores,

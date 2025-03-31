@@ -40,10 +40,9 @@ export function formatDate(date: string | DateValue | undefined): string {
 
   let dateObj: Date;
 
-  // Determinar si el argumento es un string o un objeto DateValue
   if (typeof date === "string") {
     // Si es string, convertir a Date
-    dateObj = new Date(date);
+    dateObj = new Date(`${date}T00:00:00`);
   } else {
     // Si es DateValue/CalendarDate, extraer los componentes
     if ("year" in date && "month" in date && "day" in date) {
@@ -230,7 +229,7 @@ export const agruparFechasConsecutivas = (fechas: string[]) => {
   });
 };
 
-export function formatDateShort(dateStr: Date | undefined): string {
+export function formatDateShort(dateStr: Date | string | undefined): string {
   if (!dateStr) return "";
 
   try {

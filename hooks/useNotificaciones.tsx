@@ -27,6 +27,7 @@ export const useNotificaciones = (options: UseNotificacionesOptions = {}) => {
       duracion?: number,
     ) => {
       if (!enabled) return;
+      console.log("no enabled");
       addNotification(tipo, mensaje, duracion);
     },
     [enabled, addNotification],
@@ -53,7 +54,13 @@ export const useNotificaciones = (options: UseNotificacionesOptions = {}) => {
    */
   const notificarCRUD = useCallback(
     (
-      operacion: "crear" | "editar" | "eliminar" | "registrar",
+      operacion:
+        | "crear"
+        | "editar"
+        | "eliminar"
+        | "registrar"
+        | "enviar"
+        | "generar",
       entidad: string,
       exito: boolean,
       error?: string,
@@ -77,10 +84,20 @@ export const useNotificaciones = (options: UseNotificacionesOptions = {}) => {
           success: `${entidad} registrado correctamente`,
           error: `Error al registrar ${entidad}`,
         },
+        enviar: {
+          success: `${entidad} enviado correctamente`,
+          error: `Error al enviar ${entidad}`,
+        },
+        generar: {
+          success: `${entidad} generado correctamente`,
+          error: `Error al generar ${entidad}`,
+        },
       };
 
       if (exito) {
         addNotification("success", mensajes[operacion].success);
+
+        console.log("success");
       } else {
         addNotification("error", error || mensajes[operacion].error);
       }

@@ -20,7 +20,6 @@ export const Notification: React.FC<NotificationProps> = ({
   onDismiss,
 }) => {
   const { id, type, message } = notification;
-
   const getIcon = () => {
     switch (type) {
       case "success":
@@ -68,7 +67,7 @@ export const Notification: React.FC<NotificationProps> = ({
 
   return (
     <div
-      className={`transform transition-all duration-300 ease-in-out rounded-lg p-4 shadow-lg border ${getBgColor()} mb-2`}
+      className={`max-sm:w-screen transform transition-all duration-300 ease-in-out md:rounded-lg p-4 shadow-lg border ${getBgColor()} mb-2 animate-fade-down animate-ease-in-out`}
       role="alert"
     >
       <div className="flex items-start">

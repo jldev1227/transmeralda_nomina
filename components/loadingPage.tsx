@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { ReactNode, useEffect } from "react";
 
-const LoadingPage = () => {
+const LoadingPage = ({ children }: { children: ReactNode }) => {
   // Opcional: Añadir alguna lógica de tiempo para mostrar mensajes diferentes
   // si la carga toma demasiado tiempo
   useEffect(() => {
@@ -20,7 +20,7 @@ const LoadingPage = () => {
 
         {/* Texto animado con fade-in */}
         <div className="mt-6 opacity-0 animate-fadeIn">
-          <p className="text-gray-600 dark:text-gray-300">Cargando</p>
+          <p className="text-emerald-600">{children}</p>
           <div className="flex justify-center mt-1">
             <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-bounce" />
             <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full mx-1 animate-bounce" />

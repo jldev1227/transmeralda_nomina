@@ -273,7 +273,7 @@ export const LiquidacionPDF = ({
             </Text>
           </View>
           <Image
-            source={"/codi.png"}
+            source={"/assets/codi.png"}
             style={{
               width: 175,
               position: "absolute",
@@ -428,17 +428,7 @@ export const LiquidacionPDF = ({
                   {},
                 ),
               ).map((bono: any, index, array) => (
-                <View
-                  key={bono.name}
-                  style={
-                    index === array.length - 1 &&
-                    recargosActualizados.length === 0 &&
-                    recargosParex.length === 0 &&
-                    (!item.pernotes || item.pernotes.length === 0)
-                      ? styles.tableRowLast
-                      : styles.tableRow
-                  }
-                >
+                <View key={bono.name} style={styles.tableRow}>
                   <View style={styles.tableCol1}>
                     <Text style={styles.valueText}>{bono.name || ""}</Text>
                   </View>
@@ -493,25 +483,14 @@ export const LiquidacionPDF = ({
             </View>
             <View style={styles.tableCol4}>
               <Text style={styles.valueText}>
-                {formatToCOP(
-                  totalRecargosParex !== undefined &&
-                    item.total_recargos !== undefined
-                    ? item.total_recargos - totalRecargosParex
-                    : item.total_recargos || 0,
-                )}
+                {formatToCOP(item.total_recargos - totalRecargosParex)}
               </Text>
             </View>
           </View>
 
           {/* Recargos PAREX */}
           {recargosParex.length > 0 && (
-            <View
-              style={
-                !item.pernotes || item.pernotes.length === 0
-                  ? styles.tableRowLast
-                  : styles.tableRow
-              }
-            >
+            <View style={styles.tableRow}>
               <View style={styles.tableCol1}>
                 <Text style={styles.valueText}>Recargos PAREX</Text>
               </View>
@@ -575,16 +554,16 @@ export const LiquidacionPDF = ({
             </View>
           ) : (
             <View style={styles.tableRowLast}>
-              <View>
+              <View style={styles.tableCol1}>
                 <Text style={styles.valueText}>Pernotes</Text>
               </View>
-              <View>
+              <View style={styles.tableCol2}>
                 <Text style={styles.valueText} />
               </View>
-              <View>
-                <Text style={styles.valueText} />
+              <View style={styles.tableCol3}>
+                <Text style={styles.valueText}>0</Text>
               </View>
-              <View>
+              <View style={styles.tableCol4}>
                 <Text style={styles.valueText}>{formatToCOP(0)}</Text>
               </View>
             </View>

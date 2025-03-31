@@ -10,6 +10,7 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { NominaProvider } from "@/context/NominaContext";
 import { NotificationContainer } from "@/components/ui/notificacionContainer";
 import { NotificationProvider } from "@/context/NotificacionContext";
+import { AuthProvider } from "@/context/AuthContext";
 
 export interface ProvidersProps {
   children: React.ReactNode;
@@ -29,12 +30,14 @@ export function Providers({ children, themeProps }: ProvidersProps) {
 
   return (
     <HeroUIProvider navigate={router.push}>
-      <NotificationProvider>
-        <NominaProvider>
-          <NotificationContainer />
-          <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>
-        </NominaProvider>
-      </NotificationProvider>
+      <AuthProvider>
+        <NotificationProvider>
+          <NominaProvider>
+            <NotificationContainer />
+            <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>
+          </NominaProvider>
+        </NotificationProvider>
+      </AuthProvider>
     </HeroUIProvider>
   );
 }
