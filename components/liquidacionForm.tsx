@@ -80,7 +80,7 @@ interface VehiculoDetalle {
     name: string;
     values: any[];
     value: number;
-    vehiculoId: string;
+    vehiculo_id: string;
   }[];
   mantenimientos: {
     values: { mes: string; quantity: number }[];
@@ -285,25 +285,25 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
           label: vehiculo.placa,
         },
         bonos: (initialData.bonificaciones || [])
-          .filter((b: any) => b.vehiculoId === vehiculo.id)
+          .filter((b: any) => b.vehiculo_id === vehiculo.id)
           .map((bono: any) => ({
             name: bono.name,
             values: bono.values || [{ mes: "Mes no definido", quantity: 0 }],
             value: normalizeNumber(bono.value),
-            vehiculoId: bono.vehiculoId,
+            vehiculo_id: bono.vehiculo_id,
           })),
         mantenimientos: (initialData?.mantenimientos || [])
-          .filter((m: any) => m.vehiculoId === vehiculo.id)
+          .filter((m: any) => m.vehiculo_id === vehiculo.id)
           .map((m: any) => ({
             values: m.values || [{ mes: "Mes no definido", quantity: 0 }],
             value: normalizeNumber(m.value),
-            vehiculoId: m.vehiculoId,
+            vehiculo_id: m.vehiculo_id,
           })),
         pernotes: (initialData.pernotes || []).filter(
-          (p: any) => p.vehiculoId === vehiculo.id,
+          (p: any) => p.vehiculo_id === vehiculo.id,
         ),
         recargos: (initialData.recargos || [])
-          .filter((r: any) => r.vehiculoId === vehiculo.id)
+          .filter((r: any) => r.vehiculo_id === vehiculo.id)
           .map((r: any) => ({
             ...r,
             empresa_id: r.empresa_id || "",
@@ -433,7 +433,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
             configuracion?.find((config) => config.nombre === nombre)?.valor ||
               0,
           ),
-          vehiculoId: vehiculo.value,
+          vehiculo_id: vehiculo.value,
         }));
 
         return {

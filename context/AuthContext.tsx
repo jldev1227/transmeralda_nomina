@@ -73,10 +73,10 @@ const getLogoutFunction = () => {
     }
 
     // Redirigir al sistema de autenticación
-    const authSystem =
-      process.env.NEXT_PUBLIC_AUTH_SYSTEM || "https://auth.midominio.com/login";
+    // const authSystem =
+    //   process.env.NEXT_PUBLIC_AUTH_SYSTEM || "https://auth.midominio.com/login";
 
-    window.location.href = `${authSystem}?returnUrl=${encodeURIComponent(window.location.href)}`;
+    // window.location.href = `${authSystem}?returnUrl=${encodeURIComponent(window.location.href)}`;
   };
 };
 
