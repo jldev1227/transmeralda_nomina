@@ -32,10 +32,10 @@ const createApiClient = () => {
     }
 
     // Redirigir al sistema de autenticación
-    const authSystem =
-      process.env.NEXT_PUBLIC_AUTH_SYSTEM || "https://auth.midominio.com/login";
+    // const authSystem =
+    //   process.env.NEXT_PUBLIC_AUTH_SYSTEM || "https://auth.midominio.com/login";
 
-    window.location.href = authSystem;
+    // window.location.href = authSystem;
   };
 
   // Interceptor para incluir el token en cada petición

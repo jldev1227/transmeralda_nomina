@@ -53,13 +53,13 @@ export function AuthGuard({ children }: AuthGuardProps) {
       setStatus("unauthenticated");
 
       // Redirigir con un pequeño retraso para permitir que los logs se muestren
-      setTimeout(() => {
-        const authSystem =
-          process.env.NEXT_PUBLIC_AUTH_SYSTEM ||
-          "https://auth.midominio.com/login";
+      // setTimeout(() => {
+      //   const authSystem =
+      //     process.env.NEXT_PUBLIC_AUTH_SYSTEM ||
+      //     "https://auth.midominio.com/login";
 
-        window.location.href = authSystem;
-      }, 500);
+      //   window.location.href = authSystem;
+      // }, 500);
     };
 
     // Solo verificar si estamos en el cliente
@@ -73,15 +73,15 @@ export function AuthGuard({ children }: AuthGuardProps) {
     return null;
   }
 
-  // Mostrar pantalla de carga mientras verificamos
-  if (status === "loading") {
-    return <LoadingPage>Verificando acceso</LoadingPage>;
-  }
+  // // Mostrar pantalla de carga mientras verificamos
+  // if (status === "loading") {
+  //   return <LoadingPage>Verificando acceso</LoadingPage>;
+  // }
 
-  // Si está en proceso de redirección, mostrar mensaje apropiado
-  if (status === "unauthenticated") {
-    return <LoadingPage>Redirigiendo al ingreso</LoadingPage>;
-  }
+  // // Si está en proceso de redirección, mostrar mensaje apropiado
+  // if (status === "unauthenticated") {
+  //   return <LoadingPage>Redirigiendo al ingreso</LoadingPage>;
+  // }
 
   // Si está autenticado, mostrar el contenido
   return <>{children}</>;
