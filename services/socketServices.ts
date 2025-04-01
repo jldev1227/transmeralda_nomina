@@ -37,14 +37,13 @@ class SocketService {
       
       this.socket = io(socketUrl, {
         path: '/socket.io/',
-        transports: ["websocket"], // Solo usar websocket para evitar problemas con Cloudflare
-        timeout: 15000, // 15 segundos de timeout
-        reconnectionAttempts: 5, // Socket.io intentará reconectar 5 veces
-        reconnectionDelay: 2000, // 2 segundos entre intentos
-        forceNew: true, // Forzar nueva conexión
+        transports: ["polling"], // Usar solo polling para evitar problemas con WebSockets
+        timeout: 20000,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 2000,
+        forceNew: true,
         query: { userId },
-        withCredentials: true, // Importante para enviar cookies en solicitudes cross-domain
-        secure: true // Forzar conexión segura
+        withCredentials: true
       });
 
       // Manejadores de eventos de conexión
