@@ -16,7 +16,7 @@ import {
 } from "recharts";
 
 import { useNomina } from "@/context/NominaContext";
-import { formatDateShort } from "@/helpers/helpers";
+import { agruparFechasConsecutivas } from "@/helpers/helpers";
 
 const COLORS = [
   "#0088FE",
@@ -51,7 +51,7 @@ interface ResultadoPernote {
   cantidad: number;
   valor: number;
   valorTotal: number;
-  fechas: string;
+  fechas: string[];
   conductor: string;
 }
 
@@ -282,10 +282,7 @@ const Page = () => {
           cantidad: pernote.cantidad,
           valor: Number(pernote.valor),
           valorTotal: Number(pernote.valor) * pernote.cantidad,
-          fechas:
-            pernote.fechas
-              ?.map((fecha: string) => formatDateShort(fecha))
-              .join(", ") || "",
+          fechas: pernote.fechas,
           conductor:
             `${liquidacion.conductor?.nombre || ""} ${liquidacion.conductor?.apellido || ""}`.trim(),
         });
@@ -439,31 +436,28 @@ const Page = () => {
             <div className="border-b border-gray-200">
               <nav className="flex -mb-px">
                 <button
-                  className={`mr - 6 py - 4 px - 1 border - b - 2 font - medium text - sm ${
-                    activeTab === "bonificaciones"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  } `}
+                  className={`mr-6 py 4 px-1 border-b-2 font-medium text-sm ${activeTab === "bonificaciones"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    } `}
                   onClick={() => setActiveTab("bonificaciones")}
                 >
                   Bonificaciones
                 </button>
                 <button
-                  className={`mr - 6 py - 4 px - 1 border - b - 2 font - medium text - sm ${
-                    activeTab === "recargos"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  } `}
+                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "recargos"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    } `}
                   onClick={() => setActiveTab("recargos")}
                 >
                   Recargos
                 </button>
                 <button
-                  className={`mr - 6 py - 4 px - 1 border - b - 2 font - medium text - sm ${
-                    activeTab === "pernotes"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  } `}
+                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "pernotes"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    } `}
                   onClick={() => setActiveTab("pernotes")}
                 >
                   Pernotes
@@ -485,11 +479,12 @@ const Page = () => {
                     <ResponsiveContainer height="100%" width="100%">
                       <BarChart
                         data={bonificacionesPorPlaca}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                        margin={{ top: 20, right: 20, left: 50, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="placa" />
-                        <YAxis />
+                        <YAxis
+                          tickFormatter={(value) => `$${value.toLocaleString()}`} />
                         <Tooltip
                           formatter={(value) => [
                             `$${value.toLocaleString()} `,
@@ -799,7 +794,7 @@ const Page = () => {
                                   ${item.valorTotal.toLocaleString()}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 max-w-xs truncate">
-                                  {item.fechas}
+                                  {agruparFechasConsecutivas(item.fechas).join(", ")}
                                 </td>
                               </tr>
                             ))
