@@ -515,7 +515,6 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
 
         if (response.data.success) {
           setLiquidacionActual(response.data.data);
-          console.log(response.data.data)
 
           return response.data.data;
         } else {

@@ -182,13 +182,55 @@ export function MesyAño(dateString: string | undefined): string {
   return date.toLocaleDateString("es-ES", options).toUpperCase();
 }
 
+export function formatDateShort(date: Date | string): string {
+  if (!date) return "";
+
+  let dateObj: Date;
+
+  if (typeof date === "string") {
+    // Si es string, separar la fecha en componentes
+    const [year, month, day] = date.split("-").map((num) => parseInt(num, 10));
+
+    // Crear la fecha usando componentes (año, mes [0-11], día)
+    dateObj = new Date(year, month - 1, day);
+  } else {
+    // Si ya es un objeto Date, usar directamente
+    dateObj = date;
+  }
+
+  const formattedDay = dateObj.getDate().toString().padStart(2, "0");
+
+  // Crear un array con los nombres cortos de los meses en español
+  const shortMonths = [
+    "ene",
+    "feb",
+    "mar",
+    "abr",
+    "may",
+    "jun",
+    "jul",
+    "ago",
+    "sep",
+    "oct",
+    "nov",
+    "dic",
+  ];
+  const formattedMonth = shortMonths[dateObj.getMonth()];
+
+  return `${formattedDay}-${formattedMonth}`;
+}
+
 export const agruparFechasConsecutivas = (fechas: string[]) => {
   if (!fechas || fechas.length === 0) return [];
 
-  // Convertir strings a objetos Date y ordenar
+  // Convertir strings a objetos Date usando la lógica corregida
   const fechasOrdenadas = fechas
     .filter((f) => f)
-    .map((f) => new Date(f))
+    .map((f) => {
+      const [year, month, day] = f.split("-").map((num) => parseInt(num, 10));
+
+      return new Date(year, month - 1, day);
+    })
     .sort((a, b) => a.getTime() - b.getTime());
 
   const rangos = [];
@@ -228,22 +270,3 @@ export const agruparFechasConsecutivas = (fechas: string[]) => {
       : `${inicioStr}~${finStr}`; // Rango
   });
 };
-
-export function formatDateShort(dateStr: Date | string | undefined): string {
-  if (!dateStr) return "";
-
-  try {
-    const date = new Date(dateStr);
-
-    // Obtener el día con dos dígitos
-    const day = date.getDate().toString().padStart(2, "0");
-
-    // Obtener el mes abreviado en minúsculas
-    const month = date.toLocaleString("es", { month: "short" }).toLowerCase();
-
-    // Devolver formato "DD-MMM"
-    return `${day}-${month}`;
-  } catch (error: any) {
-    return error.message || "Error al formatear la fecha";
-  }
-}

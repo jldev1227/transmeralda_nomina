@@ -18,7 +18,7 @@ import { Button } from "@nextui-org/react";
 import handleGeneratePDF from "./pdfMaker";
 
 import { Bonificacion, useNomina } from "@/context/NominaContext";
-import { formatDate } from "@/helpers/helpers";
+import { formatDate, formatDateShort } from "@/helpers/helpers";
 
 interface DetalleRecargo {
   id: string;
@@ -121,7 +121,7 @@ const LiquidacionDetalleModal: React.FC = () => {
         </div>
 
         {/* Pestañas de navegación */}
-        <div className="border-b border-gray-200 px-6 py-2 sticky top-14 bg-white z-10">
+        <div className="border-b border-gray-200 px-6 sticky top-14 bg-white z-10">
           <div className="flex space-x-4">
             <button
               className={`py-2 px-1 ${activeTab === "general" ? "text-emerald-600 border-b-2 border-emerald-500 font-medium" : "text-gray-500 hover:text-gray-700"}`}
@@ -789,21 +789,6 @@ const LiquidacionDetalleModal: React.FC = () => {
                             return 0;
                           });
 
-                          // Función para formatear fechas
-                          const formatDateShort = (dateStr: string) => {
-                            if (!dateStr) return "";
-                            const date = new Date(dateStr);
-                            const day = date
-                              .getDate()
-                              .toString()
-                              .padStart(2, "0");
-                            const month = date
-                              .toLocaleString("es", { month: "short" })
-                              .toLowerCase();
-
-                            return `${day}-${month}`;
-                          };
-
                           return (
                             <div className="space-y-3">
                               <h3 className="text-base font-semibold mb-2">
@@ -1425,14 +1410,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                                   {pernote.fechas.map(
                                     (fecha: string, index: number) => (
                                       <span key={index} className="mb-1">
-                                        {new Date(fecha).toLocaleDateString(
-                                          "es-CO",
-                                          {
-                                            year: "numeric",
-                                            month: "2-digit",
-                                            day: "2-digit",
-                                          },
-                                        )}
+                                        {formatDateShort(fecha)}
                                       </span>
                                     ),
                                   )}

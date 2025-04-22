@@ -436,28 +436,31 @@ const Page = () => {
             <div className="border-b border-gray-200">
               <nav className="flex -mb-px">
                 <button
-                  className={`mr-6 py 4 px-1 border-b-2 font-medium text-sm ${activeTab === "bonificaciones"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    } `}
+                  className={`mr-6 py 4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === "bonificaciones"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  } `}
                   onClick={() => setActiveTab("bonificaciones")}
                 >
                   Bonificaciones
                 </button>
                 <button
-                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "recargos"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    } `}
+                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === "recargos"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  } `}
                   onClick={() => setActiveTab("recargos")}
                 >
                   Recargos
                 </button>
                 <button
-                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "pernotes"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    } `}
+                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === "pernotes"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  } `}
                   onClick={() => setActiveTab("pernotes")}
                 >
                   Pernotes
@@ -484,7 +487,10 @@ const Page = () => {
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="placa" />
                         <YAxis
-                          tickFormatter={(value) => `$${value.toLocaleString()}`} />
+                          tickFormatter={(value) =>
+                            `$${value.toLocaleString()}`
+                          }
+                        />
                         <Tooltip
                           formatter={(value) => [
                             `$${value.toLocaleString()} `,
@@ -794,7 +800,9 @@ const Page = () => {
                                   ${item.valorTotal.toLocaleString()}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 max-w-xs truncate">
-                                  {agruparFechasConsecutivas(item.fechas).join(", ")}
+                                  {agruparFechasConsecutivas(item.fechas).join(
+                                    ", ",
+                                  )}
                                 </td>
                               </tr>
                             ))
