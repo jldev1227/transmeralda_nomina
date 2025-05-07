@@ -121,11 +121,15 @@ export interface Liquidacion {
   total_anticipos: number;
   total_vacaciones: number;
   periodo_start_vacaciones?: string | null;
+  periodo_start_incapacidad?: string | null;
   periodo_end_vacaciones?: string | null;
+  periodo_end_incapacidad?: string | null;
   dias_laborados: number;
   dias_laborados_villanueva: number;
   dias_laborados_anual: number;
+  dias_incapacidad: number;
   ajuste_salarial: number;
+  valor_incapacidad: number;
   salud: number;
   pension: number;
   cesantias: number;

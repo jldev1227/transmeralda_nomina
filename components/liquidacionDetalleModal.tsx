@@ -172,11 +172,10 @@ const LiquidacionDetalleModal: React.FC = () => {
                   <div>
                     <p className="text-sm text-gray-500">Estado</p>
                     <span
-                      className={`px-2 inline-flex items-center text-xs leading-5 font-semibold rounded-full ${
-                        liquidacionActual.estado === "Liquidado"
+                      className={`px-2 inline-flex items-center text-xs leading-5 font-semibold rounded-full ${liquidacionActual.estado === "Liquidado"
                           ? "bg-green-100 text-green-800"
                           : "bg-yellow-100 text-yellow-800"
-                      }`}
+                        }`}
                     >
                       {liquidacionActual.estado === "Liquidado" && (
                         <Check className="mr-1 h-3 w-3" />
@@ -818,7 +817,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                                         <span className="font-bold text-right">
                                           {formatCurrency(
                                             item.total_pernotes *
-                                              item.cantidad_total,
+                                            item.cantidad_total,
                                           )}
                                         </span>
                                       </div>
@@ -852,7 +851,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                                                     </div>
                                                     {detalle.fechas &&
                                                       detalle.fechas.length >
-                                                        0 && (
+                                                      0 && (
                                                         <div className="flex flex-wrap gap-1 text-xs text-gray-500 mt-1">
                                                           {detalle.fechas.map(
                                                             (
@@ -912,6 +911,29 @@ const LiquidacionDetalleModal: React.FC = () => {
                             -{" "}
                             {formatDate(
                               liquidacionActual.periodo_end_vacaciones,
+                            )}
+                          </div>
+                        )}
+
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-500">
+                          Incapacidad
+                        </span>
+                        <span className="text-sm font-medium">
+                          {formatCurrency(liquidacionActual.valor_incapacidad)}
+                        </span>
+                      </div>
+
+                      {liquidacionActual.periodo_start_incapacidad &&
+                        liquidacionActual.periodo_end_incapacidad && (
+                          <div className="text-xs text-gray-600 italic pl-4">
+                            Período:{" "}
+                            {formatDate(
+                              liquidacionActual.periodo_start_incapacidad,
+                            )}{" "}
+                            -{" "}
+                            {formatDate(
+                              liquidacionActual.periodo_end_incapacidad,
                             )}
                           </div>
                         )}
@@ -1082,7 +1104,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                 {!expandedSections.mantenimientos && (
                   <p className="text-sm text-gray-500">
                     {liquidacionActual.mantenimientos &&
-                    liquidacionActual.mantenimientos.length > 0
+                      liquidacionActual.mantenimientos.length > 0
                       ? `${liquidacionActual.mantenimientos.length} mantenimientos registrados`
                       : "No hay mantenimientos registrados"}
                   </p>
@@ -1243,7 +1265,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                 </div>
 
                 {liquidacionActual.recargos &&
-                liquidacionActual.recargos.length > 0 ? (
+                  liquidacionActual.recargos.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
@@ -1358,7 +1380,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                 </div>
 
                 {liquidacionActual.pernotes &&
-                liquidacionActual.pernotes.length > 0 ? (
+                  liquidacionActual.pernotes.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
@@ -1461,7 +1483,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                 </div>
 
                 {liquidacionActual.bonificaciones &&
-                liquidacionActual.bonificaciones.length > 0 ? (
+                  liquidacionActual.bonificaciones.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
@@ -1629,7 +1651,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                 </div>
 
                 {liquidacionActual.anticipos &&
-                liquidacionActual.anticipos.length > 0 ? (
+                  liquidacionActual.anticipos.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
