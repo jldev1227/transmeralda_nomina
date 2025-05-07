@@ -48,6 +48,7 @@ import {
   obtenerMesesEntreFechas,
   obtenerDiferenciaDias,
   dateToDateValue,
+  toDateValue,
 } from "@/helpers/helpers";
 import { Liquidacion, useNomina } from "@/context/NominaContext";
 
@@ -151,7 +152,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
   const [isIncapacidad, setIsIncapacidad] = useState(false);
   const [isCesantias, setIsCesantias] = useState(false);
   const [diasLaborados, setDiasLaborados] = useState(0);
-  const [diasIncapacidad, setDiasIncapacidad] = useState(0);
   const [diasLaboradosVillanueva, setDiasLaboradosVillanueva] = useState(0);
   const [diasLaboradosAnual, setDiasLaboradosAnual] = useState(0);
   const [cesantias, setCesantias] = useState(0);
@@ -229,11 +229,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       cargarDatosLiquidacion();
     }
   }, [mode, initialData, conductoresOptions, vehiculosOptions]);
-
-  function toDateValue(date: any): DateValue {
-    // Aquí puedes agregar lógica específica para la conversión si es necesario
-    return date as DateValue;
-  }
 
   // Función para cargar datos de liquidación existente
   const cargarDatosLiquidacion = () => {
@@ -340,7 +335,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     // Cargar otros valores
     setAnticipos(initialData?.anticipos || []);
     setDiasLaborados(initialData?.dias_laborados || 0);
-    setDiasIncapacidad(initialData?.dias_incapacidad || 0);
     setDiasLaboradosVillanueva(initialData?.dias_laborados_villanueva || 0);
     setDiasLaboradosAnual(initialData?.dias_laborados_anual || 0);
     setCesantias(initialData?.cesantias || 0);
@@ -851,7 +845,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
 
     // Cálculos básicos
     const salarioDevengado =
-      (salarioBase / 30) * (diasLaborados + diasIncapacidad);
+      (salarioBase / 30) * diasLaborados;
     const auxilioTransporte =
       (Number(
         configuracion?.find(
@@ -965,7 +959,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     conductores,
     conductorSelected,
     diasLaborados,
-    diasIncapacidad,
     configuracion,
     detallesVehiculos,
     isVacaciones,
@@ -1014,7 +1007,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       total_vacaciones: totales.totalVacaciones,
       total_anticipos: totales.totalAnticipos,
       dias_laborados: diasLaborados,
-      dias_incapacidad: diasIncapacidad,
       dias_laborados_villanueva: diasLaboradosVillanueva,
       dias_laborados_anual: diasLaboradosAnual,
       ajuste_salarial: bonificacionVillanueva,

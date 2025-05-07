@@ -270,3 +270,8 @@ export const agruparFechasConsecutivas = (fechas: string[]) => {
       : `${inicioStr}~${finStr}`; // Rango
   });
 };
+
+export function toDateValue(date: any): DateValue {
+  // Aquí puedes agregar lógica específica para la conversión si es necesario
+  return date as DateValue;
+}

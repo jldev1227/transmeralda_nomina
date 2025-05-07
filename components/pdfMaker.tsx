@@ -21,6 +21,7 @@ import {
   formatToCOP,
   MesyAño,
   obtenerDiferenciaDias,
+  toDateValue,
 } from "@/helpers/helpers";
 
 // Estilos para el PDF con un diseño más elegante tipo tabla
@@ -322,15 +323,6 @@ export const LiquidacionPDF = ({
 
           <View style={[styles.tableRow, styles.flex]}>
             <View>
-              <Text style={styles.labelText}>Días de incapacidad</Text>
-            </View>
-            <View>
-              <Text style={styles.valueText}>{safeValue(7)}</Text>
-            </View>
-          </View>
-
-          <View style={[styles.tableRow, styles.flex]}>
-            <View>
               <Text style={styles.labelText}>Salario devengado</Text>
             </View>
             <View>
@@ -356,16 +348,13 @@ export const LiquidacionPDF = ({
               <Text style={styles.labelText}>Remuneración por incapacidad</Text>
             </View>
             <View>
-              <Text
-                style={[
-                  styles.valueText,
-                  {
-                    marginLeft: -70,
-                  },
-                ]}
-              >
-                {item.periodo_start_incapacidad} -{" "}
-                {item.periodo_end_incapacidad}
+              <Text style={[styles.valueText, { marginLeft: -55 }]}>
+                {item.periodo_start_incapacidad && item.periodo_end_incapacidad
+                  ? `${obtenerDiferenciaDias({
+                    start: toDateValue(parseDate(item.periodo_start_incapacidad)),
+                    end: toDateValue(parseDate(item.periodo_end_incapacidad)),
+                  })} días`
+                  : "-"}
               </Text>
             </View>
             <View>
@@ -436,70 +425,70 @@ export const LiquidacionPDF = ({
           {/* Mapping bonificaciones */}
           {item.bonificaciones && item.bonificaciones.length > 0
             ? Object.values(
-                item.bonificaciones.reduce(
-                  (acc: BonificacionesAcc, bonificacion: Bonificacion) => {
-                    // Sumamos la cantidad de bonificaciones y el valor total
-                    const totalQuantity = bonificacion.values.reduce(
-                      (sum: number, val: any) => sum + (val.quantity || 0),
-                      0,
-                    );
+              item.bonificaciones.reduce(
+                (acc: BonificacionesAcc, bonificacion: Bonificacion) => {
+                  // Sumamos la cantidad de bonificaciones y el valor total
+                  const totalQuantity = bonificacion.values.reduce(
+                    (sum: number, val: any) => sum + (val.quantity || 0),
+                    0,
+                  );
 
-                    if (acc[bonificacion.name]) {
-                      acc[bonificacion.name].quantity += totalQuantity;
-                      acc[bonificacion.name].totalValue +=
-                        totalQuantity * bonificacion.value;
-                    } else {
-                      acc[bonificacion.name] = {
-                        name: bonificacion.name,
-                        quantity: totalQuantity,
-                        totalValue: totalQuantity * bonificacion.value,
-                      };
-                    }
+                  if (acc[bonificacion.name]) {
+                    acc[bonificacion.name].quantity += totalQuantity;
+                    acc[bonificacion.name].totalValue +=
+                      totalQuantity * bonificacion.value;
+                  } else {
+                    acc[bonificacion.name] = {
+                      name: bonificacion.name,
+                      quantity: totalQuantity,
+                      totalValue: totalQuantity * bonificacion.value,
+                    };
+                  }
 
-                    return acc;
-                  },
-                  {},
-                ),
-              ).map((bono: any) => (
-                <View key={bono.name} style={styles.tableRow}>
-                  <View style={styles.tableCol1}>
-                    <Text style={styles.valueText}>{bono.name || ""}</Text>
-                  </View>
-                  <View style={styles.tableCol2}>
-                    <Text style={styles.valueText} />
-                  </View>
-                  <View style={styles.tableCol3}>
-                    <Text style={styles.valueText}>{bono.quantity}</Text>
-                  </View>
-                  <View style={styles.tableCol4}>
-                    <Text style={styles.valueText}>
-                      {formatToCOP(bono.totalValue)}
-                    </Text>
-                  </View>
+                  return acc;
+                },
+                {},
+              ),
+            ).map((bono: any) => (
+              <View key={bono.name} style={styles.tableRow}>
+                <View style={styles.tableCol1}>
+                  <Text style={styles.valueText}>{bono.name || ""}</Text>
                 </View>
-              ))
+                <View style={styles.tableCol2}>
+                  <Text style={styles.valueText} />
+                </View>
+                <View style={styles.tableCol3}>
+                  <Text style={styles.valueText}>{bono.quantity}</Text>
+                </View>
+                <View style={styles.tableCol4}>
+                  <Text style={styles.valueText}>
+                    {formatToCOP(bono.totalValue)}
+                  </Text>
+                </View>
+              </View>
+            ))
             : // Bonificaciones por defecto si el array está vacío o no existe
-              [
-                "Bono de alimentación",
-                "Bono día trabajado",
-                "Bono día trabajado doble",
-                "Bono festividades",
-              ].map((conceptName, index) => (
-                <View key={index} style={styles.tableRow}>
-                  <View style={styles.tableCol1}>
-                    <Text style={styles.valueText}>{conceptName}</Text>
-                  </View>
-                  <View style={styles.tableCol2}>
-                    <Text style={styles.valueText} />
-                  </View>
-                  <View style={styles.tableCol3}>
-                    <Text style={styles.valueText}>0</Text>
-                  </View>
-                  <View style={styles.tableCol4}>
-                    <Text style={styles.valueText}>{formatToCOP(0)}</Text>
-                  </View>
+            [
+              "Bono de alimentación",
+              "Bono día trabajado",
+              "Bono día trabajado doble",
+              "Bono festividades",
+            ].map((conceptName, index) => (
+              <View key={index} style={styles.tableRow}>
+                <View style={styles.tableCol1}>
+                  <Text style={styles.valueText}>{conceptName}</Text>
                 </View>
-              ))}
+                <View style={styles.tableCol2}>
+                  <Text style={styles.valueText} />
+                </View>
+                <View style={styles.tableCol3}>
+                  <Text style={styles.valueText}>0</Text>
+                </View>
+                <View style={styles.tableCol4}>
+                  <Text style={styles.valueText}>{formatToCOP(0)}</Text>
+                </View>
+              </View>
+            ))}
 
           {/* Recargos */}
           <View style={styles.tableRow}>
@@ -666,9 +655,9 @@ export const LiquidacionPDF = ({
                 <Text style={styles.valueText}>
                   {item.periodo_start_vacaciones && item.periodo_end_vacaciones
                     ? obtenerDiferenciaDias({
-                        start: parseDate(item.periodo_start_vacaciones),
-                        end: parseDate(item.periodo_end_vacaciones),
-                      })
+                      start: parseDate(item.periodo_start_vacaciones),
+                      end: parseDate(item.periodo_end_vacaciones),
+                    })
                     : 0}{" "}
                   días
                 </Text>
