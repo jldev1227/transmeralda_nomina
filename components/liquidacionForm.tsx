@@ -286,7 +286,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       initialData?.periodo_start_incapacidad &&
       initialData?.periodo_end_incapacidad
     ) {
-      console.log(diasIncapacidad)
       setPeriodoIncapacidad({
         start: toDateValue(parseDate(initialData.periodo_start_incapacidad)),
         end: toDateValue(parseDate(initialData.periodo_end_incapacidad)),
@@ -494,7 +493,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     if (value === null) {
       setPeriodoVacaciones(null);
     } else {
-      console.log(value)
       setPeriodoVacaciones({
         start: value.start,
         end: value.end,
@@ -506,7 +504,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     if (value === null) {
       setPeriodoIncapacidad(null);
     } else {
-      console.log(value)
       setPeriodoIncapacidad({
         start: value.start,
         end: value.end,
@@ -854,7 +851,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
 
     // Cálculos básicos
     const salarioDevengado = (salarioBase / 30) * (diasLaborados + diasIncapacidad);
-    console.log(diasIncapacidad, diasLaborados, salarioDevengado)
     const auxilioTransporte =
       (Number(
         configuracion?.find(
