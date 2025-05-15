@@ -343,26 +343,28 @@ export const LiquidacionPDF = ({
             </View>
           </View>
 
-          <View style={[styles.tableRow, styles.flex]}>
-            <View>
-              <Text style={styles.labelText}>Remuneración por incapacidad</Text>
+          {safeValue(item.valor_incapacidad, "0") > 0 && (
+            <View style={[styles.tableRow, styles.flex]}>
+              <View>
+                <Text style={styles.labelText}>Remuneración por incapacidad</Text>
+              </View>
+              <View>
+                <Text style={[styles.valueText, { marginLeft: -55 }]}>
+                  {item.periodo_start_incapacidad && item.periodo_end_incapacidad
+                    ? `${obtenerDiferenciaDias({
+                      start: toDateValue(parseDate(item.periodo_start_incapacidad)),
+                      end: toDateValue(parseDate(item.periodo_end_incapacidad)),
+                    })} días`
+                    : "-"}
+                </Text>
+              </View>
+              <View>
+                <Text style={styles.greenValue}>
+                  {formatToCOP(safeValue(332150))}
+                </Text>
+              </View>
             </View>
-            <View>
-              <Text style={[styles.valueText, { marginLeft: -55 }]}>
-                {item.periodo_start_incapacidad && item.periodo_end_incapacidad
-                  ? `${obtenerDiferenciaDias({
-                    start: toDateValue(parseDate(item.periodo_start_incapacidad)),
-                    end: toDateValue(parseDate(item.periodo_end_incapacidad)),
-                  })} días`
-                  : "-"}
-              </Text>
-            </View>
-            <View>
-              <Text style={styles.greenValue}>
-                {formatToCOP(safeValue(332150))}
-              </Text>
-            </View>
-          </View>
+          )}
 
           <View style={[styles.tableRowLast, styles.flex]}>
             <View>
