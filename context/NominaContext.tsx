@@ -35,13 +35,12 @@ export interface Configuracion {
 
 export interface Empresa {
   id: string;
+  nit: string;
   nombre: string;
-  NIT: string;
-  Nombre: string;
-  Representante: string;
-  Cedula: string;
-  Telefono: string;
-  Direccion: string;
+  representante: string;
+  cedula: string;
+  telefono: string;
+  direccion: string;
 }
 
 export interface Vehiculo {

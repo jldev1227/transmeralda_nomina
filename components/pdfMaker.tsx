@@ -268,7 +268,7 @@ export const LiquidacionPDF = ({
             <Text style={styles.header}>
               TRANSPORTES Y SERVICIOS ESMERALDA S.A.S ZOMAC
             </Text>
-            <Text style={styles.subHeader}>NIT: 901528440-3</Text>
+            <Text style={styles.subHeader}>nit: 901528440-3</Text>
             <Text style={styles.comprobante}>
               COMPROBANTE DE NOMINA - {MesyAño(item.periodo_end)}
             </Text>
@@ -289,7 +289,7 @@ export const LiquidacionPDF = ({
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.flex]}>
             <View>
-              <Text style={styles.labelText}>Nombre</Text>
+              <Text style={styles.labelText}>nombre</Text>
             </View>
             <View>
               <Text style={styles.valueText}>

@@ -188,7 +188,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     () =>
       empresas?.map((empresa) => ({
         value: empresa.id,
-        label: empresa.Nombre,
+        label: empresa.nombre,
       })) || [],
     [empresas],
   );
@@ -2669,7 +2669,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                       <td className="px-3 py-2 text-xs">
                                         {empresas?.find(
                                           (e) => e.id === pernote.empresa_id,
-                                        )?.Nombre || "-"}
+                                        )?.nombre || "-"}
                                       </td>
                                       <td className="px-3 py-2 text-xs">
                                         <div className="flex flex-wrap gap-1">

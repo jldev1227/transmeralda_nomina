@@ -527,7 +527,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                             // Agregamos este recargo a la lista de detalles del vehículo
                             recargosPorVehiculo[vehiculoId].detalles.push({
                               id: recargo.id,
-                              empresa: recargo.empresa.Nombre,
+                              empresa: recargo.empresa.nombre,
                               mes: recargo.mes,
                               valor: valor,
                               pagaCliente: recargo.pag_cliente,
@@ -1343,7 +1343,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                                 {recargo.mes || "-"}
                               </td>
                               <td className="px-3 py-2 text-xs">
-                                {recargo.empresa.Nombre}
+                                {recargo.empresa.nombre}
                               </td>
                               <td className="px-3 py-2 whitespace-nowrap text-xs">
                                 {recargo.vehiculo
@@ -1446,7 +1446,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                             </td>
                             <td className="px-3 py-2 text-xs">
                               {pernote.empresa
-                                ? `${pernote.empresa.Nombre}`
+                                ? `${pernote.empresa.nombre}`
                                 : "No asociada"}
                             </td>
                             <td className="px-3 py-2 text-xs">
