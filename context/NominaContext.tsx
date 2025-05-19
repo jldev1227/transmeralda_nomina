@@ -963,7 +963,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      const response = await apiClient.get("/api/empresas");
+      const response = await apiClient.get("/api/empresas/basicos");
 
       if (response.data.success) {
         setEmpresas(response.data.data);
