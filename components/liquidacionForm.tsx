@@ -937,10 +937,23 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       totalVacaciones +
       bonificacionVillanueva +
       valorIncapacidad -
-      interesCesantias -
+      (interesCesantias -
       totalAnticipos -
       salud -
-      pension;
+      pension);
+
+      console.log(salarioDevengado)
+      console.log(auxilioTransporte)
+      console.log(totalBonificaciones)
+      console.log(totalPernotes)
+      console.log(totalRecargos)
+      console.log(totalVacaciones)
+      console.log(bonificacionVillanueva)
+      console.log(valorIncapacidad)
+      console.log(interesCesantias)
+      console.log(totalAnticipos)
+      console.log(salud)
+      console.log(pension)
 
     return {
       auxilioTransporte,
