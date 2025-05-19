@@ -927,6 +927,8 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
         0,
       ) || 0;
 
+      console.log(valorIncapacidad, "incapacidad")
+
     // Calcular sueldo total
     const sueldoTotal =
       salarioDevengado +
@@ -936,24 +938,11 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       totalRecargos +
       totalVacaciones +
       bonificacionVillanueva +
-      valorIncapacidad -
-      (interesCesantias -
+      valorIncapacidad +
+      interesCesantias -
       totalAnticipos -
       salud -
-      pension);
-
-      console.log(salarioDevengado)
-      console.log(auxilioTransporte)
-      console.log(totalBonificaciones)
-      console.log(totalPernotes)
-      console.log(totalRecargos)
-      console.log(totalVacaciones)
-      console.log(bonificacionVillanueva)
-      console.log(valorIncapacidad)
-      console.log(interesCesantias)
-      console.log(totalAnticipos)
-      console.log(salud)
-      console.log(pension)
+      pension;
 
     return {
       auxilioTransporte,
