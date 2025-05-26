@@ -121,8 +121,6 @@ const Pagination = ({
 const Page = () => {
   const { liquidaciones } = useNomina();
 
-  console.log(liquidaciones);
-
   // Estados para filtros
   const [filtroPlaca, setFiltroPlaca] = useState("");
   const [filtroMes, setFiltroMes] = useState("");
