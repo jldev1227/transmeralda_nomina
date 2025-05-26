@@ -15,7 +15,7 @@ import {
   Cell,
 } from "recharts";
 
-import { useNomina } from "@/context/NominaContext";
+import { Empresa, useNomina } from "@/context/NominaContext";
 import { agruparFechasConsecutivas } from "@/helpers/helpers";
 
 const COLORS = [
@@ -42,6 +42,7 @@ interface ResultadoRecargo {
   valor: number;
   pagaCliente: string;
   empresa_id: string;
+  empresa_nombre: string;
   mes: string;
   conductor: string;
 }
@@ -55,14 +56,84 @@ interface ResultadoPernote {
   conductor: string;
 }
 
+// Componente de Paginación
+const Pagination = ({
+  currentPage,
+  totalPages,
+  onPageChange
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}) => {
+  const getPageNumbers = () => {
+    const pages = [];
+    const delta = 2; // Número de páginas a mostrar a cada lado de la página actual
+
+    for (let i = Math.max(1, currentPage - delta); i <= Math.min(totalPages, currentPage + delta); i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  };
+
+  if (totalPages <= 1) return null;
+
+  return (
+    <div className="flex items-center justify-between mt-4">
+      <div className="text-sm text-gray-700">
+        Página {currentPage} de {totalPages}
+      </div>
+      <div className="flex space-x-1">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Anterior
+        </button>
+
+        {getPageNumbers().map((page) => (
+          <button
+            key={page}
+            onClick={() => onPageChange(page)}
+            className={`px-3 py-2 text-sm font-medium rounded-md ${page === currentPage
+              ? "text-blue-600 bg-blue-50 border border-blue-300"
+              : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-50"
+              }`}
+          >
+            {page}
+          </button>
+        ))}
+
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Siguiente
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const Page = () => {
   const { liquidaciones } = useNomina();
+
+  console.log(liquidaciones);
 
   // Estados para filtros
   const [filtroPlaca, setFiltroPlaca] = useState("");
   const [filtroMes, setFiltroMes] = useState("");
   const [filtroAno, setFiltroAno] = useState("");
   const [activeTab, setActiveTab] = useState("bonificaciones");
+
+  // Estados para paginación
+  const [currentPageBonificaciones, setCurrentPageBonificaciones] = useState(1);
+  const [currentPageRecargos, setCurrentPageRecargos] = useState(1);
+  const [currentPagePernotes, setCurrentPagePernotes] = useState(1);
+  const itemsPerPage = 10;
 
   // Obtener años y meses únicos para filtros
   const anos = useMemo(() => {
@@ -71,7 +142,6 @@ const Page = () => {
     liquidaciones?.forEach((liquidacion) => {
       if (liquidacion?.periodo_start) {
         const ano = new Date(liquidacion.periodo_start).getFullYear();
-
         anosSet.add(ano);
       }
     });
@@ -119,20 +189,14 @@ const Page = () => {
       const fechaInicio = new Date(liquidacion.periodo_start);
       const fechaFin = new Date(liquidacion.periodo_end);
 
-      // Para el criterio de año, verificamos si la fecha inicio está en el año seleccionado
-      // o si la fecha fin está en el año seleccionado
       const anoInicio = fechaInicio.getFullYear().toString();
       const anoFin = fechaFin.getFullYear().toString();
       const cumpleAno =
         !filtroAno || anoInicio === filtroAno || anoFin === filtroAno;
 
-      // Para el filtro de placa, sólo incluimos la liquidación si contiene la placa seleccionada
       const cumplePlaca =
         !filtroPlaca ||
         liquidacion.vehiculos?.some((v) => v.placa === filtroPlaca);
-
-      // Para el mes no usamos la fecha de la liquidación directamente
-      // Lo evaluaremos después en los datos filtrados de bonificaciones, recargos y pernotes
 
       return cumplePlaca && cumpleAno;
     });
@@ -170,17 +234,13 @@ const Page = () => {
           (v) => v.id === bonificacion.vehiculo_id,
         );
 
-        // Si hay filtro de placa y este vehículo no coincide, lo omitimos
         if (!vehiculo || (filtroPlaca && vehiculo.placa !== filtroPlaca))
           return;
 
         bonificacion.values?.forEach(
           (item: { mes: string; quantity: number }) => {
-            // Si hay filtro de mes y este item no coincide, lo omitimos
-            // Convertimos nombre de mes a número de mes para comparar con el filtro
             if (filtroMes) {
               const mesNumero = obtenerNumeroMes(item.mes);
-
               if (mesNumero !== filtroMes) return;
             }
 
@@ -218,14 +278,11 @@ const Page = () => {
           (v) => v.id === recargo.vehiculo_id,
         );
 
-        // Si hay filtro de placa y este vehículo no coincide, lo omitimos
         if (!vehiculo || (filtroPlaca && vehiculo.placa !== filtroPlaca))
           return;
 
-        // Si hay filtro de mes y este recargo no coincide, lo omitimos
         if (filtroMes) {
           const mesNumero = obtenerNumeroMes(recargo.mes);
-
           if (mesNumero !== filtroMes) return;
         }
 
@@ -237,6 +294,7 @@ const Page = () => {
           mes: recargo.mes,
           conductor:
             `${liquidacion.conductor?.nombre || ""} ${liquidacion.conductor?.apellido || ""}`.trim(),
+          empresa_nombre: recargo.empresa.nombre
         });
       });
     });
@@ -256,22 +314,17 @@ const Page = () => {
           (v) => v.id === pernote.vehiculo_id,
         );
 
-        // Si hay filtro de placa y este vehículo no coincide, lo omitimos
         if (!vehiculo || (filtroPlaca && vehiculo.placa !== filtroPlaca))
           return;
 
-        // Para pernotes, verificamos las fechas para determinar el mes
         let incluirPorMes = true;
 
         if (filtroMes && pernote.fechas && pernote.fechas.length > 0) {
-          // Asumimos que las fechas están en formato YYYY-MM-DD
           incluirPorMes = pernote.fechas.some((fecha) => {
             if (!fecha) return false;
             const parts = fecha.split("-");
-
             if (parts.length !== 3) return false;
-
-            return parts[1] === filtroMes; // El mes está en la posición 1 (índice 0-based)
+            return parts[1] === filtroMes;
           });
 
           if (!incluirPorMes) return;
@@ -291,7 +344,52 @@ const Page = () => {
 
     return resultado;
   }, [liquidacionesFiltradas, filtroPlaca, filtroMes]);
-  // Datos agrupados para gráficos
+
+  // Datos paginados para cada pestaña
+  const datosBonificacionesPaginados = useMemo(() => {
+    const startIndex = (currentPageBonificaciones - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return datosBonificaciones.slice(startIndex, endIndex);
+  }, [datosBonificaciones, currentPageBonificaciones]);
+
+  const datosRecargosPaginados = useMemo(() => {
+    const startIndex = (currentPageRecargos - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return datosRecargos.slice(startIndex, endIndex);
+  }, [datosRecargos, currentPageRecargos]);
+
+  const datosPernotePaginados = useMemo(() => {
+    const startIndex = (currentPagePernotes - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return datosPernotes.slice(startIndex, endIndex);
+  }, [datosPernotes, currentPagePernotes]);
+
+  // Calcular total de páginas para cada pestaña
+  const totalPagesBonificaciones = Math.ceil(datosBonificaciones.length / itemsPerPage);
+  const totalPagesRecargos = Math.ceil(datosRecargos.length / itemsPerPage);
+  const totalPagesPernotes = Math.ceil(datosPernotes.length / itemsPerPage);
+
+  // Funciones para manejar cambios de página
+  const handlePageChangeBonificaciones = (page: number) => {
+    setCurrentPageBonificaciones(page);
+  };
+
+  const handlePageChangeRecargos = (page: number) => {
+    setCurrentPageRecargos(page);
+  };
+
+  const handlePageChangePernotes = (page: number) => {
+    setCurrentPagePernotes(page);
+  };
+
+  // Resetear páginas cuando cambien los filtros
+  React.useEffect(() => {
+    setCurrentPageBonificaciones(1);
+    setCurrentPageRecargos(1);
+    setCurrentPagePernotes(1);
+  }, [filtroPlaca, filtroMes, filtroAno]);
+
+  // Datos agrupados para gráficos (estos se mantienen sin paginar)
   const bonificacionesPorPlaca = useMemo(() => {
     const agrupado: Record<string, number> = {};
 
@@ -436,31 +534,28 @@ const Page = () => {
             <div className="border-b border-gray-200">
               <nav className="flex -mb-px">
                 <button
-                  className={`mr-6 py 4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === "bonificaciones"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  } `}
+                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "bonificaciones"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
                   onClick={() => setActiveTab("bonificaciones")}
                 >
                   Bonificaciones
                 </button>
                 <button
-                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === "recargos"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  } `}
+                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "recargos"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
                   onClick={() => setActiveTab("recargos")}
                 >
                   Recargos
                 </button>
                 <button
-                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === "pernotes"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  } `}
+                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "pernotes"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
                   onClick={() => setActiveTab("pernotes")}
                 >
                   Pernotes
@@ -493,7 +588,7 @@ const Page = () => {
                         />
                         <Tooltip
                           formatter={(value) => [
-                            `$${value.toLocaleString()} `,
+                            `$${value.toLocaleString()}`,
                             "Total",
                           ]}
                         />
@@ -508,9 +603,14 @@ const Page = () => {
                   </div>
 
                   <div className="mt-6">
-                    <h3 className="text-lg font-medium mb-3">
-                      Detalle de Bonificaciones
-                    </h3>
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="text-lg font-medium">
+                        Detalle de Bonificaciones
+                      </h3>
+                      <div className="text-sm text-gray-600">
+                        Mostrando {datosBonificacionesPaginados.length} de {datosBonificaciones.length} registros
+                      </div>
+                    </div>
                     <div className="overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
@@ -539,8 +639,8 @@ const Page = () => {
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {datosBonificaciones.length > 0 ? (
-                            datosBonificaciones.map((item, index) => (
+                          {datosBonificacionesPaginados.length > 0 ? (
+                            datosBonificacionesPaginados.map((item, index) => (
                               <tr key={index}>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                   {item.placa}
@@ -578,6 +678,12 @@ const Page = () => {
                         </tbody>
                       </table>
                     </div>
+
+                    <Pagination
+                      currentPage={currentPageBonificaciones}
+                      totalPages={totalPagesBonificaciones}
+                      onPageChange={handlePageChangeBonificaciones}
+                    />
                   </div>
                 </div>
               </div>
@@ -605,7 +711,7 @@ const Page = () => {
                           <YAxis />
                           <Tooltip
                             formatter={(value) => [
-                              `$${value.toLocaleString()} `,
+                              `$${value.toLocaleString()}`,
                               "Total",
                             ]}
                           />
@@ -629,21 +735,21 @@ const Page = () => {
                             dataKey="value"
                             fill="#8884d8"
                             label={({ name, percent }) =>
-                              `${name}: ${(percent * 100).toFixed(0)}% `
+                              `${name}: ${(percent * 100).toFixed(0)}%`
                             }
                             labelLine={false}
                             outerRadius={80}
                           >
                             {recargosClientePie.map((entry, index) => (
                               <Cell
-                                key={`cell - ${index} `}
+                                key={`cell-${index}`}
                                 fill={COLORS[index % COLORS.length]}
                               />
                             ))}
                           </Pie>
                           <Tooltip
                             formatter={(value) => [
-                              `$${value.toLocaleString()} `,
+                              `$${value.toLocaleString()}`,
                               "Valor",
                             ]}
                           />
@@ -654,9 +760,14 @@ const Page = () => {
                   </div>
 
                   <div className="mt-6">
-                    <h3 className="text-lg font-medium mb-3">
-                      Detalle de Recargos
-                    </h3>
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="text-lg font-medium">
+                        Detalle de Recargos
+                      </h3>
+                      <div className="text-sm text-gray-600">
+                        Mostrando {datosRecargosPaginados.length} de {datosRecargos.length} registros
+                      </div>
+                    </div>
                     <div className="overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
@@ -666,6 +777,9 @@ const Page = () => {
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Conductor
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Cliente
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Mes
@@ -679,14 +793,17 @@ const Page = () => {
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {datosRecargos.length > 0 ? (
-                            datosRecargos.map((item, index) => (
-                              <tr key={index}>
+                          {datosRecargosPaginados.length > 0 ? (
+                            datosRecargosPaginados.map((item, index) => (
+                              <tr className={`${item.pagaCliente === "No" ? 'bg-red-50' : ''}`} key={index}>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                   {item.placa}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                   {item.conductor}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {item.empresa_nombre}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                   {item.mes}
@@ -712,6 +829,12 @@ const Page = () => {
                         </tbody>
                       </table>
                     </div>
+
+                    <Pagination
+                      currentPage={currentPageRecargos}
+                      totalPages={totalPagesRecargos}
+                      onPageChange={handlePageChangeRecargos}
+                    />
                   </div>
                 </div>
               </div>
@@ -738,7 +861,7 @@ const Page = () => {
                         <YAxis />
                         <Tooltip
                           formatter={(value) => [
-                            `$${value.toLocaleString()} `,
+                            `$${value.toLocaleString()}`,
                             "Total",
                           ]}
                         />
@@ -753,9 +876,14 @@ const Page = () => {
                   </div>
 
                   <div className="mt-6">
-                    <h3 className="text-lg font-medium mb-3">
-                      Detalle de Pernotes
-                    </h3>
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="text-lg font-medium">
+                        Detalle de Pernotes
+                      </h3>
+                      <div className="text-sm text-gray-600">
+                        Mostrando {datosPernotePaginados.length} de {datosPernotes.length} registros
+                      </div>
+                    </div>
                     <div className="overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
@@ -781,8 +909,8 @@ const Page = () => {
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {datosPernotes.length > 0 ? (
-                            datosPernotes.map((item, index) => (
+                          {datosPernotePaginados.length > 0 ? (
+                            datosPernotePaginados.map((item, index) => (
                               <tr key={index}>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                   {item.placa}
@@ -819,6 +947,12 @@ const Page = () => {
                         </tbody>
                       </table>
                     </div>
+
+                    <Pagination
+                      currentPage={currentPagePernotes}
+                      totalPages={totalPagesPernotes}
+                      onPageChange={handlePageChangePernotes}
+                    />
                   </div>
                 </div>
               </div>
@@ -826,7 +960,7 @@ const Page = () => {
           )}
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-6 mt-8">
           <h2 className="text-xl font-semibold mb-4">Resumen de Información</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-blue-50 p-4 rounded-lg">
@@ -878,6 +1012,6 @@ const Page = () => {
       </div>
     </div>
   );
-};
+}
 
-export default Page;
+export default Page

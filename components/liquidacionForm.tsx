@@ -927,7 +927,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
         0,
       ) || 0;
 
-      console.log(valorIncapacidad, "incapacidad")
 
     // Calcular sueldo total
     const sueldoTotal =
