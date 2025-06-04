@@ -148,6 +148,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
 
   // Estados para cálculos
   const [isCheckedAjuste, setIsCheckedAjuste] = useState(false);
+  const [isAjusteParex, setIsAjusteParex] = useState(false);
   const [isVacaciones, setIsVacaciones] = useState(false);
   const [isIncapacidad, setIsIncapacidad] = useState(false);
   const [isCesantias, setIsCesantias] = useState(false);
@@ -340,9 +341,10 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     setCesantias(initialData?.cesantias || 0);
     setInteresCesantias(initialData?.interes_cesantias || 0);
     setIsCheckedAjuste((initialData?.ajuste_salarial ?? 0) > 0);
+    setIsAjusteParex((initialData?.ajuste_parex ?? 0) > 0);
     setIsCesantias(
       (initialData?.cesantias ?? 0) > 0 ||
-        (initialData?.interes_cesantias ?? 0) > 0,
+      (initialData?.interes_cesantias ?? 0) > 0,
     );
   };
 
@@ -401,33 +403,33 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
             mantenimientos:
               detalleExistente.mantenimientos.length > 0
                 ? detalleExistente.mantenimientos.map((mantenimiento) => ({
-                    ...mantenimiento,
+                  ...mantenimiento,
+                  // Asegurar que value sea siempre un número
+                  value: Number(
+                    configuracion?.find(
+                      (config) => config.nombre === "Mantenimiento",
+                    )?.valor || 0,
+                  ),
+                  values: mesesRange.map((mes) => {
+                    const mantenimientoExistente = mantenimiento.values.find(
+                      (val) => val.mes === mes,
+                    );
+
+                    return mantenimientoExistente || { mes, quantity: 0 };
+                  }),
+                }))
+                : [
+                  {
                     // Asegurar que value sea siempre un número
                     value: Number(
                       configuracion?.find(
                         (config) => config.nombre === "Mantenimiento",
                       )?.valor || 0,
                     ),
-                    values: mesesRange.map((mes) => {
-                      const mantenimientoExistente = mantenimiento.values.find(
-                        (val) => val.mes === mes,
-                      );
-
-                      return mantenimientoExistente || { mes, quantity: 0 };
-                    }),
-                  }))
-                : [
-                    {
-                      // Asegurar que value sea siempre un número
-                      value: Number(
-                        configuracion?.find(
-                          (config) => config.nombre === "Mantenimiento",
-                        )?.valor || 0,
-                      ),
-                      values: mesesRange.map((mes) => ({ mes, quantity: 0 })),
-                      vehiculoId: vehiculo.value,
-                    },
-                  ],
+                    values: mesesRange.map((mes) => ({ mes, quantity: 0 })),
+                    vehiculoId: vehiculo.value,
+                  },
+                ],
           };
         }
 
@@ -442,7 +444,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
           values: mesesRange.map((mes) => ({ mes, quantity: 0 })),
           value: Number(
             configuracion?.find((config) => config.nombre === nombre)?.valor ||
-              0,
+            0,
           ),
           vehiculo_id: vehiculo.value,
         }));
@@ -529,18 +531,18 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       prevDetalles.map((detalle) =>
         detalle.vehiculo.value === vehiculoId
           ? {
-              ...detalle,
-              bonos: detalle.bonos.map((bono) =>
-                bono.name === name
-                  ? {
-                      ...bono,
-                      values: bono.values.map((val) =>
-                        val.mes === mes ? { ...val, quantity } : val,
-                      ),
-                    }
-                  : bono,
-              ),
-            }
+            ...detalle,
+            bonos: detalle.bonos.map((bono) =>
+              bono.name === name
+                ? {
+                  ...bono,
+                  values: bono.values.map((val) =>
+                    val.mes === mes ? { ...val, quantity } : val,
+                  ),
+                }
+                : bono,
+            ),
+          }
           : detalle,
       ),
     );
@@ -556,14 +558,14 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       prevDetalles.map((detalle) =>
         detalle.vehiculo.value === vehiculoId
           ? {
-              ...detalle,
-              mantenimientos: detalle.mantenimientos.map((mantenimiento) => ({
-                ...mantenimiento,
-                values: mantenimiento.values.map((val) =>
-                  val.mes === mes ? { ...val, quantity } : val,
-                ),
-              })),
-            }
+            ...detalle,
+            mantenimientos: detalle.mantenimientos.map((mantenimiento) => ({
+              ...mantenimiento,
+              values: mantenimiento.values.map((val) =>
+                val.mes === mes ? { ...val, quantity } : val,
+              ),
+            })),
+          }
           : detalle,
       ),
     );
@@ -579,11 +581,11 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       prevDetalles.map((detalle) =>
         detalle.vehiculo.value === vehiculoId
           ? {
-              ...detalle,
-              pernotes: detalle.pernotes.map((pernote, i) =>
-                i === index ? { ...pernote, [field]: value } : pernote,
-              ),
-            }
+            ...detalle,
+            pernotes: detalle.pernotes.map((pernote, i) =>
+              i === index ? { ...pernote, [field]: value } : pernote,
+            ),
+          }
           : detalle,
       ),
     );
@@ -601,17 +603,17 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       prevDetalles.map((detalle) =>
         detalle.vehiculo.value === vehiculoId
           ? {
-              ...detalle,
-              recargos: detalle.recargos.map((recargo, i) =>
-                i === index
-                  ? {
-                      ...recargo,
-                      [field]: value,
-                      ...(pag_cliente !== undefined && { pag_cliente }),
-                    }
-                  : recargo,
-              ),
-            }
+            ...detalle,
+            recargos: detalle.recargos.map((recargo, i) =>
+              i === index
+                ? {
+                  ...recargo,
+                  [field]: value,
+                  ...(pag_cliente !== undefined && { pag_cliente }),
+                }
+                : recargo,
+            ),
+          }
           : detalle,
       ),
     );
@@ -623,21 +625,21 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       prevDetalles.map((detalle) =>
         detalle.vehiculo.value === vehiculoId
           ? {
-              ...detalle,
-              pernotes: [
-                ...detalle.pernotes,
-                {
-                  vehiculo_id: vehiculoId,
-                  empresa_id: "",
-                  cantidad: 0,
-                  fechas: [],
-                  valor: Number(
-                    configuracion?.find((config) => config.nombre === "Pernote")
-                      ?.valor || 0,
-                  ),
-                },
-              ],
-            }
+            ...detalle,
+            pernotes: [
+              ...detalle.pernotes,
+              {
+                vehiculo_id: vehiculoId,
+                empresa_id: "",
+                cantidad: 0,
+                fechas: [],
+                valor: Number(
+                  configuracion?.find((config) => config.nombre === "Pernote")
+                    ?.valor || 0,
+                ),
+              },
+            ],
+          }
           : detalle,
       ),
     );
@@ -649,18 +651,18 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       prevDetalles.map((detalle) =>
         detalle.vehiculo.value === vehiculoId
           ? {
-              ...detalle,
-              recargos: [
-                ...detalle.recargos,
-                {
-                  vehiculo_id: vehiculoId,
-                  empresa_id: "",
-                  valor: 0,
-                  pag_cliente: false,
-                  mes: mesesRange[0] || "",
-                },
-              ],
-            }
+            ...detalle,
+            recargos: [
+              ...detalle.recargos,
+              {
+                vehiculo_id: vehiculoId,
+                empresa_id: "",
+                valor: 0,
+                pag_cliente: false,
+                mes: mesesRange[0] || "",
+              },
+            ],
+          }
           : detalle,
       ),
     );
@@ -672,9 +674,9 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       prevDetalles.map((detalle) =>
         detalle.vehiculo.value === vehiculoId
           ? {
-              ...detalle,
-              pernotes: detalle.pernotes.filter((_, i) => i !== index),
-            }
+            ...detalle,
+            pernotes: detalle.pernotes.filter((_, i) => i !== index),
+          }
           : detalle,
       ),
     );
@@ -686,9 +688,9 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       prevDetalles.map((detalle) =>
         detalle.vehiculo.value === vehiculoId
           ? {
-              ...detalle,
-              recargos: detalle.recargos.filter((_, i) => i !== index),
-            }
+            ...detalle,
+            recargos: detalle.recargos.filter((_, i) => i !== index),
+          }
           : detalle,
       ),
     );
@@ -812,6 +814,38 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     configuracion,
   ]);
 
+  // Cálculo de ajuste parex
+  const ajusteParex = React.useMemo(() => {
+    if (!isAjusteParex || !conductorSelected) return 0;
+
+    const conductor = conductores?.find(
+      (c) => c.id === conductorSelected.value,
+    );
+
+    if (!conductor) return 0;
+
+    // Filtrar recargos de PAREX
+    const PAREX_EMPRESA_ID = 'cfb258a6-448c-4469-aa71-8eeafa4530ef';
+
+    // Extraer y aplanar todos los recargos PAREX de todos los vehículos
+    const recargosParex = detallesVehiculos
+      .flatMap(vehiculo => vehiculo.recargos || [])
+      .filter(recargo => recargo.empresa_id === PAREX_EMPRESA_ID);
+
+    // Calcular el total de recargos PAREX
+    const totalRecargosParex = recargosParex.reduce(
+      (sum, recargo) => sum + (recargo.valor || 0),
+      0
+    );
+
+    return (totalRecargosParex * 0.08).toFixed(0)
+  }, [
+    isAjusteParex,
+    conductorSelected,
+    conductores,
+    configuracion,
+  ]);
+
   // Cálculo de remuneración incapacidad
   const valorIncapacidad = React.useMemo(() => {
     if (!isIncapacidad || !conductorSelected) return 0;
@@ -891,22 +925,26 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       0,
     );
 
-    // Calcular deducciones
-    const salud =
-      ((salarioDevengado + valorIncapacidad) *
-        Number(
-          configuracion?.find((config) => config.nombre === "Salud")?.valor ||
-            0,
-        )) /
-      100;
-    const pension =
-      ((salarioDevengado + valorIncapacidad) *
-        Number(
-          configuracion?.find((config) => config.nombre === "Pensión")?.valor ||
-            0,
-        )) /
-      100;
+    // Calcular la mitad del ajuste PAREX para cada concepto
+    const ajusteParexPorConcepto = Number(ajusteParex) * 0.5;
 
+    // Obtener porcentajes de configuración
+    const porcentajeSalud = Number(
+      configuracion?.find((config) => config.nombre === "Salud")?.valor || 0
+    ) / 100;
+
+    const porcentajePension = Number(
+      configuracion?.find((config) => config.nombre === "Pensión")?.valor || 0
+    ) / 100;
+
+    // Calcular base para los cálculos
+    const baseCalculo = salarioDevengado + valorIncapacidad;
+
+    // Calcular Salud con 50% del ajuste PAREX
+    const salud = (baseCalculo * porcentajeSalud) + ajusteParexPorConcepto;
+
+    // Calcular Pensión con 50% del ajuste PAREX
+    const pension = (baseCalculo * porcentajePension) + ajusteParexPorConcepto;
     // Calcular vacaciones
     let totalVacaciones = 0;
 
@@ -963,6 +1001,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     configuracion,
     detallesVehiculos,
     isVacaciones,
+    isAjusteParex,
     periodoVacaciones,
     periodoIncapacidad,
     bonificacionVillanueva,
@@ -999,6 +1038,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       periodo_end_incapacidad: periodoIncapacidad?.end
         ? formatDateValue(periodoIncapacidad.end)
         : null,
+      ajuste_parex: ajusteParex,
       auxilio_transporte: totales.auxilioTransporte,
       sueldo_total: totales.sueldoTotal,
       salario_devengado: totales.salarioDevengado,
@@ -1602,7 +1642,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                 <Badge color="success" variant="flat">
                                   {formatToCOP(
                                     detalleVehiculo.mantenimientos[0]?.value ||
-                                      0,
+                                    0,
                                   )}
                                 </Badge>
                               </Tooltip>
@@ -1771,7 +1811,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                               ...newFechas,
                                               ...Array(
                                                 newCantidad -
-                                                  (pernote.fechas?.length || 0),
+                                                (pernote.fechas?.length || 0),
                                               ).fill(null),
                                             ];
                                           } else if (
@@ -1811,8 +1851,8 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                               value={
                                                 fecha
                                                   ? (parseDate(
-                                                      fecha,
-                                                    ) as unknown as DateValue)
+                                                    fecha,
+                                                  ) as unknown as DateValue)
                                                   : null
                                               }
                                               onChange={(
@@ -1855,7 +1895,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                         <span className="font-medium ml-1">
                                           {formatToCOP(
                                             pernote.cantidad *
-                                              (pernote.valor || 0),
+                                            (pernote.valor || 0),
                                           )}
                                         </span>
                                       </div>
@@ -1991,7 +2031,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                         type="text"
                                         value={
                                           !recargo.pag_cliente &&
-                                          recargo.valor !== 0
+                                            recargo.valor !== 0
                                             ? formatCurrency(recargo.valor)
                                             : ""
                                         }
@@ -2019,7 +2059,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                         type="text"
                                         value={
                                           recargo.pag_cliente &&
-                                          recargo.valor !== 0
+                                            recargo.valor !== 0
                                             ? formatCurrency(recargo.valor)
                                             : ""
                                         }
@@ -2484,6 +2524,20 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                           : "Pendiente"}
                       </Badge>
                     </div>
+
+                    <div>
+                      <Checkbox
+                        className="mb-2"
+                        color="success"
+                        isSelected={isAjusteParex}
+                        size="md"
+                        onChange={(e) => setIsAjusteParex(e.target.checked)}
+                      >
+                        <span className="text-sm font-medium">
+                          Realizar ajuste de Parex
+                        </span>
+                      </Checkbox>
+                    </div>
                   </div>
                 </div>
               </Card>
@@ -2596,123 +2650,123 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
             {detallesVehiculos.some(
               (detalle) => detalle.pernotes.length > 0,
             ) && (
-              <Card className="shadow-sm border">
-                <div className="p-5">
-                  <h3 className="text-base font-medium text-gray-800 mb-3 flex items-center">
-                    <Calendar className="h-5 w-5 mr-2 text-emerald-600" />
-                    Detalle de Pernotes
-                  </h3>
+                <Card className="shadow-sm border">
+                  <div className="p-5">
+                    <h3 className="text-base font-medium text-gray-800 mb-3 flex items-center">
+                      <Calendar className="h-5 w-5 mr-2 text-emerald-600" />
+                      Detalle de Pernotes
+                    </h3>
 
-                  <div className="space-y-4">
-                    {detallesVehiculos.map(
-                      (detalle) =>
-                        detalle.pernotes.length > 0 && (
-                          <div
-                            key={detalle.vehiculo.value}
-                            className="border rounded-lg p-4"
-                          >
-                            <div className="flex items-center justify-between mb-3">
-                              <h4 className="font-medium text-gray-900">
-                                Pernotes de{" "}
-                                <span className="text-emerald-600">
-                                  {detalle.vehiculo.label}
-                                </span>
-                              </h4>
-                              <Badge
-                                className="px-2 py-1 text-xs"
-                                color="success"
-                                variant="flat"
-                              >
-                                {detalle.pernotes.reduce(
-                                  (total, p) => total + (p.cantidad || 0),
-                                  0,
-                                )}{" "}
-                                pernotes
-                              </Badge>
-                            </div>
+                    <div className="space-y-4">
+                      {detallesVehiculos.map(
+                        (detalle) =>
+                          detalle.pernotes.length > 0 && (
+                            <div
+                              key={detalle.vehiculo.value}
+                              className="border rounded-lg p-4"
+                            >
+                              <div className="flex items-center justify-between mb-3">
+                                <h4 className="font-medium text-gray-900">
+                                  Pernotes de{" "}
+                                  <span className="text-emerald-600">
+                                    {detalle.vehiculo.label}
+                                  </span>
+                                </h4>
+                                <Badge
+                                  className="px-2 py-1 text-xs"
+                                  color="success"
+                                  variant="flat"
+                                >
+                                  {detalle.pernotes.reduce(
+                                    (total, p) => total + (p.cantidad || 0),
+                                    0,
+                                  )}{" "}
+                                  pernotes
+                                </Badge>
+                              </div>
 
-                            <div className="overflow-x-auto">
-                              <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                  <tr>
-                                    <th
-                                      className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                      scope="col"
-                                    >
-                                      Cantidad
-                                    </th>
-                                    <th
-                                      className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                      scope="col"
-                                    >
-                                      Empresa
-                                    </th>
-                                    <th
-                                      className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                      scope="col"
-                                    >
-                                      Fechas
-                                    </th>
-                                    <th
-                                      className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                      scope="col"
-                                    >
-                                      Valor
-                                    </th>
-                                  </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                  {detalle.pernotes.map((pernote, idx) => (
-                                    <tr key={idx} className="hover:bg-gray-50">
-                                      <td className="px-3 py-2 whitespace-nowrap text-xs">
-                                        {pernote.cantidad || 0}
-                                      </td>
-                                      <td className="px-3 py-2 text-xs">
-                                        {empresas?.find(
-                                          (e) => e.id === pernote.empresa_id,
-                                        )?.nombre || "-"}
-                                      </td>
-                                      <td className="px-3 py-2 text-xs">
-                                        <div className="flex flex-wrap gap-1">
-                                          {pernote.fechas?.map(
-                                            (fecha, fidx) => (
-                                              <Badge
-                                                key={fidx}
-                                                className="text-xs px-1"
-                                                color="primary"
-                                                variant="flat"
-                                              >
-                                                {formatDate(fecha)}{" "}
-                                                {fidx + 1 ===
-                                                pernote.fechas?.length
-                                                  ? ""
-                                                  : "-"}
-                                              </Badge>
-                                            ),
-                                          )}
-                                          {(!pernote.fechas ||
-                                            pernote.fechas.length === 0) &&
-                                            "-"}
-                                        </div>
-                                      </td>
-                                      <td className="px-3 py-2 whitespace-nowrap text-xs text-right font-medium">
-                                        {formatToCOP(
-                                          (pernote.cantidad || 0) *
-                                            (pernote.valor || 0),
-                                        )}
-                                      </td>
+                              <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                  <thead className="bg-gray-50">
+                                    <tr>
+                                      <th
+                                        className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                        scope="col"
+                                      >
+                                        Cantidad
+                                      </th>
+                                      <th
+                                        className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                        scope="col"
+                                      >
+                                        Empresa
+                                      </th>
+                                      <th
+                                        className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                        scope="col"
+                                      >
+                                        Fechas
+                                      </th>
+                                      <th
+                                        className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                        scope="col"
+                                      >
+                                        Valor
+                                      </th>
                                     </tr>
-                                  ))}
-                                </tbody>
-                              </table>
+                                  </thead>
+                                  <tbody className="bg-white divide-y divide-gray-200">
+                                    {detalle.pernotes.map((pernote, idx) => (
+                                      <tr key={idx} className="hover:bg-gray-50">
+                                        <td className="px-3 py-2 whitespace-nowrap text-xs">
+                                          {pernote.cantidad || 0}
+                                        </td>
+                                        <td className="px-3 py-2 text-xs">
+                                          {empresas?.find(
+                                            (e) => e.id === pernote.empresa_id,
+                                          )?.nombre || "-"}
+                                        </td>
+                                        <td className="px-3 py-2 text-xs">
+                                          <div className="flex flex-wrap gap-1">
+                                            {pernote.fechas?.map(
+                                              (fecha, fidx) => (
+                                                <Badge
+                                                  key={fidx}
+                                                  className="text-xs px-1"
+                                                  color="primary"
+                                                  variant="flat"
+                                                >
+                                                  {formatDate(fecha)}{" "}
+                                                  {fidx + 1 ===
+                                                    pernote.fechas?.length
+                                                    ? ""
+                                                    : "-"}
+                                                </Badge>
+                                              ),
+                                            )}
+                                            {(!pernote.fechas ||
+                                              pernote.fechas.length === 0) &&
+                                              "-"}
+                                          </div>
+                                        </td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-xs text-right font-medium">
+                                          {formatToCOP(
+                                            (pernote.cantidad || 0) *
+                                            (pernote.valor || 0),
+                                          )}
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
                             </div>
-                          </div>
-                        ),
-                    )}
+                          ),
+                      )}
+                    </div>
                   </div>
-                </div>
-              </Card>
-            )}
+                </Card>
+              )}
           </div>
         )}
       </div>
