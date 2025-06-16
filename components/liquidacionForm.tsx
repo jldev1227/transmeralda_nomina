@@ -148,6 +148,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
 
   // Estados para cálculos
   const [isCheckedAjuste, setIsCheckedAjuste] = useState(false);
+  const [isAjustePorDia, setIsAjustePorDia] = useState(false);
   const [isAjusteParex, setIsAjusteParex] = useState(false);
   const [isVacaciones, setIsVacaciones] = useState(false);
   const [isIncapacidad, setIsIncapacidad] = useState(false);
@@ -341,6 +342,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     setCesantias(initialData?.cesantias || 0);
     setInteresCesantias(initialData?.interes_cesantias || 0);
     setIsCheckedAjuste((initialData?.ajuste_salarial ?? 0) > 0);
+    setIsAjustePorDia(!!initialData?.ajuste_salarial_por_dia);
     setIsAjusteParex((initialData?.ajuste_parex ?? 0) > 0);
     setIsCesantias(
       (initialData?.cesantias ?? 0) > 0 ||
@@ -797,7 +799,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
 
     const ajusteCalculado = (ajusteVillanueva - conductor.salario_base) / 30;
 
-    if (diasLaboradosVillanueva >= 17) {
+    if (!isAjustePorDia && diasLaboradosVillanueva >= 17) {
       return ajusteVillanueva - conductor.salario_base;
     } else {
       const ajustePorDiaCalculado = Number(ajusteCalculado.toFixed());
@@ -808,6 +810,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     }
   }, [
     isCheckedAjuste,
+    isAjustePorDia,
     conductorSelected,
     diasLaboradosVillanueva,
     conductores,
@@ -1039,6 +1042,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
         ? formatDateValue(periodoIncapacidad.end)
         : null,
       ajuste_parex: ajusteParex,
+      ajuste_salarial_por_dia: isAjustePorDia,
       auxilio_transporte: totales.auxilioTransporte,
       sueldo_total: totales.sueldoTotal,
       salario_devengado: totales.salarioDevengado,
@@ -1355,18 +1359,29 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
 
                       {isCheckedAjuste && (
                         <div className="mt-3 pl-7 space-y-3 pt-1 border-l-2 border-emerald-100">
-                          <Input
-                            className="max-w-xs"
-                            label="Días laborados en Villanueva"
-                            min={0}
-                            placeholder="Ingrese los días"
-                            size="sm"
-                            type="number"
-                            value={diasLaboradosVillanueva.toString()}
-                            onChange={(e) =>
-                              setDiasLaboradosVillanueva(+e.target.value)
-                            }
-                          />
+                          <div className="flex flex-col md:flex-row md:items-center gap-4">
+                            <Input
+                              className="max-w-xs"
+                              label="Días laborados en Villanueva"
+                              min={0}
+                              placeholder="Ingrese los días"
+                              size="sm"
+                              type="number"
+                              value={diasLaboradosVillanueva.toString()}
+                              onChange={(e) =>
+                                setDiasLaboradosVillanueva(+e.target.value)
+                              }
+                            />
+                            <Checkbox
+                              className="mb-2"
+                              color="success"
+                              isSelected={isAjustePorDia}
+                              size="md"
+                              onChange={(e) => setIsAjustePorDia(e.target.checked)}
+                            >
+                              <span className="text-sm font-medium">Ajustar por cantidad de días</span>
+                            </Checkbox>
+                          </div>
 
                           <div className="flex items-center gap-2 bg-gray-50 p-2 rounded">
                             <DollarSign className="h-4 w-4 text-emerald-600" />

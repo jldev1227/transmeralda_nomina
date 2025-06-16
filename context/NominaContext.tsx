@@ -129,6 +129,7 @@ export interface Liquidacion {
   dias_incapacidad: number;
   ajuste_salarial: number;
   ajuste_parex: number;
+  ajuste_salarial_por_dia: boolean;
   valor_incapacidad: number;
   salud: number;
   pension: number;
