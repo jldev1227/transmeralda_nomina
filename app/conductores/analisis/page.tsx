@@ -14,10 +14,10 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import Select from "react-select";
 
 import { useNomina } from "@/context/NominaContext";
 import { agruparFechasConsecutivas } from "@/helpers/helpers";
-import Select from "react-select";
 
 const COLORS = [
   "#0088FE",
@@ -61,7 +61,7 @@ interface ResultadoPernote {
 const Pagination = ({
   currentPage,
   totalPages,
-  onPageChange
+  onPageChange,
 }: {
   currentPage: number;
   totalPages: number;
@@ -71,7 +71,11 @@ const Pagination = ({
     const pages = [];
     const delta = 2; // Número de páginas a mostrar a cada lado de la página actual
 
-    for (let i = Math.max(1, currentPage - delta); i <= Math.min(totalPages, currentPage + delta); i++) {
+    for (
+      let i = Math.max(1, currentPage - delta);
+      i <= Math.min(totalPages, currentPage + delta);
+      i++
+    ) {
       pages.push(i);
     }
 
@@ -87,9 +91,9 @@ const Pagination = ({
       </div>
       <div className="flex space-x-1">
         <button
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
           className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={currentPage === 1}
+          onClick={() => onPageChange(currentPage - 1)}
         >
           Anterior
         </button>
@@ -97,20 +101,21 @@ const Pagination = ({
         {getPageNumbers().map((page) => (
           <button
             key={page}
+            className={`px-3 py-2 text-sm font-medium rounded-md ${
+              page === currentPage
+                ? "text-blue-600 bg-blue-50 border border-blue-300"
+                : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-50"
+            }`}
             onClick={() => onPageChange(page)}
-            className={`px-3 py-2 text-sm font-medium rounded-md ${page === currentPage
-              ? "text-blue-600 bg-blue-50 border border-blue-300"
-              : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-50"
-              }`}
           >
             {page}
           </button>
         ))}
 
         <button
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
           className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={currentPage === totalPages}
+          onClick={() => onPageChange(currentPage + 1)}
         >
           Siguiente
         </button>
@@ -141,6 +146,7 @@ const Page = () => {
     liquidaciones?.forEach((liquidacion) => {
       if (liquidacion?.periodo_start) {
         const ano = new Date(liquidacion.periodo_start).getFullYear();
+
         anosSet.add(ano);
       }
     });
@@ -240,6 +246,7 @@ const Page = () => {
           (item: { mes: string; quantity: number }) => {
             if (filtroMes) {
               const mesNumero = obtenerNumeroMes(item.mes);
+
               if (mesNumero !== filtroMes) return;
             }
 
@@ -282,6 +289,7 @@ const Page = () => {
 
         if (filtroMes) {
           const mesNumero = obtenerNumeroMes(recargo.mes);
+
           if (mesNumero !== filtroMes) return;
         }
 
@@ -293,7 +301,7 @@ const Page = () => {
           mes: recargo.mes,
           conductor:
             `${liquidacion.conductor?.nombre || ""} ${liquidacion.conductor?.apellido || ""}`.trim(),
-          empresa_nombre: recargo.empresa.nombre
+          empresa_nombre: recargo.empresa.nombre,
         });
       });
     });
@@ -322,7 +330,9 @@ const Page = () => {
           incluirPorMes = pernote.fechas.some((fecha) => {
             if (!fecha) return false;
             const parts = fecha.split("-");
+
             if (parts.length !== 3) return false;
+
             return parts[1] === filtroMes;
           });
 
@@ -348,23 +358,28 @@ const Page = () => {
   const datosBonificacionesPaginados = useMemo(() => {
     const startIndex = (currentPageBonificaciones - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
+
     return datosBonificaciones.slice(startIndex, endIndex);
   }, [datosBonificaciones, currentPageBonificaciones]);
 
   const datosRecargosPaginados = useMemo(() => {
     const startIndex = (currentPageRecargos - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
+
     return datosRecargos.slice(startIndex, endIndex);
   }, [datosRecargos, currentPageRecargos]);
 
   const datosPernotePaginados = useMemo(() => {
     const startIndex = (currentPagePernotes - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
+
     return datosPernotes.slice(startIndex, endIndex);
   }, [datosPernotes, currentPagePernotes]);
 
   // Calcular total de páginas para cada pestaña
-  const totalPagesBonificaciones = Math.ceil(datosBonificaciones.length / itemsPerPage);
+  const totalPagesBonificaciones = Math.ceil(
+    datosBonificaciones.length / itemsPerPage,
+  );
   const totalPagesRecargos = Math.ceil(datosRecargos.length / itemsPerPage);
   const totalPagesPernotes = Math.ceil(datosPernotes.length / itemsPerPage);
 
@@ -470,9 +485,10 @@ const Page = () => {
                 Filtrar por Placa
               </label>
               <Select
-                id="filtroPlaca"
+                isClearable
                 className="react-select-container"
                 classNamePrefix="react-select"
+                id="filtroPlaca"
                 options={[
                   { value: "", label: "Todas las placas" },
                   ...placas.map((placa: any) => ({
@@ -480,14 +496,13 @@ const Page = () => {
                     label: placa,
                   })),
                 ]}
+                placeholder="Buscar placa..."
                 value={
                   filtroPlaca
                     ? { value: filtroPlaca, label: filtroPlaca }
                     : { value: "", label: "Todas las placas" }
                 }
                 onChange={(selected) => setFiltroPlaca(selected?.value || "")}
-                isClearable
-                placeholder="Buscar placa..."
               />
             </div>
 
@@ -498,31 +513,31 @@ const Page = () => {
               >
                 Filtrar por Mes
               </label>
-                <Select
-                id="filtroMes"
+              <Select
+                isClearable
                 className="react-select-container"
                 classNamePrefix="react-select"
+                id="filtroMes"
                 options={[
                   { value: "", label: "Todos los meses" },
                   ...meses.map((mes) => ({
-                  value: mes.valor,
-                  label: mes.nombre,
+                    value: mes.valor,
+                    label: mes.nombre,
                   })),
                 ]}
+                placeholder="Buscar mes..."
                 value={
                   filtroMes
-                  ? meses
-                    .map((mes) => ({
-                      value: mes.valor,
-                      label: mes.nombre,
-                    }))
-                    .find((mes) => mes.value === filtroMes)
-                  : { value: "", label: "Todos los meses" }
+                    ? meses
+                        .map((mes) => ({
+                          value: mes.valor,
+                          label: mes.nombre,
+                        }))
+                        .find((mes) => mes.value === filtroMes)
+                    : { value: "", label: "Todos los meses" }
                 }
                 onChange={(selected) => setFiltroMes(selected?.value || "")}
-                isClearable
-                placeholder="Buscar mes..."
-                />
+              />
             </div>
 
             <div>
@@ -532,27 +547,27 @@ const Page = () => {
               >
                 Filtrar por Año
               </label>
-                <Select
-                id="filtroAno"
+              <Select
+                isClearable
+                isSearchable
                 className="react-select-container"
                 classNamePrefix="react-select"
+                id="filtroAno"
                 options={[
                   { value: "", label: "Todos los años" },
                   ...anos.map((ano: any) => ({
-                  value: ano.toString(),
-                  label: ano.toString(),
+                    value: ano.toString(),
+                    label: ano.toString(),
                   })),
                 ]}
+                placeholder="Buscar año..."
                 value={
                   filtroAno
-                  ? { value: filtroAno, label: filtroAno }
-                  : { value: "", label: "Todos los años" }
+                    ? { value: filtroAno, label: filtroAno }
+                    : { value: "", label: "Todos los años" }
                 }
                 onChange={(selected) => setFiltroAno(selected?.value || "")}
-                isClearable
-                placeholder="Buscar año..."
-                isSearchable
-                />
+              />
             </div>
           </div>
 
@@ -560,28 +575,31 @@ const Page = () => {
             <div className="border-b border-gray-200">
               <nav className="flex -mb-px">
                 <button
-                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "bonificaciones"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    }`}
+                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === "bonificaciones"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
                   onClick={() => setActiveTab("bonificaciones")}
                 >
                   Bonificaciones
                 </button>
                 <button
-                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "recargos"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    }`}
+                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === "recargos"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
                   onClick={() => setActiveTab("recargos")}
                 >
                   Recargos
                 </button>
                 <button
-                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "pernotes"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    }`}
+                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === "pernotes"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
                   onClick={() => setActiveTab("pernotes")}
                 >
                   Pernotes
@@ -634,7 +652,8 @@ const Page = () => {
                         Detalle de Bonificaciones
                       </h3>
                       <div className="text-sm text-gray-600">
-                        Mostrando {datosBonificacionesPaginados.length} de {datosBonificaciones.length} registros
+                        Mostrando {datosBonificacionesPaginados.length} de{" "}
+                        {datosBonificaciones.length} registros
                       </div>
                     </div>
                     <div className="overflow-x-auto">
@@ -791,7 +810,8 @@ const Page = () => {
                         Detalle de Recargos
                       </h3>
                       <div className="text-sm text-gray-600">
-                        Mostrando {datosRecargosPaginados.length} de {datosRecargos.length} registros
+                        Mostrando {datosRecargosPaginados.length} de{" "}
+                        {datosRecargos.length} registros
                       </div>
                     </div>
                     <div className="overflow-x-auto">
@@ -821,7 +841,10 @@ const Page = () => {
                         <tbody className="bg-white divide-y divide-gray-200">
                           {datosRecargosPaginados.length > 0 ? (
                             datosRecargosPaginados.map((item, index) => (
-                              <tr className={`${item.pagaCliente === "No" ? 'bg-red-50' : ''}`} key={index}>
+                              <tr
+                                key={index}
+                                className={`${item.pagaCliente === "No" ? "bg-red-50" : ""}`}
+                              >
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                   {item.placa}
                                 </td>
@@ -907,7 +930,8 @@ const Page = () => {
                         Detalle de Pernotes
                       </h3>
                       <div className="text-sm text-gray-600">
-                        Mostrando {datosPernotePaginados.length} de {datosPernotes.length} registros
+                        Mostrando {datosPernotePaginados.length} de{" "}
+                        {datosPernotes.length} registros
                       </div>
                     </div>
                     <div className="overflow-x-auto">
@@ -1038,6 +1062,6 @@ const Page = () => {
       </div>
     </div>
   );
-}
+};
 
-export default Page
+export default Page;
