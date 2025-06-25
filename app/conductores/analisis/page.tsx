@@ -207,6 +207,13 @@ const Page = () => {
     });
   }, [liquidaciones, filtroPlaca, filtroAno]);
 
+  // Filtrar solo liquidaciones que contienen la clave 'mantenimientos'
+  const liquidacionesConMantenimientos = useMemo(() => {
+    return liquidacionesFiltradas.filter((liquidacion) =>
+      Object.keys(liquidacion).includes("mantenimientos")
+    );
+  }, [liquidacionesFiltradas]);
+
   // Función para convertir nombre de mes a número
   const obtenerNumeroMes = (nombreMes: string): string => {
     const mesesMap: Record<string, string> = {
@@ -621,6 +628,16 @@ const Page = () => {
                 >
                   Pernotes
                 </button>
+                <button
+                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === "mantenimientos"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                  onClick={() => setActiveTab("mantenimientos")}
+                >
+                  Mantenimientos
+                </button>
               </nav>
             </div>
           </div>
@@ -1025,11 +1042,117 @@ const Page = () => {
               </div>
             </div>
           )}
+
+            {activeTab === "mantenimientos" && (
+            <div>
+              <div className="bg-white rounded-lg shadow mb-6">
+              <div className="p-4 border-b border-gray-200">
+                <h2 className="text-lg font-semibold">
+                Cantidad de Mantenimientos por Vehículo
+                </h2>
+              </div>
+              <div className="p-4">
+                <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Placa
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Conductor
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Mes
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Cantidad Total
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {(() => {
+                      // Agrupar por placa, conductor y mes
+                      type Row = { placa: string; conductor: string; mes: string; cantidad: number };
+                      const agrupado = new Map<string, Row>();
+                      liquidacionesFiltradas.forEach((liq) => {
+                        const conductor = `${liq.conductor?.nombre || ""} ${liq.conductor?.apellido || ""}`.trim();
+                        if (Array.isArray(liq.mantenimientos)) {
+                          liq.mantenimientos.forEach((mnt: any) => {
+                            const vehiculo = liq.vehiculos?.find((v: any) => v.id === mnt.vehiculo_id);
+                            if (!vehiculo) return;
+                            const placa = vehiculo.placa;
+                            if (Array.isArray(mnt.values)) {
+                              mnt.values.forEach((val: any) => {
+                                const cantidad = Number(val.quantity) || 0;
+                                if (cantidad === 0) return;
+                                const mes = val.mes || "";
+                                const key = `${placa}|${conductor}|${mes}`;
+                                if (agrupado.has(key)) {
+                                  agrupado.get(key)!.cantidad += cantidad;
+                                } else {
+                                  agrupado.set(key, { placa, conductor, mes, cantidad });
+                                }
+                              });
+                            } else if (typeof mnt.quantity === "number") {
+                              const cantidad = mnt.quantity;
+                              if (cantidad === 0) return;
+                              // Si no hay values, no hay mes, así que lo dejamos vacío
+                              const mes = "";
+                              const key = `${placa}|${conductor}|${mes}`;
+                              if (agrupado.has(key)) {
+                                agrupado.get(key)!.cantidad += cantidad;
+                              } else {
+                                agrupado.set(key, { placa, conductor, mes, cantidad });
+                              }
+                            }
+                          });
+                        }
+                      });
+                      // Filtrar solo los que tienen cantidad > 0
+                      const rows = Array.from(agrupado.values()).filter(item => item.cantidad > 0);
+                      if (rows.length === 0) {
+                        return (
+                          <tr>
+                            <td
+                              className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center"
+                              colSpan={4}
+                            >
+                              No hay datos disponibles
+                            </td>
+                          </tr>
+                        );
+                      }
+                      return rows.map((item, idx) => (
+                        <tr key={idx}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {item.placa}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {item.conductor}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {item.mes}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {item.cantidad}
+                          </td>
+                        </tr>
+                      ));
+                    })()}
+                  </tbody>
+                </table>
+                </div>
+              </div>
+              </div>
+            </div>
+            )}
+
         </div>
 
         <div className="bg-white rounded-lg shadow p-6 mt-8">
           <h2 className="text-xl font-semibold mb-4">Resumen de Información</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-blue-50 p-4 rounded-lg">
               <h3 className="text-lg font-medium text-blue-700 mb-2">
                 Total Bonificaciones
@@ -1072,6 +1195,39 @@ const Page = () => {
               </p>
               <p className="text-sm text-yellow-500 mt-2">
                 {datosPernotes.length} pernotes en total
+              </p>
+            </div>
+
+            <div className="bg-purple-50 p-4 rounded-lg flex flex-col justify-between h-full">
+              <div>
+              <h3 className="text-lg font-medium text-purple-700 mb-2 flex items-center">
+                Total Mantenimientos
+              </h3>
+              <p className="text-2xl font-bold text-purple-800">
+                {liquidacionesFiltradas.reduce((sum, liquidacion) => {
+                if (!Array.isArray(liquidacion.mantenimientos)) return sum;
+                return (
+                  sum +
+                  liquidacion.mantenimientos.reduce((mntSum: number, mnt: any) => {
+                  if (Array.isArray(mnt.values)) {
+                    return (
+                    mntSum +
+                    mnt.values.reduce(
+                      (acc: number, val: any) => acc + (Number(val.quantity) || 0),
+                      0
+                    )
+                    );
+                  } else if (typeof mnt.quantity === "number") {
+                    return mntSum + (mnt.quantity > 0 ? mnt.quantity : 0);
+                  }
+                  return mntSum;
+                  }, 0)
+                );
+                }, 0).toLocaleString()}
+              </p>
+              </div>
+              <p className="text-sm text-purple-500 mt-2">
+              Mantenimientos realizados en total
               </p>
             </div>
           </div>
