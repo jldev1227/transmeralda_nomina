@@ -15,8 +15,9 @@ import {
   Cell,
 } from "recharts";
 
-import { Empresa, useNomina } from "@/context/NominaContext";
+import { useNomina } from "@/context/NominaContext";
 import { agruparFechasConsecutivas } from "@/helpers/helpers";
+import Select from "react-select";
 
 const COLORS = [
   "#0088FE",
@@ -468,19 +469,26 @@ const Page = () => {
               >
                 Filtrar por Placa
               </label>
-              <select
-                className="w-full p-2 border border-gray-300 rounded-md"
+              <Select
                 id="filtroPlaca"
-                value={filtroPlaca}
-                onChange={(e) => setFiltroPlaca(e.target.value)}
-              >
-                <option value="">Todas las placas</option>
-                {placas.map((placa: any) => (
-                  <option key={placa} value={placa}>
-                    {placa}
-                  </option>
-                ))}
-              </select>
+                className="react-select-container"
+                classNamePrefix="react-select"
+                options={[
+                  { value: "", label: "Todas las placas" },
+                  ...placas.map((placa: any) => ({
+                    value: placa,
+                    label: placa,
+                  })),
+                ]}
+                value={
+                  filtroPlaca
+                    ? { value: filtroPlaca, label: filtroPlaca }
+                    : { value: "", label: "Todas las placas" }
+                }
+                onChange={(selected) => setFiltroPlaca(selected?.value || "")}
+                isClearable
+                placeholder="Buscar placa..."
+              />
             </div>
 
             <div>
@@ -490,19 +498,31 @@ const Page = () => {
               >
                 Filtrar por Mes
               </label>
-              <select
-                className="w-full p-2 border border-gray-300 rounded-md"
+                <Select
                 id="filtroMes"
-                value={filtroMes}
-                onChange={(e) => setFiltroMes(e.target.value)}
-              >
-                <option value="">Todos los meses</option>
-                {meses.map((mes) => (
-                  <option key={mes.valor} value={mes.valor}>
-                    {mes.nombre}
-                  </option>
-                ))}
-              </select>
+                className="react-select-container"
+                classNamePrefix="react-select"
+                options={[
+                  { value: "", label: "Todos los meses" },
+                  ...meses.map((mes) => ({
+                  value: mes.valor,
+                  label: mes.nombre,
+                  })),
+                ]}
+                value={
+                  filtroMes
+                  ? meses
+                    .map((mes) => ({
+                      value: mes.valor,
+                      label: mes.nombre,
+                    }))
+                    .find((mes) => mes.value === filtroMes)
+                  : { value: "", label: "Todos los meses" }
+                }
+                onChange={(selected) => setFiltroMes(selected?.value || "")}
+                isClearable
+                placeholder="Buscar mes..."
+                />
             </div>
 
             <div>
@@ -512,19 +532,27 @@ const Page = () => {
               >
                 Filtrar por Año
               </label>
-              <select
-                className="w-full p-2 border border-gray-300 rounded-md"
+                <Select
                 id="filtroAno"
-                value={filtroAno}
-                onChange={(e) => setFiltroAno(e.target.value)}
-              >
-                <option value="">Todos los años</option>
-                {anos.map((ano: any) => (
-                  <option key={ano} value={ano.toString()}>
-                    {ano}
-                  </option>
-                ))}
-              </select>
+                className="react-select-container"
+                classNamePrefix="react-select"
+                options={[
+                  { value: "", label: "Todos los años" },
+                  ...anos.map((ano: any) => ({
+                  value: ano.toString(),
+                  label: ano.toString(),
+                  })),
+                ]}
+                value={
+                  filtroAno
+                  ? { value: filtroAno, label: filtroAno }
+                  : { value: "", label: "Todos los años" }
+                }
+                onChange={(selected) => setFiltroAno(selected?.value || "")}
+                isClearable
+                placeholder="Buscar año..."
+                isSearchable
+                />
             </div>
           </div>
 

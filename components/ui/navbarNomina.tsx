@@ -123,12 +123,11 @@ const NominaNavbar = () => {
                   <button
                     className={`
                       group inline-flex items-center px-3 py-2 text-sm font-medium rounded-md
-                      ${
-                        item.active
-                          ? "text-emerald-600 bg-emerald-50"
-                          : item.disabled
-                            ? "text-gray-400 cursor-not-allowed"
-                            : "text-gray-700 hover:text-emerald-600 hover:bg-gray-50"
+                      ${item.active
+                        ? "text-emerald-600 bg-emerald-50"
+                        : item.disabled
+                          ? "text-gray-400 cursor-not-allowed"
+                          : "text-gray-700 hover:text-emerald-600 hover:bg-gray-50"
                       }
                     `}
                     type="button"
@@ -162,10 +161,9 @@ const NominaNavbar = () => {
                           key={subItem.name}
                           className={`
                             flex w-full px-4 py-2 text-sm
-                            ${
-                              item.disabled
-                                ? "text-gray-400 cursor-not-allowed"
-                                : "text-gray-700 hover:bg-gray-50 hover:text-emerald-600"
+                            ${item.disabled
+                              ? "text-gray-400 cursor-not-allowed"
+                              : "text-gray-700 hover:bg-gray-50 hover:text-emerald-600"
                             }
                           `}
                           role="menuitem"
@@ -182,13 +180,14 @@ const NominaNavbar = () => {
                 )}
               </div>
             ))}
-            <button
-              className="group inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700"
+            <Link
+              href={process.env.NEXT_PUBLIC_AUTH_SYSTEM ?? ''}
+              className="group inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:text-emerald-600 hover:bg-gray-50 transition-colors"
               type="button"
             >
-              <span className="mr-2">!Hola {user?.nombre}</span>
-              <CircleUserRound size={28} />
-            </button>
+              <span className="mr-2">¡Hola {user?.nombre}</span>
+              <CircleUserRound size={28} className="group-hover:text-emerald-600 transition-colors" />
+            </Link>
           </nav>
 
           {/* Mobile menu button */}
@@ -224,12 +223,11 @@ const NominaNavbar = () => {
                 <button
                   className={`
                     w-full flex items-center pl-3 pr-4 py-2 text-base font-medium rounded-md
-                    ${
-                      item.active
-                        ? "text-emerald-600 bg-emerald-50"
-                        : item.disabled
-                          ? "text-gray-400 cursor-not-allowed"
-                          : "text-gray-700 hover:text-emerald-600 hover:bg-gray-50"
+                    ${item.active
+                      ? "text-emerald-600 bg-emerald-50"
+                      : item.disabled
+                        ? "text-gray-400 cursor-not-allowed"
+                        : "text-gray-700 hover:text-emerald-600 hover:bg-gray-50"
                     }
                   `}
                   onClick={() =>
@@ -255,10 +253,9 @@ const NominaNavbar = () => {
                         key={subItem.name}
                         className={`
                           block py-2 text-base font-medium
-                          ${
-                            item.disabled
-                              ? "text-gray-400 cursor-not-allowed"
-                              : "text-gray-700 hover:text-emerald-600"
+                          ${item.disabled
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-gray-700 hover:text-emerald-600"
                           }
                         `}
                         onClick={(e) => {
