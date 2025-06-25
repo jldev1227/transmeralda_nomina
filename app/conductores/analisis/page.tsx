@@ -250,7 +250,9 @@ const Page = () => {
               if (mesNumero !== filtroMes) return;
             }
 
-            const valorTotal = Number(bonificacion.value) * item.quantity;
+            const valorUnitario = Number(bonificacion.value);
+            const valorTotal = valorUnitario * item.quantity;
+            const conductor = `${liquidacion.conductor?.nombre || ""} ${liquidacion.conductor?.apellido || ""}`.trim();
 
             if (item.quantity > 0) {
               resultado.push({
@@ -258,10 +260,9 @@ const Page = () => {
                 nombre: bonificacion.name,
                 mes: item.mes,
                 cantidad: item.quantity,
-                valorUnitario: Number(bonificacion.value),
-                valorTotal: valorTotal,
-                conductor:
-                  `${liquidacion.conductor?.nombre || ""} ${liquidacion.conductor?.apellido || ""} `.trim(),
+                valorUnitario,
+                valorTotal,
+                conductor,
               });
             }
           },
@@ -269,7 +270,23 @@ const Page = () => {
       });
     });
 
-    return resultado;
+    // Unificar por placa, nombre, valorUnitario y conductor
+    const agrupado = new Map<string, ResultadoBonificacion>();
+
+    resultado.forEach((item) => {
+      const key = `${item.placa}|${item.nombre}|${item.valorUnitario}|${item.conductor}`;
+      if (agrupado.has(key)) {
+        const existente = agrupado.get(key)!;
+        existente.cantidad += item.cantidad;
+        existente.valorTotal += item.valorTotal;
+        // Opcional: puedes concatenar los meses si quieres mostrar todos los meses involucrados
+        // existente.mes += `, ${item.mes}`;
+      } else {
+        agrupado.set(key, { ...item });
+      }
+    });
+
+    return Array.from(agrupado.values());
   }, [liquidacionesFiltradas, filtroPlaca, filtroMes]);
 
   // Para el bloque de datosRecargos
