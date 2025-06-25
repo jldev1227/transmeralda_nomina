@@ -1082,11 +1082,15 @@ const Page = () => {
                             const vehiculo = liq.vehiculos?.find((v: any) => v.id === mnt.vehiculo_id);
                             if (!vehiculo) return;
                             const placa = vehiculo.placa;
+                            // Filtrar por placa si hay filtro
+                            if (filtroPlaca && placa !== filtroPlaca) return;
                             if (Array.isArray(mnt.values)) {
                               mnt.values.forEach((val: any) => {
                                 const cantidad = Number(val.quantity) || 0;
                                 if (cantidad === 0) return;
                                 const mes = val.mes || "";
+                                // Filtrar por mes si hay filtro
+                                if (filtroMes && mes !== meses.find(m => m.valor === filtroMes)?.nombre) return;
                                 const key = `${placa}|${conductor}|${mes}`;
                                 if (agrupado.has(key)) {
                                   agrupado.get(key)!.cantidad += cantidad;
@@ -1099,6 +1103,8 @@ const Page = () => {
                               if (cantidad === 0) return;
                               // Si no hay values, no hay mes, así que lo dejamos vacío
                               const mes = "";
+                              // Filtrar por mes si hay filtro (no hay mes en este caso, así que solo mostrar si filtroMes vacío)
+                              if (filtroMes && filtroMes !== "") return;
                               const key = `${placa}|${conductor}|${mes}`;
                               if (agrupado.has(key)) {
                                 agrupado.get(key)!.cantidad += cantidad;
@@ -1147,7 +1153,6 @@ const Page = () => {
               </div>
             </div>
             )}
-
         </div>
 
         <div className="bg-white rounded-lg shadow p-6 mt-8">
