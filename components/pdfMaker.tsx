@@ -370,7 +370,7 @@ export const LiquidacionPDF = ({
               </View>
               <View>
                 <Text style={styles.greenValue}>
-                  {formatToCOP(safeValue(332150))}
+                  {formatToCOP(safeValue(item.valor_incapacidad))}
                 </Text>
               </View>
             </View>
