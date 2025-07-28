@@ -98,8 +98,6 @@ class SocketService {
         if (this.userId) {
           // En el último intento, probar con URL alternativa
           if (this.reconnectAttempts === this.maxReconnectAttempts) {
-            console.log("Último intento con configuración alternativa");
-
             // Usar la misma URL pero con configuración diferente
             this.socket = io(this.getSocketUrl(), {
               path: "/socket.io/",
@@ -150,10 +148,8 @@ class SocketService {
   off(event?: string): void {
     if (this.socket) {
       if (event) {
-        console.log(`Eliminando escucha para evento '${event}'`);
         this.socket.off(event);
       } else {
-        console.log("Eliminando todas las escuchas de eventos");
         this.socket.removeAllListeners();
       }
     }
@@ -162,7 +158,6 @@ class SocketService {
   // Desconectar socket
   disconnect(): void {
     if (this.socket) {
-      console.log("Desconectando socket");
       this.socket.disconnect();
       this.socket = null;
     }

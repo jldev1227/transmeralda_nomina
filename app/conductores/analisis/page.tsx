@@ -16,7 +16,7 @@ import {
 } from "recharts";
 import Select from "react-select";
 
-import { useNomina } from "@/context/NominaContext";
+import { Mantenimiento, useNomina } from "@/context/NominaContext";
 import { agruparFechasConsecutivas } from "@/helpers/helpers";
 
 const COLORS = [
@@ -203,9 +203,19 @@ const Page = () => {
         !filtroPlaca ||
         liquidacion.vehiculos?.some((v) => v.placa === filtroPlaca);
 
-      return cumplePlaca && cumpleAno;
+      const cumpleMes =
+        !filtroMes ||
+        liquidacion.mantenimientos?.some((mantenimiento: Mantenimiento) =>
+          mantenimiento.values.some((value) => {
+            const mesSeleccionado = meses.find((m) => m.valor === filtroMes);
+
+            return value.mes === mesSeleccionado?.nombre;
+          }),
+        );
+
+      return cumplePlaca && cumpleAno && cumpleMes;
     });
-  }, [liquidaciones, filtroPlaca, filtroAno]);
+  }, [liquidaciones, filtroPlaca, filtroAno, filtroMes]);
 
   // Función para convertir nombre de mes a número
   const obtenerNumeroMes = (nombreMes: string): string => {
@@ -489,6 +499,48 @@ const Page = () => {
       { name: "No paga cliente", value: noPagaCliente },
     ];
   }, [datosRecargos]);
+
+  const totalCantidadMantenimientos = useMemo(() => {
+    const nombreMesFiltro = meses.find((m) => m.valor === filtroMes)?.nombre;
+
+    const total = liquidacionesFiltradas.reduce((totalSum, liquidacion) => {
+      if (!Array.isArray(liquidacion.mantenimientos)) return totalSum;
+
+      return (
+        totalSum +
+        liquidacion.mantenimientos.reduce((mntSum: number, mnt: any) => {
+          const vehiculo = liquidacion.vehiculos?.find(
+            (v: any) => v.id === mnt.vehiculo_id,
+          );
+
+          if (!vehiculo) return mntSum;
+
+          const placa = vehiculo.placa;
+
+          if (filtroPlaca && placa !== filtroPlaca) return mntSum;
+
+          if (!Array.isArray(mnt.values)) return mntSum;
+
+          return (
+            mntSum +
+            mnt.values.reduce((valSum: number, val: any) => {
+              const cantidad = Number(val.quantity) || 0;
+
+              if (cantidad === 0) return valSum; // ✅ Excluir cantidad 0
+
+              const mes = val.mes || "";
+
+              if (filtroMes && mes !== nombreMesFiltro) return valSum; // ✅ Filtrar por mes
+
+              return valSum + cantidad;
+            }, 0)
+          );
+        }, 0)
+      );
+    }, 0);
+
+    return total;
+  }, [liquidacionesFiltradas, filtroMes, filtroPlaca]);
 
   return (
     <div className="flex-grow px-6 py-8">
@@ -1068,85 +1120,95 @@ const Page = () => {
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {(() => {
-                          // Agrupar por placa, conductor y mes
                           type Row = {
                             placa: string;
                             conductor: string;
                             mes: string;
                             cantidad: number;
                           };
+
                           const agrupado = new Map<string, Row>();
+                          let totalProcesados = 0;
+                          let totalExcluidos = 0;
+                          let totalCantidad0 = 0;
+                          let totalFiltradosPorMes = 0;
+                          let totalFiltradosPorPlaca = 0;
+
+                          // Convertir filtroMes a nombre UNA VEZ
+                          const nombreMesFiltro = meses.find(
+                            (m) => m.valor === filtroMes,
+                          )?.nombre;
 
                           liquidacionesFiltradas.forEach((liq) => {
                             const conductor =
                               `${liq.conductor?.nombre || ""} ${liq.conductor?.apellido || ""}`.trim();
 
-                            if (Array.isArray(liq.mantenimientos)) {
-                              liq.mantenimientos.forEach((mnt: any) => {
-                                const vehiculo = liq.vehiculos?.find(
-                                  (v: any) => v.id === mnt.vehiculo_id,
-                                );
+                            if (!Array.isArray(liq.mantenimientos)) {
+                              return;
+                            }
 
-                                if (!vehiculo) return;
-                                const placa = vehiculo.placa;
+                            liq.mantenimientos.forEach((mnt: any) => {
+                              const vehiculo = liq.vehiculos?.find(
+                                (v: any) => v.id === mnt.vehiculo_id,
+                              );
 
-                                // Filtrar por placa si hay filtro
-                                if (filtroPlaca && placa !== filtroPlaca)
+                              if (!vehiculo) {
+                                totalExcluidos++;
+
+                                return;
+                              }
+
+                              const placa = vehiculo.placa;
+
+                              // Filtrar por placa si hay filtro
+                              if (filtroPlaca && placa !== filtroPlaca) {
+                                totalFiltradosPorPlaca++;
+
+                                return;
+                              }
+
+                              if (!Array.isArray(mnt.values)) {
+                                totalExcluidos++;
+
+                                return;
+                              }
+
+                              mnt.values.forEach((val: any) => {
+                                totalProcesados++;
+
+                                const cantidad = Number(val.quantity) || 0;
+
+                                if (cantidad === 0) {
+                                  totalCantidad0++;
+
                                   return;
-                                if (Array.isArray(mnt.values)) {
-                                  mnt.values.forEach((val: any) => {
-                                    const cantidad = Number(val.quantity) || 0;
+                                }
 
-                                    if (cantidad === 0) return;
-                                    const mes = val.mes || "";
+                                const mes = val.mes || "";
 
-                                    // Filtrar por mes si hay filtro
-                                    if (
-                                      filtroMes &&
-                                      mes !==
-                                        meses.find((m) => m.valor === filtroMes)
-                                          ?.nombre
-                                    )
-                                      return;
-                                    const key = `${placa}|${conductor}|${mes}`;
+                                // Filtro por mes
+                                if (filtroMes && mes !== nombreMesFiltro) {
+                                  totalFiltradosPorMes++;
 
-                                    if (agrupado.has(key)) {
-                                      agrupado.get(key)!.cantidad += cantidad;
-                                    } else {
-                                      agrupado.set(key, {
-                                        placa,
-                                        conductor,
-                                        mes,
-                                        cantidad,
-                                      });
-                                    }
+                                  return;
+                                }
+
+                                const key = `${placa}|${conductor}|${mes}`;
+
+                                if (agrupado.has(key)) {
+                                  agrupado.get(key)!.cantidad += cantidad;
+                                } else {
+                                  agrupado.set(key, {
+                                    placa,
+                                    conductor,
+                                    mes,
+                                    cantidad,
                                   });
-                                } else if (typeof mnt.quantity === "number") {
-                                  const cantidad = mnt.quantity;
-
-                                  if (cantidad === 0) return;
-                                  // Si no hay values, no hay mes, así que lo dejamos vacío
-                                  const mes = "";
-
-                                  // Filtrar por mes si hay filtro (no hay mes en este caso, así que solo mostrar si filtroMes vacío)
-                                  if (filtroMes && filtroMes !== "") return;
-                                  const key = `${placa}|${conductor}|${mes}`;
-
-                                  if (agrupado.has(key)) {
-                                    agrupado.get(key)!.cantidad += cantidad;
-                                  } else {
-                                    agrupado.set(key, {
-                                      placa,
-                                      conductor,
-                                      mes,
-                                      cantidad,
-                                    });
-                                  }
                                 }
                               });
-                            }
+                            });
                           });
-                          // Filtrar solo los que tienen cantidad > 0
+
                           const rows = Array.from(agrupado.values()).filter(
                             (item) => item.cantidad > 0,
                           );
@@ -1244,37 +1306,7 @@ const Page = () => {
                   Total Mantenimientos
                 </h3>
                 <p className="text-2xl font-bold text-purple-800">
-                  {liquidacionesFiltradas
-                    .reduce((sum, liquidacion) => {
-                      if (!Array.isArray(liquidacion.mantenimientos))
-                        return sum;
-
-                      return (
-                        sum +
-                        liquidacion.mantenimientos.reduce(
-                          (mntSum: number, mnt: any) => {
-                            if (Array.isArray(mnt.values)) {
-                              return (
-                                mntSum +
-                                mnt.values.reduce(
-                                  (acc: number, val: any) =>
-                                    acc + (Number(val.quantity) || 0),
-                                  0,
-                                )
-                              );
-                            } else if (typeof mnt.quantity === "number") {
-                              return (
-                                mntSum + (mnt.quantity > 0 ? mnt.quantity : 0)
-                              );
-                            }
-
-                            return mntSum;
-                          },
-                          0,
-                        )
-                      );
-                    }, 0)
-                    .toLocaleString()}
+                  {totalCantidadMantenimientos}
                 </p>
               </div>
               <p className="text-sm text-purple-500 mt-2">
