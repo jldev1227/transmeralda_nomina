@@ -440,7 +440,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
           "Bono de alimentación",
           "Bono día trabajado",
           "Bono día trabajado doble",
-          "Bono festividades",
+          "Bono oficina",
         ].map((nombre) => ({
           name: nombre,
           values: mesesRange.map((mes) => ({ mes, quantity: 0 })),

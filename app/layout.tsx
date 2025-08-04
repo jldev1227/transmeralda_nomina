@@ -19,6 +19,10 @@ export const metadata: Metadata = {
   icons: {
     icon: "/assets/favicon.ico",
   },
+  other: {
+    google: "notranslate", // Prevenir traducción automática de Google
+    translate: "no", // Estándar general
+  },
 };
 
 export const viewport: Viewport = {
@@ -35,7 +39,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html suppressHydrationWarning lang="en">
+    <html suppressHydrationWarning lang="en" translate="no">
       <head />
       <body
         className={clsx(

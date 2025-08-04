@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   X,
   Download,
@@ -12,13 +12,19 @@ import {
   User,
   DollarSign,
   CalendarClock,
+  ClockIcon,
+  SignatureIcon,
 } from "lucide-react";
-import { Button } from "@nextui-org/react";
+import { Button, Skeleton } from "@nextui-org/react";
 
 import handleGeneratePDF from "./pdfMaker";
 
-import { Bonificacion, useNomina } from "@/context/NominaContext";
+import { Bonificacion, Conductor, useNomina } from "@/context/NominaContext";
 import { formatDate, formatDateShort } from "@/helpers/helpers";
+import {
+  SignatureImage,
+  useFirmasExistentes,
+} from "@/app/conductores/desprendible/[id]/page";
 
 interface DetalleRecargo {
   id: string;
@@ -28,9 +34,24 @@ interface DetalleRecargo {
   valor: number;
 }
 
+interface Firma {
+  id: string;
+  fecha_firma: string;
+  estado: "Activa" | "Inactiva";
+  conductor: Conductor;
+  firma_s3_key: string;
+}
+
+interface FirmaConUrl extends Firma {
+  presignedUrl?: string;
+  urlLoading?: boolean;
+  urlError?: boolean;
+}
+
 const LiquidacionDetalleModal: React.FC = () => {
   const { liquidacionActual, showDetalleModal, cerrarModales } = useNomina();
   const [activeTab, setActiveTab] = useState<string>("general");
+  const [documentoFirmado, setDocumentoFirmado] = useState(false);
   const [expandedSections, setExpandedSections] = useState<{
     [key: string]: boolean;
   }>({
@@ -40,6 +61,23 @@ const LiquidacionDetalleModal: React.FC = () => {
     bonificaciones: false,
     anticipos: false,
   });
+  const {
+    firmas,
+    loading: firmasLoading,
+    cargarFirmas,
+  } = useFirmasExistentes();
+
+  useEffect(() => {
+    if (!liquidacionActual) return;
+
+    const loadData = async () => {
+      const tieneFirmas = await cargarFirmas(liquidacionActual.id);
+
+      setDocumentoFirmado(tieneFirmas);
+    };
+
+    loadData();
+  }, [liquidacionActual, cargarFirmas]);
 
   // Si no hay liquidación o no se debe mostrar el modal, no renderizar nada
   if (!liquidacionActual || !showDetalleModal) return null;
@@ -105,8 +143,26 @@ const LiquidacionDetalleModal: React.FC = () => {
     }));
   };
 
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Solo cerrar si el click fue exactamente en el overlay (no en el contenido del modal)
+
+    console.log(e)
+    if (e.target === e.currentTarget) {
+      cerrarModales();
+    }
+  };
+
+  const closeModal = () => {
+    // Solo cerrar si el click fue exactamente en el overlay (no en el contenido del modal)
+
+    setActiveTab("general")
+     cerrarModales();
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto p-10">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto p-10"
+      onClick={handleOverlayClick}
+    >
       <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-full overflow-y-auto">
         <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 bg-white z-10">
           <h3 className="text-lg font-semibold text-gray-800">
@@ -114,7 +170,7 @@ const LiquidacionDetalleModal: React.FC = () => {
           </h3>
           <button
             className="text-gray-500 hover:text-gray-700"
-            onClick={cerrarModales}
+            onClick={closeModal}
           >
             <X className="w-5 h-5" />
           </button>
@@ -172,11 +228,10 @@ const LiquidacionDetalleModal: React.FC = () => {
                   <div>
                     <p className="text-sm text-gray-500">Estado</p>
                     <span
-                      className={`px-2 inline-flex items-center text-xs leading-5 font-semibold rounded-full ${
-                        liquidacionActual.estado === "Liquidado"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
+                      className={`px-2 inline-flex items-center text-xs leading-5 font-semibold rounded-full ${liquidacionActual.estado === "Liquidado"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                        }`}
                     >
                       {liquidacionActual.estado === "Liquidado" && (
                         <Check className="mr-1 h-3 w-3" />
@@ -818,7 +873,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                                         <span className="font-bold text-right">
                                           {formatCurrency(
                                             item.total_pernotes *
-                                              item.cantidad_total,
+                                            item.cantidad_total,
                                           )}
                                         </span>
                                       </div>
@@ -852,7 +907,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                                                     </div>
                                                     {detalle.fechas &&
                                                       detalle.fechas.length >
-                                                        0 && (
+                                                      0 && (
                                                         <div className="flex flex-wrap gap-1 text-xs text-gray-500 mt-1">
                                                           {detalle.fechas.map(
                                                             (
@@ -1105,7 +1160,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                 {!expandedSections.mantenimientos && (
                   <p className="text-sm text-gray-500">
                     {liquidacionActual.mantenimientos &&
-                    liquidacionActual.mantenimientos.length > 0
+                      liquidacionActual.mantenimientos.length > 0
                       ? `${liquidacionActual.mantenimientos.length} mantenimientos registrados`
                       : "No hay mantenimientos registrados"}
                   </p>
@@ -1266,7 +1321,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                 </div>
 
                 {liquidacionActual.recargos &&
-                liquidacionActual.recargos.length > 0 ? (
+                  liquidacionActual.recargos.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
@@ -1381,7 +1436,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                 </div>
 
                 {liquidacionActual.pernotes &&
-                liquidacionActual.pernotes.length > 0 ? (
+                  liquidacionActual.pernotes.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
@@ -1484,7 +1539,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                 </div>
 
                 {liquidacionActual.bonificaciones &&
-                liquidacionActual.bonificaciones.length > 0 ? (
+                  liquidacionActual.bonificaciones.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
@@ -1652,7 +1707,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                 </div>
 
                 {liquidacionActual.anticipos &&
-                liquidacionActual.anticipos.length > 0 ? (
+                  liquidacionActual.anticipos.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
@@ -1776,34 +1831,56 @@ const LiquidacionDetalleModal: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="text-sm font-medium text-gray-700 mb-4 flex items-center">
-                  <CalendarClock className="w-4 h-4 mr-2" /> PERÍODOS
-                </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-700 mb-4 flex items-center">
+                    <CalendarClock className="w-4 h-4 mr-2" /> PERÍODOS
+                  </h4>
 
-                <div className="grid grid-cols-1 gap-3">
-                  <div className="bg-white p-3 rounded border border-gray-200">
-                    <p className="text-xs text-gray-500">Período de Nómina</p>
-                    <p className="text-sm font-medium">
-                      {periodoInicio} - {periodoFin}
-                    </p>
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="bg-white p-3 rounded border border-gray-200">
+                      <p className="text-xs text-gray-500">Período de Nómina</p>
+                      <p className="text-sm font-medium">
+                        {periodoInicio} - {periodoFin}
+                      </p>
+                    </div>
+
+                    {liquidacionActual.periodo_start_vacaciones &&
+                      liquidacionActual.periodo_end_vacaciones && (
+                        <div className="bg-white p-3 rounded border border-gray-200">
+                          <p className="text-xs text-gray-500">
+                            Período de Vacaciones
+                          </p>
+                          <p className="text-sm font-medium">
+                            {formatDate(
+                              liquidacionActual.periodo_start_vacaciones,
+                            )}{" "}
+                            -{" "}
+                            {formatDate(
+                              liquidacionActual.periodo_end_vacaciones,
+                            )}
+                          </p>
+                        </div>
+                      )}
                   </div>
+                </div>
 
-                  {liquidacionActual.periodo_start_vacaciones &&
-                    liquidacionActual.periodo_end_vacaciones && (
-                      <div className="bg-white p-3 rounded border border-gray-200">
-                        <p className="text-xs text-gray-500">
-                          Período de Vacaciones
-                        </p>
-                        <p className="text-sm font-medium">
-                          {formatDate(
-                            liquidacionActual.periodo_start_vacaciones,
-                          )}{" "}
-                          -{" "}
-                          {formatDate(liquidacionActual.periodo_end_vacaciones)}
-                        </p>
-                      </div>
-                    )}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-700 mb-4 flex items-center">
+                    <SignatureIcon className="w-4 h-4 mr-2" /> FIRMA
+                    DESPRENDIBLE
+                  </h4>
+
+                  {firmasLoading ? (
+                    <LoadingSkeleton />
+                  ) : documentoFirmado ? (
+                    <FirmasExistentes firmas={firmas as FirmaConUrl[]} />
+                  ) : (
+                    <p className="italic text-gray-400">
+                      El presente desprendible de nómina no cuenta con firma de
+                      recibido por parte del conductor.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -1818,7 +1895,7 @@ const LiquidacionDetalleModal: React.FC = () => {
               }}
             >
               <Download className="w-4 h-4 mr-2" />
-              Descargar PDF
+              Ver Desprendible
             </Button>
           </div>
         </div>
@@ -1828,3 +1905,58 @@ const LiquidacionDetalleModal: React.FC = () => {
 };
 
 export default LiquidacionDetalleModal;
+
+const FirmasExistentes = ({ firmas }: { firmas: FirmaConUrl[] }) => {
+  const formatFechaFirma = useCallback((fecha: string) => {
+    return new Date(fecha).toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }, []);
+
+  if (firmas.length === 0) return null;
+
+  return (
+    <div>
+      <h4 className="font-medium text-gray-900 mb-2">Detalles de la Firma</h4>
+      {firmas.map((firma) => (
+        <FirmaItem
+          key={firma.id}
+          firma={firma}
+          formatFecha={formatFechaFirma}
+        />
+      ))}
+    </div>
+  );
+};
+
+const FirmaItem = ({
+  firma,
+  formatFecha,
+}: {
+  firma: FirmaConUrl;
+  formatFecha: (fecha: string) => string;
+}) => (
+  <div>
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <ClockIcon className="h-4 w-4 text-gray-500" />
+        <div>
+          <p className="text-xs text-gray-500">
+            Firmado el {formatFecha(firma.fecha_firma)}
+          </p>
+        </div>
+      </div>
+    </div>
+    <SignatureImage firma={firma} />
+  </div>
+);
+
+const LoadingSkeleton = () => (
+  <div className="bg-gray-50 flex items-center justify-center">
+    <Skeleton className="h-16 w-full" />
+  </div>
+);

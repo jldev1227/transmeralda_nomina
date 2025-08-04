@@ -19,7 +19,7 @@ import {
   agruparFechasConsecutivas,
   formatDate,
   formatToCOP,
-  MesyAño,
+  MonthAndYear,
   obtenerDiferenciaDias,
   toDateValue,
 } from "@/helpers/helpers";
@@ -270,10 +270,10 @@ export const LiquidacionPDF = ({
             </Text>
             <Text style={styles.subHeader}>NIT: 901528440-3</Text>
             <Text style={styles.comprobante}>
-              COMPROBANTE DE NOMINA - {MesyAño(item.periodo_end)}
+              COMPROBANTE DE NOMINA - {MonthAndYear(item.periodo_end)}
             </Text>
             <Text style={styles.comprobante}>
-              BÁSICO CORRESPONDIENTE AL MES DE {MesyAño(item.periodo_end)}
+              BÁSICO CORRESPONDIENTE AL MES DE {MonthAndYear(item.periodo_end)}
             </Text>
           </View>
           <Image
@@ -485,7 +485,7 @@ export const LiquidacionPDF = ({
                 "Bono de alimentación",
                 "Bono día trabajado",
                 "Bono día trabajado doble",
-                "Bono festividades",
+                "Bono oficina",
               ].map((conceptName, index) => (
                 <View key={index} style={styles.tableRow}>
                   <View style={styles.tableCol1}>

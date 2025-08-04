@@ -153,7 +153,7 @@ export const obtenerDiferenciaDias = (dateRange: any): number | string => {
   return diffDays;
 };
 
-export function MesyAño(dateString: string | undefined): string {
+export function MonthAndYear(dateString: string | undefined): string {
   if (!dateString) {
     throw new Error("La fecha debe ser una cadena válida.");
   }

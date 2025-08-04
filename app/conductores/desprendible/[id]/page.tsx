@@ -34,7 +34,7 @@ import {
 import Image from "next/image";
 
 import { apiClient } from "@/config/apiClient";
-import { formatDate } from "@/helpers/helpers";
+import { formatDate, MonthAndYear } from "@/helpers/helpers";
 import { Liquidacion } from "@/context/NominaContext";
 import handleGeneratePDF from "@/components/pdfMaker";
 
@@ -223,7 +223,7 @@ const useCanvasSignature = (isDisabled: boolean) => {
 };
 
 // Hook para manejo de firmas existentes
-const useFirmasExistentes = () => {
+export const useFirmasExistentes = () => {
   const [firmas, setFirmas] = useState<FirmaConUrl[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -356,7 +356,8 @@ export default function Page() {
 
     return {
       nombreCompleto: `${liquidacionData.conductor.nombre} ${liquidacionData.conductor.apellido}`,
-      periodo: `${formatDate(liquidacionData.periodo_start)} - ${formatDate(liquidacionData.periodo_end)}`,
+      periodo: `${MonthAndYear(liquidacionData.periodo_end)}`,
+      nomina: `${formatDate(liquidacionData.periodo_start)} - ${formatDate(liquidacionData.periodo_end)}`,
       id: liquidacionData.id,
     };
   }, [liquidacionData]);
@@ -651,7 +652,7 @@ const SignedDocumentView = ({
   </div>
 );
 
-const SignatureProcess = ({
+export const SignatureProcess = ({
   canvasSignature,
   isSubmitting,
   onSubmit,
@@ -765,7 +766,7 @@ const SignatureActions = ({
   </div>
 );
 
-const FirmasExistentes = ({ firmas }: { firmas: FirmaConUrl[] }) => {
+export const FirmasExistentes = ({ firmas }: { firmas: FirmaConUrl[] }) => {
   const formatFechaFirma = useCallback((fecha: string) => {
     return new Date(fecha).toLocaleDateString("es-ES", {
       year: "numeric",
@@ -825,7 +826,7 @@ const FirmaItem = ({
   </div>
 );
 
-const SignatureImage = ({ firma }: { firma: FirmaConUrl }) => (
+export const SignatureImage = ({ firma }: { firma: FirmaConUrl }) => (
   <div className="mt-2">
     {firma.urlLoading && <LoadingImage />}
     {firma.urlError && <ErrorImage />}
