@@ -73,7 +73,6 @@ Saludos cordiales,
 Equipo de Nómina  
 Transportes y Servicios Esmeralda S.A.S ZOMAC`);
 
-
   // Obtener el userInfo de la cookie al montar el componente
   useEffect(() => {
     const userInfoStr = Cookies.get("userInfo");
