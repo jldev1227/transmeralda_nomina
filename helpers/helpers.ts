@@ -1,4 +1,4 @@
-import { DateValue } from "@nextui-org/react";
+import { DateValue } from "@heroui/system/dist/types";
 
 /**
  * Formatea un valor numérico a formato de moneda COP

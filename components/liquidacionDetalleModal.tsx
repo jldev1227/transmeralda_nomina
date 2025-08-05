@@ -15,16 +15,15 @@ import {
   ClockIcon,
   SignatureIcon,
 } from "lucide-react";
-import { Button, Skeleton } from "@nextui-org/react";
+import { Button } from "@heroui/button";
+import { Skeleton } from "@heroui/skeleton";
 
 import handleGeneratePDF from "./pdfMaker";
 
 import { Bonificacion, Conductor, useNomina } from "@/context/NominaContext";
 import { formatDate, formatDateShort } from "@/helpers/helpers";
-import {
-  SignatureImage,
-  useFirmasExistentes,
-} from "@/app/conductores/desprendible/[id]/page";
+import SignatureImage from "@/components/ui/signatureImage";
+import useFirmasExistentes from "@/hooks/useFirmasExistentes";
 
 interface DetalleRecargo {
   id: string;

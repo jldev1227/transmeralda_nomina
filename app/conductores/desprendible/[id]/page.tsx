@@ -7,21 +7,19 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
+import { Card, CardBody, CardHeader } from "@heroui/card";
+import { Button } from "@heroui/button";
+import { Divider } from "@heroui/divider";
+import { Skeleton } from "@heroui/skeleton";
 import {
-  Card,
-  CardBody,
-  CardHeader,
-  Button,
-  Divider,
-  Skeleton,
   Modal,
   ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
   useDisclosure,
-  Chip,
-} from "@nextui-org/react";
+} from "@heroui/modal";
+import { Chip } from "@heroui/chip";
 import {
   PencilIcon,
   CheckCircleIcon,
@@ -31,34 +29,14 @@ import {
   EyeIcon,
   ClockIcon,
 } from "@heroicons/react/24/outline";
-import Image from "next/image";
 
 import { apiClient } from "@/config/apiClient";
 import { formatDate, MonthAndYear } from "@/helpers/helpers";
 import { Liquidacion } from "@/context/NominaContext";
 import handleGeneratePDF from "@/components/pdfMaker";
-
-// Tipos mejorados y organizados
-interface Conductor {
-  id: string;
-  nombre: string;
-  apellido: string;
-  numero_identificacion: string;
-}
-
-interface Firma {
-  id: string;
-  fecha_firma: string;
-  estado: "Activa" | "Inactiva";
-  conductor: Conductor;
-  firma_s3_key: string;
-}
-
-interface FirmaConUrl extends Firma {
-  presignedUrl?: string;
-  urlLoading?: boolean;
-  urlError?: boolean;
-}
+import useFirmasExistentes from "@/hooks/useFirmasExistentes";
+import { FirmaConUrl } from "@/types";
+import SignatureImage from "@/components/ui/signatureImage";
 
 // Constantes
 const CANVAS_CONFIG = {
@@ -220,111 +198,6 @@ const useCanvasSignature = (isDisabled: boolean) => {
     clearSignature,
     getSignatureDataURL,
   };
-};
-
-// Hook para manejo de firmas existentes
-export const useFirmasExistentes = () => {
-  const [firmas, setFirmas] = useState<FirmaConUrl[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const getPresignedUrl = useCallback(
-    async (s3Key: string): Promise<string | null> => {
-      try {
-        const response = await apiClient.get(`/api/documentos/url-firma`, {
-          params: { key: s3Key },
-        });
-
-        return response.data.url;
-      } catch (error) {
-        console.error("Error al obtener URL firmada:", error);
-
-        return null;
-      }
-    },
-    [],
-  );
-
-  const cargarFirmas = useCallback(
-    async (liquidacionId: string) => {
-      try {
-        setLoading(true);
-        const { data } = await apiClient.get(
-          `/api/firmas_desprendible/liquidacion/${liquidacionId}`,
-        );
-
-        if (data?.success && data?.data) {
-          const firmasActivas = data.data.filter(
-            (firma: Firma) => firma.estado === "Activa",
-          );
-
-          // Inicializar con loading state
-          const firmasInicial: FirmaConUrl[] = firmasActivas.map(
-            (firma: Firma) => ({
-              ...firma,
-              urlLoading: true,
-              urlError: false,
-            }),
-          );
-
-          setFirmas(firmasInicial);
-
-          // Cargar URLs de forma paralela
-          const promesasUrls = firmasActivas.map(
-            async (firma: Firma, index: number) => {
-              try {
-                const url = await getPresignedUrl(firma.firma_s3_key);
-
-                return { index, url, error: !url };
-              } catch {
-                return { index, url: null, error: true };
-              }
-            },
-          );
-
-          const resultados = await Promise.allSettled(promesasUrls);
-
-          setFirmas((prev) => {
-            const nuevasFirmas = [...prev];
-
-            resultados.forEach((resultado, i) => {
-              if (resultado.status === "fulfilled") {
-                const { index, url, error } = resultado.value;
-
-                nuevasFirmas[index] = {
-                  ...nuevasFirmas[index],
-                  presignedUrl: url || undefined,
-                  urlLoading: false,
-                  urlError: error,
-                };
-              } else {
-                nuevasFirmas[i] = {
-                  ...nuevasFirmas[i],
-                  urlLoading: false,
-                  urlError: true,
-                };
-              }
-            });
-
-            return nuevasFirmas;
-          });
-
-          return firmasActivas.length > 0;
-        }
-
-        return false;
-      } catch (error) {
-        console.error("Error verificando firmas existentes:", error);
-        setFirmas([]);
-
-        return false;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [getPresignedUrl],
-  );
-
-  return { firmas, loading, cargarFirmas };
 };
 
 // Componente principal mejorado
@@ -652,7 +525,7 @@ const SignedDocumentView = ({
   </div>
 );
 
-export const SignatureProcess = ({
+const SignatureProcess = ({
   canvasSignature,
   isSubmitting,
   onSubmit,
@@ -766,7 +639,7 @@ const SignatureActions = ({
   </div>
 );
 
-export const FirmasExistentes = ({ firmas }: { firmas: FirmaConUrl[] }) => {
+const FirmasExistentes = ({ firmas }: { firmas: FirmaConUrl[] }) => {
   const formatFechaFirma = useCallback((fecha: string) => {
     return new Date(fecha).toLocaleDateString("es-ES", {
       year: "numeric",
@@ -823,36 +696,6 @@ const FirmaItem = ({
       </Chip>
     </div>
     <SignatureImage firma={firma} />
-  </div>
-);
-
-export const SignatureImage = ({ firma }: { firma: FirmaConUrl }) => (
-  <div className="mt-2">
-    {firma.urlLoading && <LoadingImage />}
-    {firma.urlError && <ErrorImage />}
-    {firma.presignedUrl && !firma.urlLoading && !firma.urlError && (
-      <div>
-        <Image
-          alt="Firma digital"
-          className="mx-auto"
-          height={300}
-          src={firma.presignedUrl}
-          width={300}
-        />
-      </div>
-    )}
-  </div>
-);
-
-const LoadingImage = () => (
-  <div className="w-[150px] h-[50px] bg-gray-200 rounded-lg flex items-center justify-center">
-    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600" />
-  </div>
-);
-
-const ErrorImage = () => (
-  <div className="w-[150px] h-[50px] bg-red-100 rounded-lg flex items-center justify-center">
-    <span className="text-xs text-red-600">Error al cargar</span>
   </div>
 );
 

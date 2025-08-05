@@ -462,46 +462,29 @@ export const LiquidacionPDF = ({
                   },
                   {},
                 ),
-              ).map((bono: any) => (
-                <View key={bono.name} style={styles.tableRow}>
-                  <View style={styles.tableCol1}>
-                    <Text style={styles.valueText}>{bono.name || ""}</Text>
+              )
+                // Filtrar solo bonos con cantidad > 0
+                .filter((bono: any) => bono.quantity > 0)
+                .map((bono: any) => (
+                  <View key={bono.name} style={styles.tableRow}>
+                    <View style={styles.tableCol1}>
+                      <Text style={styles.valueText}>{bono.name || ""}</Text>
+                    </View>
+                    <View style={styles.tableCol2}>
+                      <Text style={styles.valueText} />
+                    </View>
+                    <View style={styles.tableCol3}>
+                      <Text style={styles.valueText}>{bono.quantity}</Text>
+                    </View>
+                    <View style={styles.tableCol4}>
+                      <Text style={styles.valueText}>
+                        {formatToCOP(bono.totalValue)}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={styles.tableCol2}>
-                    <Text style={styles.valueText} />
-                  </View>
-                  <View style={styles.tableCol3}>
-                    <Text style={styles.valueText}>{bono.quantity}</Text>
-                  </View>
-                  <View style={styles.tableCol4}>
-                    <Text style={styles.valueText}>
-                      {formatToCOP(bono.totalValue)}
-                    </Text>
-                  </View>
-                </View>
-              ))
-            : // Bonificaciones por defecto si el array está vacío o no existe
-              [
-                "Bono de alimentación",
-                "Bono día trabajado",
-                "Bono día trabajado doble",
-                "Bono oficina",
-              ].map((conceptName, index) => (
-                <View key={index} style={styles.tableRow}>
-                  <View style={styles.tableCol1}>
-                    <Text style={styles.valueText}>{conceptName}</Text>
-                  </View>
-                  <View style={styles.tableCol2}>
-                    <Text style={styles.valueText} />
-                  </View>
-                  <View style={styles.tableCol3}>
-                    <Text style={styles.valueText}>0</Text>
-                  </View>
-                  <View style={styles.tableCol4}>
-                    <Text style={styles.valueText}>{formatToCOP(0)}</Text>
-                  </View>
-                </View>
-              ))}
+                ))
+            : // No mostrar nada si no hay bonificaciones o todas tienen cantidad 0
+              null}
 
           {/* Recargos */}
           <View style={styles.tableRow}>

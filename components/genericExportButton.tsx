@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button } from "@nextui-org/button";
+import { Button } from "@heroui/button";
 import { Download, Loader } from "lucide-react";
 
 import { useNomina } from "@/context/NominaContext";

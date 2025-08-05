@@ -1,5 +1,7 @@
 "use client";
 
+import type { ComponentProps } from "react";
+
 import React, { useState, useEffect } from "react";
 import {
   ChevronLeft,
@@ -17,28 +19,26 @@ import {
   Trash2,
 } from "lucide-react";
 import SelectReact, { CSSObjectWithLabel, MultiValue } from "react-select";
+import { DatePicker } from "@heroui/date-picker";
+import { Input } from "@heroui/input";
+import { Select, SelectItem } from "@heroui/select";
+import { Checkbox } from "@heroui/checkbox";
+import { Card } from "@heroui/card";
+import { Divider } from "@heroui/divider";
+import { Button } from "@heroui/button";
 import {
-  DatePicker,
   Table,
   TableBody,
   TableCell,
   TableColumn,
   TableHeader,
   TableRow,
-} from "@nextui-org/react";
-import { Input } from "@nextui-org/input";
-import { Select, SelectItem } from "@nextui-org/select";
-import { Checkbox } from "@nextui-org/checkbox";
-import { Card } from "@nextui-org/card";
-import { Divider } from "@nextui-org/divider";
-import { Button } from "@nextui-org/button";
-import { Tabs, Tab } from "@nextui-org/tabs";
-import { Tooltip } from "@nextui-org/tooltip";
-import { Badge } from "@nextui-org/badge";
+} from "@heroui/table";
+import { Tabs, Tab } from "@heroui/tabs";
+import { Tooltip } from "@heroui/tooltip";
+import { Badge } from "@heroui/badge";
 import { parseDate } from "@internationalized/date";
-import { DateRangePicker } from "@nextui-org/react";
-import { DateValue } from "@nextui-org/system/node_modules/@internationalized/date/dist/types";
-import { RangeValue } from "@react-types/shared";
+import { DateRangePicker } from "@heroui/date-picker";
 import toast from "react-hot-toast";
 
 import {
@@ -48,7 +48,6 @@ import {
   obtenerMesesEntreFechas,
   obtenerDiferenciaDias,
   dateToDateValue,
-  toDateValue,
 } from "@/helpers/helpers";
 import { Liquidacion, useNomina } from "@/context/NominaContext";
 
@@ -102,6 +101,10 @@ interface LiquidacionFormProps {
   loading?: boolean;
 }
 
+type DateRangePickerProps = ComponentProps<typeof DateRangePicker>;
+type RangeValueType = NonNullable<DateRangePickerProps["value"]>;
+type DateValueType = RangeValueType["start"];
+
 const normalizeNumber = (value: any): number => {
   const num = Number(value);
 
@@ -134,12 +137,11 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     }>
   >([]);
 
-  const [dateSelected, setDateSelected] =
-    useState<RangeValue<DateValue> | null>(null);
+  const [dateSelected, setDateSelected] = useState<RangeValueType | null>(null);
   const [periodoVacaciones, setPeriodoVacaciones] =
-    useState<RangeValue<DateValue> | null>(null);
+    useState<RangeValueType | null>(null);
   const [periodoIncapacidad, setPeriodoIncapacidad] =
-    useState<RangeValue<DateValue> | null>(null);
+    useState<RangeValueType | null>(null);
   const [mesesRange, setMesesRange] = useState<string[]>([]);
   const [detallesVehiculos, setDetallesVehiculos] = useState<DetallesVehiculos>(
     [],
@@ -234,7 +236,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
 
   // Función para cargar datos de liquidación existente
   const cargarDatosLiquidacion = () => {
-    // Cargar ccfxsz
+    // Cargar conductor
     setConductorSelected(
       conductoresOptions.find(
         (option) => option.value === initialData?.conductor_id,
@@ -253,8 +255,8 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     // Cargar fechas
     if (initialData?.periodo_start && initialData?.periodo_end) {
       setDateSelected({
-        start: toDateValue(parseDate(initialData.periodo_start)),
-        end: toDateValue(parseDate(initialData.periodo_end)),
+        start: parseDate(initialData.periodo_start),
+        end: parseDate(initialData.periodo_end),
       });
 
       // Actualizar meses
@@ -272,8 +274,8 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       initialData?.periodo_end_vacaciones
     ) {
       setPeriodoVacaciones({
-        start: toDateValue(parseDate(initialData.periodo_start_vacaciones)),
-        end: toDateValue(parseDate(initialData.periodo_end_vacaciones)),
+        start: parseDate(initialData.periodo_start_vacaciones),
+        end: parseDate(initialData.periodo_end_vacaciones),
       });
       setIsVacaciones(true);
     }
@@ -284,48 +286,115 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       initialData?.periodo_end_incapacidad
     ) {
       setPeriodoIncapacidad({
-        start: toDateValue(parseDate(initialData.periodo_start_incapacidad)),
-        end: toDateValue(parseDate(initialData.periodo_end_incapacidad)),
+        start: parseDate(initialData.periodo_start_incapacidad),
+        end: parseDate(initialData.periodo_end_incapacidad),
       });
       setIsIncapacidad(true);
     }
 
-    // Cargar detalles de vehículos
+    // Cargar detalles de vehículos con bonos combinados
     if (initialData?.vehiculos && initialData.vehiculos.length > 0) {
-      const detalles = initialData?.vehiculos?.map((vehiculo: any) => ({
-        vehiculo: {
-          value: vehiculo.id,
-          label: vehiculo.placa,
-        },
-        bonos: (initialData.bonificaciones || [])
-          .filter((b: any) => b.vehiculo_id === vehiculo.id)
+      // Obtener meses para los bonos
+      const mesesParaBonos = obtenerMesesEntreFechas(
+        initialData.periodo_start,
+        initialData.periodo_end,
+      );
+
+      // Filtrar bonos de configuración
+      const bonosConfiguracion =
+        configuracion?.filter((config) =>
+          config.nombre.toLowerCase().includes("bono"),
+        ) || [];
+
+      const detalles = initialData?.vehiculos?.map((vehiculo: any) => {
+        // Bonos existentes de la liquidación
+        const bonosExistentes = (initialData.bonificaciones || [])
+          .filter(
+            (b: any) =>
+              b.vehiculo_id === vehiculo.id || b.vehiculoId === vehiculo.id,
+          )
           .map((bono: any) => ({
             name: bono.name,
             values: bono.values || [{ mes: "Mes no definido", quantity: 0 }],
             value: normalizeNumber(bono.value),
-            vehiculo_id: bono.vehiculo_id,
-          })),
-        mantenimientos: (initialData?.mantenimientos || [])
-          .filter((m: any) => m.vehiculo_id === vehiculo.id)
-          .map((m: any) => ({
-            values: m.values || [{ mes: "Mes no definido", quantity: 0 }],
-            value: normalizeNumber(m.value),
-            vehiculo_id: m.vehiculo_id,
-          })),
-        pernotes: (initialData.pernotes || []).filter(
-          (p: any) => p.vehiculo_id === vehiculo.id,
-        ),
-        recargos: (initialData.recargos || [])
-          .filter((r: any) => r.vehiculo_id === vehiculo.id)
-          .map((r: any) => ({
-            ...r,
-            empresa_id: r.empresa_id || "",
-            pag_cliente: r.pag_cliente || false,
-          })),
-      }));
+            vehiculo_id: vehiculo.id,
+          }));
+
+        // Crear un Set con los nombres de bonos existentes para evitar duplicados
+        const nombresBonosExistentes = new Set(
+          bonosExistentes.map((bono: any) => bono.name),
+        );
+
+        // Bonos nuevos de configuración que no están en los existentes
+        const bonosNuevos = bonosConfiguracion
+          .filter(
+            (bonoConfig) => !nombresBonosExistentes.has(bonoConfig.nombre),
+          )
+          .map((bonoConfig) => ({
+            name: bonoConfig.nombre,
+            values: mesesParaBonos.map((mes) => ({ mes, quantity: 0 })),
+            value: Number(bonoConfig.valor || 0),
+            vehiculo_id: vehiculo.id,
+          }));
+
+        // Actualizar bonos existentes con los meses correctos
+        const bonosActualizados = bonosExistentes.map((bono: any) => ({
+          ...bono,
+          // Actualizar el valor desde configuración si existe
+          value: Number(
+            configuracion?.find((config) => config.nombre === bono.name)
+              ?.valor || bono.value,
+          ),
+          // Asegurar que tiene los meses correctos
+          values: mesesParaBonos.map((mes) => {
+            const bonoExistente = bono.values.find(
+              (val: { mes: string; quantity: number }) => val.mes === mes,
+            );
+
+            return bonoExistente || { mes, quantity: 0 };
+          }),
+        }));
+
+        // Combinar bonos existentes actualizados + bonos nuevos
+        const todosBonos = [...bonosActualizados, ...bonosNuevos];
+
+        return {
+          vehiculo: {
+            value: vehiculo.id,
+            label: vehiculo.placa,
+          },
+          bonos: todosBonos,
+          mantenimientos: (initialData?.mantenimientos || [])
+            .filter(
+              (m: any) =>
+                m.vehiculo_id === vehiculo.id || m.vehiculoId === vehiculo.id,
+            )
+            .map((m: any) => ({
+              values: m.values || [{ mes: "Mes no definido", quantity: 0 }],
+              value: normalizeNumber(m.value),
+              vehiculo_id: vehiculo.id,
+            })),
+          pernotes: (initialData.pernotes || []).filter(
+            (p: any) =>
+              p.vehiculo_id === vehiculo.id || p.vehiculoId === vehiculo.id,
+          ),
+          recargos: (initialData.recargos || [])
+            .filter(
+              (r: any) =>
+                r.vehiculo_id === vehiculo.id || r.vehiculoId === vehiculo.id,
+            )
+            .map((r: any) => ({
+              ...r,
+              empresa_id: r.empresa_id || "",
+              pag_cliente: r.pag_cliente || false,
+            })),
+        };
+      });
 
       setDetallesVehiculos(detalles);
     }
+
+    // Cargar anticipos
     if (
       initialData &&
       initialData.anticipos &&
@@ -379,6 +448,12 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       const detallesMap = new Map(
         detallesVehiculos.map((detalle) => [detalle.vehiculo.value, detalle]),
       );
+
+      // Filtrar todos los bonos de la configuración que contengan "Bono" en el nombre
+      const bonoConfiguraciones =
+        configuracion?.filter((config) =>
+          config.nombre.toLowerCase().includes("bono"),
+        ) || [];
 
       // Generar nuevos detalles para cada vehículo seleccionado
       const nuevosDetalles = vehiculosSelected.map((vehiculo) => {
@@ -435,19 +510,11 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
           };
         }
 
-        // Si no existe, crear nuevo detalle con nombres de bonos predefinidos
-        const bonos = [
-          "Bono de alimentación",
-          "Bono día trabajado",
-          "Bono día trabajado doble",
-          "Bono oficina",
-        ].map((nombre) => ({
-          name: nombre,
+        // Si no existe, crear nuevo detalle con bonos dinámicos desde configuración
+        const bonos = bonoConfiguraciones.map((bonoConfig) => ({
+          name: bonoConfig.nombre,
           values: mesesRange.map((mes) => ({ mes, quantity: 0 })),
-          value: Number(
-            configuracion?.find((config) => config.nombre === nombre)?.valor ||
-              0,
-          ),
+          value: Number(bonoConfig.valor || 0),
           vehiculo_id: vehiculo.value,
         }));
 
@@ -476,7 +543,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
   }, [vehiculosSelected, mesesRange, configuracion]);
 
   // Manejadores de eventos
-  const handleDateChange = (value: RangeValue<DateValue> | null) => {
+  const handleDateChange = (value: RangeValueType | null) => {
     if (value === null) {
       setDateSelected(null);
     } else {
@@ -487,7 +554,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     }
   };
 
-  const handleDateVacacionesChange = (value: RangeValue<DateValue> | null) => {
+  const handleDateVacacionesChange = (value: RangeValueType | null) => {
     if (value === null) {
       setPeriodoVacaciones(null);
     } else {
@@ -498,7 +565,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     }
   };
 
-  const handleDateIncapacidadChange = (value: RangeValue<DateValue> | null) => {
+  const handleDateIncapacidadChange = (value: RangeValueType | null) => {
     if (value === null) {
       setPeriodoIncapacidad(null);
     } else {
@@ -717,13 +784,25 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
   };
 
   // Función para manejar cambio de fecha
-  const handleDateChangeAnticipo = (date: string | null) => {
-    if (date === null) {
+  const handleDateChangeAnticipo = (value: DateValueType | null) => {
+    if (value === null) {
       setAnticipoDate("");
 
       return;
     }
-    setAnticipoDate(date);
+
+    // Convert DateValueType to string - the exact method depends on your DateValueType type
+    // Common approaches:
+
+    // If DateValueType has a toString() method:
+    setAnticipoDate(value.toString());
+
+    // Or if it's a CalendarDate, you might want to format it:
+    // setAnticipoDate(value.toString()); // This usually gives YYYY-MM-DD format
+
+    // Or if you need a specific format, you might need to use a formatting function
+    // setAnticipoDate(formatDate(value));
+
     setIsInvalidDateAnticipo(false);
   };
 
@@ -1867,11 +1946,11 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                                 fecha
                                                   ? (parseDate(
                                                       fecha,
-                                                    ) as unknown as DateValue)
+                                                    ) as unknown as DateValueType)
                                                   : null
                                               }
                                               onChange={(
-                                                value: DateValue | null,
+                                                value: DateValueType | null,
                                               ) => {
                                                 if (value) {
                                                   const jsDate = new Date(
@@ -2008,7 +2087,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                         }}
                                       >
                                         {mesesRange.map((mes) => (
-                                          <SelectItem key={mes} value={mes}>
+                                          <SelectItem key={mes} textValue={mes}>
                                             {mes}
                                           </SelectItem>
                                         ))}

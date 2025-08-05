@@ -3,16 +3,16 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@heroui/button";
 import { Loader2, Mail, MailsIcon, X, WifiOff, RefreshCw } from "lucide-react";
+import { Chip } from "@heroui/chip";
+import { Input } from "@heroui/input";
 import {
-  Chip,
-  Input,
   Modal,
   ModalBody,
   ModalContent,
   ModalFooter,
   ModalHeader,
-  Textarea,
-} from "@nextui-org/react";
+} from "@heroui/modal";
+import { Textarea } from "@heroui/input";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
 import { isAxiosError } from "axios";
