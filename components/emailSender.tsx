@@ -62,15 +62,13 @@ const EmailSender = ({ selectedIds }: EmailSenderProps) => {
     "Desprendible de nómina - Transmeralda",
   );
   const [emailBody, setEmailBody] = useState(`Estimado conductor,
-
-A continuación encontrará el enlace para acceder a su desprendible de nómina correspondiente al período actual.
-
-Para poder visualizar el documento, es **requisito** firmar previamente de recibido. Asegúrese de que la firma sea **legible** para que el proceso sea válido.
-
-Si tiene alguna duda o inquietud, no dude en contactarnos.
-
-Saludos cordiales,  
-Equipo de Nómina  
+  
+Adjunto encontrará su desprendible de nómina correspondiente al período actual.
+  
+Por favor, revise el documento y si tiene alguna duda o inquietud, no dude en contactarnos.
+  
+Saludos cordiales,
+Equipo de Nómina
 Transportes y Servicios Esmeralda S.A.S ZOMAC`);
 
   // Obtener el userInfo de la cookie al montar el componente
