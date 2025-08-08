@@ -31,7 +31,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { apiClient } from "@/config/apiClient";
-import { formatDate, MonthAndYear } from "@/helpers/helpers";
+import { MonthAndYear } from "@/helpers/helpers";
 import { Liquidacion } from "@/context/NominaContext";
 import handleGeneratePDF from "@/components/pdfMaker";
 import useFirmasExistentes from "@/hooks/useFirmasExistentes";
@@ -406,9 +406,8 @@ export default function Page() {
 
     return {
       nombreCompleto: `${liquidacionData.conductor.nombre} ${liquidacionData.conductor.apellido}`,
-      periodo: `${MonthAndYear(liquidacionData.periodo_end)}`,
-      nomina: `${formatDate(liquidacionData.periodo_start)} - ${formatDate(liquidacionData.periodo_end)}`,
-      id: liquidacionData.id,
+      nomina: `${MonthAndYear(liquidacionData.periodo_end)}`,
+      numero_identificacion: liquidacionData.conductor.numero_identificacion,
     };
   }, [liquidacionData]);
 
@@ -616,7 +615,11 @@ const ConductorInfo = ({
   info,
   documentoFirmado,
 }: {
-  info: { nombreCompleto: string; periodo: string; id: string };
+  info: {
+    nombreCompleto: string;
+    nomina: string;
+    numero_identificacion: string;
+  };
   documentoFirmado: boolean;
 }) => (
   <div
@@ -635,13 +638,13 @@ const ConductorInfo = ({
       />
       <InfoItem
         documentoFirmado={documentoFirmado}
-        label="Período"
-        value={info.periodo}
+        label="CC"
+        value={info.numero_identificacion}
       />
       <InfoItem
         documentoFirmado={documentoFirmado}
-        label="ID"
-        value={info.id}
+        label="Nomina"
+        value={info.numero_identificacion}
       />
     </div>
   </div>
@@ -714,7 +717,6 @@ const SignatureProcess = ({
   <>
     <ImportantNotice />
     <SignatureCanvas canvasSignature={canvasSignature} />
-    {canvasSignature.hasSigned && <SignatureConfirmation />}
     <SignatureActions
       canvasSignature={canvasSignature}
       isSubmitting={isSubmitting}
@@ -821,13 +823,6 @@ const SignatureCanvas = ({
     </div>
   );
 };
-
-const SignatureConfirmation = () => (
-  <div className="flex items-center justify-center gap-2 text-green-600 text-sm bg-green-50 p-3 rounded-lg">
-    <CheckCircleIcon className="h-4 w-4" />
-    <span>Firma capturada correctamente</span>
-  </div>
-);
 
 const SignatureActions = ({
   canvasSignature,
