@@ -31,7 +31,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { apiClient } from "@/config/apiClient";
-import { formatDate, MonthAndYear } from "@/helpers/helpers";
+import { MonthAndYear } from "@/helpers/helpers";
 import { Liquidacion } from "@/context/NominaContext";
 import handleGeneratePDF from "@/components/pdfMaker";
 import useFirmasExistentes from "@/hooks/useFirmasExistentes";
@@ -41,112 +41,154 @@ import SignatureImage from "@/components/ui/signatureImage";
 // Constantes mejoradas para mejor responsive design
 const CANVAS_CONFIG = {
   width: 600,
-  height: 200, // Reducido para mejor proporción en móviles
+  height: 200,
   lineWidth: 2,
-  strokeStyle: "#1f2937", // Color más suave que el negro puro
+  strokeStyle: "#1f2937",
   lineCap: "round" as CanvasLineCap,
   lineJoin: "round" as CanvasLineJoin,
   backgroundColor: "#ffffff",
-  minWidth: 300, // Ancho mínimo para móviles
-  maxWidth: 800, // Ancho máximo para desktop
+  minWidth: 300,
+  maxWidth: 800,
 };
 
-// Hook personalizado mejorado para manejo del canvas
+// Hook corregido con debug completo
 const useCanvasSignature = (isDisabled: boolean) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSigned, setHasSigned] = useState(false);
   const [canvasReady, setCanvasReady] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>("");
+  const mountedRef = useRef(false);
 
   const setupCanvas = useCallback(() => {
     const canvas = canvasRef.current;
 
-    if (!canvas || isDisabled) return;
+    if (!canvas || isDisabled) {
+      setDebugInfo(
+        `❌ Setup cancelled: canvas=${!!canvas}, disabled=${isDisabled}`,
+      );
 
-    // Obtener el contenedor padre para el tamaño
-    const container = canvas.parentElement;
-
-    if (!container) return;
-
-    // Calcular dimensiones basadas en el contenedor
-    const containerRect = container.getBoundingClientRect();
-    const padding = 16; // 2 * 8px de padding del contenedor
-    const maxWidth = containerRect.width - padding;
-    const aspectRatio = CANVAS_CONFIG.width / CANVAS_CONFIG.height;
-
-    // Calcular dimensiones finales
-    let canvasWidth = Math.min(maxWidth, CANVAS_CONFIG.width);
-    let canvasHeight = canvasWidth / aspectRatio;
-
-    // Asegurar que no exceda la altura máxima
-    if (canvasHeight > CANVAS_CONFIG.height) {
-      canvasHeight = CANVAS_CONFIG.height;
-      canvasWidth = canvasHeight * aspectRatio;
+      return false;
     }
 
-    // Configurar el tamaño CSS del canvas
-    canvas.style.width = `${canvasWidth}px`;
-    canvas.style.height = `${canvasHeight}px`;
+    try {
+      // Método simplificado: usar viewport width directamente
+      const viewportWidth =
+        typeof window !== "undefined" ? window.innerWidth : 400;
+      const containerMaxWidth = Math.min(
+        viewportWidth - 64,
+        CANVAS_CONFIG.maxWidth,
+      );
+      const aspectRatio = CANVAS_CONFIG.width / CANVAS_CONFIG.height;
 
-    // Configurar la resolución interna del canvas
-    const dpr = Math.min(window.devicePixelRatio || 1, 2); // Limitar DPR para performance
+      let canvasWidth = Math.max(
+        CANVAS_CONFIG.minWidth,
+        Math.min(containerMaxWidth, CANVAS_CONFIG.width),
+      );
+      let canvasHeight = canvasWidth / aspectRatio;
 
-    canvas.width = canvasWidth * dpr;
-    canvas.height = canvasHeight * dpr;
+      setDebugInfo(`📏 Dims: ${canvasWidth}x${canvasHeight}`);
 
-    const ctx = canvas.getContext("2d");
+      // Configurar CSS inmediatamente
+      canvas.style.width = `${canvasWidth}px`;
+      canvas.style.height = `${canvasHeight}px`;
+      canvas.style.display = "block";
 
-    if (!ctx) return;
+      // Configurar resolución interna
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    // Configurar el contexto
-    ctx.scale(dpr, dpr);
-    ctx.lineCap = CANVAS_CONFIG.lineCap;
-    ctx.lineJoin = CANVAS_CONFIG.lineJoin;
-    ctx.strokeStyle = CANVAS_CONFIG.strokeStyle;
-    ctx.lineWidth = CANVAS_CONFIG.lineWidth;
-    ctx.imageSmoothingEnabled = true;
+      canvas.width = canvasWidth * dpr;
+      canvas.height = canvasHeight * dpr;
 
-    // Limpiar y configurar fondo
-    ctx.fillStyle = CANVAS_CONFIG.backgroundColor;
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      const ctx = canvas.getContext("2d");
 
-    setCanvasReady(true);
+      if (!ctx) {
+        console.error("❌ Failed to get 2D context");
+        setDebugInfo("❌ No 2D context");
+
+        return false;
+      }
+
+      // Configurar contexto
+      ctx.scale(dpr, dpr);
+      ctx.lineCap = CANVAS_CONFIG.lineCap;
+      ctx.lineJoin = CANVAS_CONFIG.lineJoin;
+      ctx.strokeStyle = CANVAS_CONFIG.strokeStyle;
+      ctx.lineWidth = CANVAS_CONFIG.lineWidth;
+      ctx.imageSmoothingEnabled = true;
+
+      // Fondo blanco
+      ctx.fillStyle = CANVAS_CONFIG.backgroundColor;
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+      setDebugInfo("✅ Canvas listo");
+      setCanvasReady(true);
+
+      return true;
+    } catch (error) {
+      console.error("❌ Canvas setup error:", error);
+      setDebugInfo(`❌ Error: ${error}`);
+
+      return false;
+    }
   }, [isDisabled]);
 
-  // Debounced resize para mejor performance
-  const debouncedSetup = useMemo(() => {
+  // Setup inicial más robusto
+  useEffect(() => {
+    mountedRef.current = true;
+
+    if (isDisabled) {
+      return;
+    }
+
+    setCanvasReady(false);
+    setDebugInfo("🔄 Iniciando...");
+
+    // Múltiples intentos de setup
+    const attemptSetup = (attempt = 1) => {
+      if (!mountedRef.current) {
+        return;
+      }
+
+      const success = setupCanvas();
+
+      if (!success && attempt < 5) {
+        setTimeout(() => attemptSetup(attempt + 1), attempt * 100);
+      } else if (!success) {
+        setDebugInfo("❌ Setup falló");
+      }
+    };
+
+    // Primer intento inmediato
+    setTimeout(() => attemptSetup(1), 10);
+
+    return () => {
+      mountedRef.current = false;
+    };
+  }, [setupCanvas, isDisabled]);
+
+  // Resize handler simplificado
+  useEffect(() => {
+    if (isDisabled || !canvasReady) return;
+
     let timeoutId: NodeJS.Timeout;
+    const handleResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        if (mountedRef.current) {
+          setCanvasReady(false);
+          setupCanvas();
+        }
+      }, 250);
+    };
+
+    window.addEventListener("resize", handleResize, { passive: true });
 
     return () => {
       clearTimeout(timeoutId);
-      timeoutId = setTimeout(setupCanvas, 150);
+      window.removeEventListener("resize", handleResize);
     };
-  }, [setupCanvas]);
-
-  useEffect(() => {
-    if (isDisabled) return;
-
-    setCanvasReady(false);
-    setupCanvas();
-
-    const resizeObserver = new ResizeObserver(() => {
-      debouncedSetup();
-    });
-
-    const canvas = canvasRef.current;
-
-    if (canvas?.parentElement) {
-      resizeObserver.observe(canvas.parentElement);
-    }
-
-    // Backup con event listener tradicional
-    window.addEventListener("resize", debouncedSetup);
-
-    return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener("resize", debouncedSetup);
-    };
-  }, [setupCanvas, debouncedSetup, isDisabled]);
+  }, [setupCanvas, isDisabled, canvasReady]);
 
   const getCoordinates = useCallback(
     (
@@ -221,7 +263,6 @@ const useCanvasSignature = (isDisabled: boolean) => {
 
   const stopDrawing = useCallback(() => {
     if (!isDrawing || isDisabled) return;
-
     setIsDrawing(false);
     setHasSigned(true);
   }, [isDrawing, isDisabled]);
@@ -249,14 +290,21 @@ const useCanvasSignature = (isDisabled: boolean) => {
     return canvas ? canvas.toDataURL("image/png", 0.8) : "";
   }, []);
 
-  // Manejadores de eventos táctiles mejorados
+  // Función para forzar setup (debug)
+  const forceSetup = useCallback(() => {
+    setCanvasReady(false);
+    setDebugInfo("🔧 Forzando setup...");
+    setTimeout(() => setupCanvas(), 50);
+  }, [setupCanvas]);
+
   const handleTouchStart = useCallback(
     (e: React.TouchEvent<HTMLCanvasElement>) => {
-      // Prevenir scroll y zoom en dispositivos móviles
-      document.body.style.overflow = "hidden";
+      if (!isDisabled && canvasReady) {
+        document.body.style.overflow = "hidden";
+      }
       startDrawing(e);
     },
-    [startDrawing],
+    [startDrawing, isDisabled, canvasReady],
   );
 
   const handleTouchEnd = useCallback(() => {
@@ -271,7 +319,6 @@ const useCanvasSignature = (isDisabled: boolean) => {
     [draw],
   );
 
-  // Cleanup en desmontaje
   useEffect(() => {
     return () => {
       document.body.style.overflow = "";
@@ -282,6 +329,7 @@ const useCanvasSignature = (isDisabled: boolean) => {
     canvasRef,
     hasSigned,
     canvasReady,
+    debugInfo,
     startDrawing,
     draw,
     stopDrawing,
@@ -290,6 +338,7 @@ const useCanvasSignature = (isDisabled: boolean) => {
     handleTouchStart,
     handleTouchEnd,
     handleTouchMove,
+    forceSetup,
   };
 };
 
@@ -322,9 +371,8 @@ export default function Page() {
 
     return {
       nombreCompleto: `${liquidacionData.conductor.nombre} ${liquidacionData.conductor.apellido}`,
-      periodo: `${MonthAndYear(liquidacionData.periodo_end)}`,
-      nomina: `${formatDate(liquidacionData.periodo_start)} - ${formatDate(liquidacionData.periodo_end)}`,
-      id: liquidacionData.id,
+      numero_identificacion: liquidacionData.conductor.numero_identificacion,
+      nomina: `${MonthAndYear(liquidacionData.periodo_end)}`,
     };
   }, [liquidacionData]);
 
@@ -532,7 +580,11 @@ const ConductorInfo = ({
   info,
   documentoFirmado,
 }: {
-  info: { nombreCompleto: string; periodo: string; id: string };
+  info: {
+    nombreCompleto: string;
+    nomina: string;
+    numero_identificacion: string;
+  };
   documentoFirmado: boolean;
 }) => (
   <div
@@ -551,13 +603,13 @@ const ConductorInfo = ({
       />
       <InfoItem
         documentoFirmado={documentoFirmado}
-        label="Período"
-        value={info.periodo}
+        label="CC"
+        value={info.numero_identificacion}
       />
       <InfoItem
         documentoFirmado={documentoFirmado}
-        label="ID"
-        value={info.id}
+        label="Nomina"
+        value={info.nomina}
       />
     </div>
   </div>
@@ -665,15 +717,27 @@ const SignatureCanvas = ({
         Firme en el recuadro de abajo:
       </label>
 
-      {/* Contenedor del canvas con dimensiones fijas */}
-      <div className="relative border-2 border-gray-300 rounded-lg bg-white p-2 mx-auto max-w-full overflow-hidden signature-canvas-container">
-        {/* Indicador de carga */}
+      <div className="relative border-2 border-gray-300 rounded-lg bg-white p-2 mx-auto max-w-full overflow-hidden">
+        {/* Indicador de carga con debug info */}
         {!canvasSignature.canvasReady && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-50 rounded">
-            <div className="flex items-center gap-2 text-gray-500">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50/90 rounded z-10">
+            <div className="flex items-center gap-2 text-gray-600 mb-2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500" />
-              <span className="text-sm">Preparando tablero...</span>
+              <span className="text-sm font-medium">Preparando canvas...</span>
             </div>
+
+            {/* Debug info */}
+            <div className="text-xs text-gray-500 text-center mb-3">
+              {canvasSignature.debugInfo}
+            </div>
+
+            {/* Botón de debug */}
+            <button
+              className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              onClick={canvasSignature.forceSetup}
+            >
+              🔧 Forzar Setup
+            </button>
           </div>
         )}
 
@@ -681,7 +745,7 @@ const SignatureCanvas = ({
         <canvas
           ref={canvasSignature.canvasRef}
           className={`
-            border border-gray-200 rounded block mx-auto signature-canvas
+            border border-gray-200 rounded block mx-auto
             ${canvasSignature.canvasReady ? "cursor-crosshair" : "cursor-wait"}
             ${!canvasSignature.canvasReady ? "opacity-50" : "opacity-100"}
             transition-opacity duration-200
@@ -695,26 +759,31 @@ const SignatureCanvas = ({
             userSelect: "none",
             WebkitUserSelect: "none",
             MozUserSelect: "none",
+            minHeight: "120px",
           }}
+          onContextMenu={(e) => e.preventDefault()}
           onMouseDown={canvasSignature.startDrawing}
+          onMouseLeave={canvasSignature.stopDrawing}
           onMouseMove={canvasSignature.draw}
           onMouseUp={canvasSignature.stopDrawing}
+          onTouchCancel={canvasSignature.handleTouchEnd}
           onTouchEnd={canvasSignature.handleTouchEnd}
           onTouchMove={canvasSignature.handleTouchMove}
-          onMouseLeave={canvasSignature.stopDrawing}
-          // Eventos táctiles mejorados
           onTouchStart={canvasSignature.handleTouchStart}
-          onTouchCancel={canvasSignature.handleTouchEnd}
-          // Prevenir eventos de contexto
-          onContextMenu={(e) => e.preventDefault()}
         />
       </div>
 
-      {/* Texto de ayuda */}
+      {/* Texto de ayuda con estado */}
       <div className="text-xs text-gray-500 text-center space-y-1">
-        <p>Firme con el mouse o dedo en dispositivos táctiles</p>
-        {!canvasSignature.canvasReady && (
-          <p className="text-yellow-600">Configurando área de firma...</p>
+        {canvasSignature.canvasReady ? (
+          <p>Firme con el mouse o dedo en dispositivos táctiles</p>
+        ) : (
+          <div>
+            <p className="text-yellow-600">Configurando área de firma...</p>
+            <p className="text-xs">
+              Abre la consola (F12) para ver logs detallados
+            </p>
+          </div>
         )}
       </div>
     </div>
