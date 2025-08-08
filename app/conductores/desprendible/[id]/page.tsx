@@ -176,7 +176,7 @@ const useCanvasSignature = (isDisabled: boolean) => {
       if (!success && attempt < 5) {
         setTimeout(() => attemptSetup(attempt + 1), attempt * 100);
       } else if (!success) {
-        setDebugInfo("❌ Setup falló");
+        forceSetup();
       }
     };
 
@@ -764,14 +764,6 @@ const SignatureCanvas = ({
             <div className="text-xs text-gray-500 text-center mb-3">
               {canvasSignature.debugInfo}
             </div>
-
-            {/* Botón de debug */}
-            <button
-              className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-              onClick={canvasSignature.forceSetup}
-            >
-              🔧 Forzar Setup
-            </button>
           </div>
         )}
 
@@ -809,15 +801,8 @@ const SignatureCanvas = ({
 
       {/* Texto de ayuda con estado */}
       <div className="text-xs text-gray-500 text-center space-y-1">
-        {canvasSignature.canvasReady ? (
+        {canvasSignature.canvasReady && (
           <p>Firme con el mouse o dedo en dispositivos táctiles</p>
-        ) : (
-          <div>
-            <p className="text-yellow-600">Configurando área de firma...</p>
-            <p className="text-xs">
-              Abre la consola (F12) para ver logs detallados
-            </p>
-          </div>
         )}
       </div>
     </div>
