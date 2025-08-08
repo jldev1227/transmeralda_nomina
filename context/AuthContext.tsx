@@ -2,10 +2,24 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { AxiosError, isAxiosError } from "axios";
+import { usePathname } from "next/navigation";
 
 import { apiClient } from "@/config/apiClient";
 import LoadingPage from "@/components/loadingPage";
-// Importar para acceder a la función handleLogout
+
+// Rutas que NO requieren autenticación (debe coincidir con middleware.ts y AuthGuard)
+const PUBLIC_ROUTES = ["/conductores/desprendible", "/login", "/api/public"];
+
+// Función para verificar si una ruta es pública
+function isPublicRoute(pathname: string): boolean {
+  return PUBLIC_ROUTES.some((route) => {
+    if (route.endsWith("*")) {
+      return pathname.startsWith(route.slice(0, -1));
+    }
+
+    return pathname === route || pathname.startsWith(route + "/");
+  });
+}
 
 // Definir la interfaz para el usuario
 export interface User {
@@ -53,11 +67,9 @@ const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 export const useAuth = () => useContext(AuthContext);
 
 // Obtener la función handleLogout del apiClient
-// Técnica para acceder a la función interna sin exponer directamente
 const getLogoutFunction = () => {
-  // Definir una función que simule un error de autenticación para invocar handleLogout
   return () => {
-    // Limpiar cookies (similares a las de handleLogout)
+    // Limpiar cookies
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     document.cookie =
       "userInfo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -73,10 +85,10 @@ const getLogoutFunction = () => {
     }
 
     // Redirigir al sistema de autenticación
-    // const authSystem =
-    //   process.env.NEXT_PUBLIC_AUTH_SYSTEM || "https://auth.midominio.com/login";
+    const authSystem =
+      process.env.NEXT_PUBLIC_AUTH_SYSTEM || "https://auth.midominio.com/login";
 
-    // window.location.href = `${authSystem}?returnUrl=${encodeURIComponent(window.location.href)}`;
+    window.location.href = `${authSystem}?returnUrl=${encodeURIComponent(window.location.href)}`;
   };
 };
 
@@ -88,6 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [initializing, setInitializing] = useState<boolean>(true);
+  const pathname = usePathname();
 
   // Usar la función de logout del apiClient
   const logout = getLogoutFunction();
@@ -96,6 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const fetchUserProfile = async (): Promise<void> => {
     try {
       setLoading(true);
+
       // Hacer la petición al endpoint de perfil
       const response = await apiClient.get("/api/usuarios/perfil");
 
@@ -111,13 +125,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const axiosError = err as AxiosError<ApiResponse<any>>;
 
         if (axiosError.response) {
-          // El servidor respondió con un código de estado fuera del rango 2xx
           const statusCode = axiosError.response.status;
           const errorMessage = axiosError.response.data?.message;
 
           if (statusCode === 401) {
             setError("Sesión expirada o usuario no autenticado");
-            // Aquí podrías redirigir al login si es necesario
           } else if (statusCode === 403) {
             setError("No tienes permisos para acceder a esta información");
           } else if (statusCode === 404) {
@@ -126,16 +138,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             setError(errorMessage || `Error en la petición (${statusCode})`);
           }
         } else if (axiosError.request) {
-          // La petición fue hecha pero no se recibió respuesta
           setError(
             "No se pudo conectar con el servidor. Verifica tu conexión a internet",
           );
         } else {
-          // Error al configurar la petición
           setError(`Error al configurar la petición: ${axiosError.message}`);
         }
       } else {
-        // Error que no es de Axios
         setError(
           `No se pudo obtener la información del usuario: ${(err as Error).message}`,
         );
@@ -148,8 +157,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Cargar perfil al inicializar
+  // Cargar perfil al inicializar (solo si no es ruta pública)
   useEffect(() => {
+    // Si es ruta pública, no intentar cargar perfil
+    if (isPublicRoute(pathname)) {
+      setUser(null);
+      setLoading(false);
+      setInitializing(false);
+      setError(null);
+
+      return;
+    }
+
     fetchUserProfile();
 
     // Establecer un tiempo máximo para la inicialización
@@ -160,7 +179,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }, 5000); // 5 segundos máximo de espera
 
     return () => clearTimeout(timeoutId);
-  }, []);
+  }, [pathname]); // Dependencia en pathname para reaccionar a cambios de ruta
 
   // Contexto que será proporcionado
   const authContext: AuthContextType = {
@@ -171,8 +190,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     refreshProfile: fetchUserProfile,
   };
 
-  // Mostrar pantalla de carga durante la inicialización
-  if (initializing) {
+  // Mostrar pantalla de carga durante la inicialización (solo para rutas protegidas)
+  if (initializing && !isPublicRoute(pathname)) {
     return <LoadingPage>Verificando acceso</LoadingPage>;
   }
 

@@ -144,8 +144,6 @@ const LiquidacionDetalleModal: React.FC = () => {
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     // Solo cerrar si el click fue exactamente en el overlay (no en el contenido del modal)
-
-    console.log(e);
     if (e.target === e.currentTarget) {
       cerrarModales();
     }

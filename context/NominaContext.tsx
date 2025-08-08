@@ -7,6 +7,7 @@ import React, {
   useCallback,
   ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
 import toast from "react-hot-toast";
 
 import { useAuth } from "./AuthContext";
@@ -14,6 +15,24 @@ import { useAuth } from "./AuthContext";
 import { useNotificaciones } from "@/hooks/useNotificaciones";
 import { apiClient } from "@/config/apiClient";
 import socketService from "@/services/socketServices";
+
+// Rutas donde NO se deben hacer peticiones de nómina
+const NOMINA_EXCLUDED_ROUTES = [
+  "/conductores/desprendible",
+  "/login",
+  "/api/public",
+];
+
+// Función para verificar si una ruta debe excluir peticiones de nómina
+function shouldExcludeNominaRequests(pathname: string): boolean {
+  return NOMINA_EXCLUDED_ROUTES.some((route) => {
+    if (route.endsWith("*")) {
+      return pathname.startsWith(route.slice(0, -1));
+    }
+
+    return pathname === route || pathname.startsWith(route + "/");
+  });
+}
 
 // Definiciones de tipos
 export interface Conductor {
@@ -278,6 +297,7 @@ const NominaContext = createContext<NominaContextType | undefined>(undefined);
 
 // Proveedor del contexto
 export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
+  const pathname = usePathname();
   const [liquidaciones, setLiquidaciones] = useState<Liquidacion[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [conductores, setConductores] = useState<Conductor[]>([]);
@@ -316,8 +336,15 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
   const [showEditarModal, setShowEditarModal] = useState<boolean>(false);
   const [showDetalleModal, setShowDetalleModal] = useState<boolean>(false);
 
-  // Inicializar Socket.IO cuando el usuario esté autenticado
+  // Verificar si las peticiones de nómina deben ser excluidas
+  const shouldSkipNominaRequests = shouldExcludeNominaRequests(pathname);
+
+  // Inicializar Socket.IO cuando el usuario esté autenticado (solo si no está en ruta excluida)
   useEffect(() => {
+    if (shouldSkipNominaRequests) {
+      return;
+    }
+
     if (user?.id) {
       // Conectar socket
       socketService.connect(user.id);
@@ -366,7 +393,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         socketService.off("disconnect");
       };
     }
-  }, [user?.id]);
+  }, [user?.id, shouldSkipNominaRequests, pathname]);
 
   // Función para añadir eventos al registro (log)
   const logSocketEvent = useCallback((eventName: string, data: any) => {
@@ -380,9 +407,11 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
     ]);
   }, []);
 
-  // Configurar listeners para eventos de liquidaciones
+  // Configurar listeners para eventos de liquidaciones (solo si no está en ruta excluida)
   useEffect(() => {
-    if (!user?.id) return;
+    if (shouldSkipNominaRequests || !user?.id) {
+      return;
+    }
 
     // Manejador para nueva liquidación creada
     const handleLiquidacionCreada = (data: {
@@ -477,15 +506,25 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
       socketService.off("liquidacion_eliminada");
       socketService.off("cambio_estado_liquidacion");
     };
-  }, [user?.id, liquidacionActual, logSocketEvent]);
+  }, [
+    user?.id,
+    liquidacionActual,
+    logSocketEvent,
+    shouldSkipNominaRequests,
+    pathname,
+  ]);
 
   // Función para limpiar el registro de eventos de socket
   const clearSocketEventLogs = useCallback(() => {
     setSocketEventLogs([]);
   }, []);
 
-  // Obtener todas las liquidaciones
+  // Obtener todas las liquidaciones (solo si no está en ruta excluida)
   const obtenerLiquidaciones = useCallback(async (): Promise<void> => {
+    if (shouldSkipNominaRequests) {
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -507,11 +546,15 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [shouldSkipNominaRequests, pathname]);
 
-  // Obtener una liquidación por ID
+  // Obtener una liquidación por ID (solo si no está en ruta excluida)
   const obtenerLiquidacionPorId = useCallback(
     async (id: string): Promise<Liquidacion | null> => {
+      if (shouldSkipNominaRequests) {
+        return null;
+      }
+
       try {
         setLoading(true);
         setError(null);
@@ -539,13 +582,17 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         setLoading(false);
       }
     },
-    [],
+    [shouldSkipNominaRequests, pathname],
   );
 
   const crearLiquidacion = useCallback(
     async (
       liquidacionData: Partial<Liquidacion>,
     ): Promise<Liquidacion | null> => {
+      if (shouldSkipNominaRequests) {
+        return null;
+      }
+
       try {
         setLoading(true);
         setError(null);
@@ -583,15 +630,19 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         setLoading(false);
       }
     },
-    [notificarCRUD],
+    [notificarCRUD, shouldSkipNominaRequests, pathname],
   );
 
-  // Editar una liquidación existente
+  // Editar una liquidación existente (solo si no está en ruta excluida)
   const editarLiquidacion = useCallback(
     async (
       id: string,
       liquidacionData: Partial<Liquidacion>,
     ): Promise<Liquidacion | null> => {
+      if (shouldSkipNominaRequests) {
+        return null;
+      }
+
       try {
         setLoading(true);
         setError(null);
@@ -631,11 +682,15 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         setLoading(false);
       }
     },
-    [notificarCRUD],
+    [notificarCRUD, shouldSkipNominaRequests, pathname],
   );
 
   const eliminarLiquidacion = useCallback(
     async (id: string): Promise<boolean> => {
+      if (shouldSkipNominaRequests) {
+        return false;
+      }
+
       try {
         setLoading(true);
         setError(null);
@@ -672,11 +727,15 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         setLoading(false);
       }
     },
-    [notificarCRUD],
+    [notificarCRUD, shouldSkipNominaRequests, pathname],
   );
 
   const confirmarEliminarLiquidacion = useCallback(
     async (id: string, nombre?: string): Promise<void> => {
+      if (shouldSkipNominaRequests) {
+        return;
+      }
+
       // Si estás usando una librería de confirmación como SweetAlert2, react-confirm-alert, etc.
       // Aquí un ejemplo con una función genérica de confirmación
       const confirmar = window.confirm(
@@ -688,7 +747,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         await eliminarLiquidacion(id);
       }
     },
-    [eliminarLiquidacion],
+    [eliminarLiquidacion, shouldSkipNominaRequests, pathname],
   );
 
   const filtrarLiquidaciones = useCallback((): Liquidacion[] => {

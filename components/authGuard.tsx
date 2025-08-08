@@ -1,12 +1,21 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 import LoadingPage from "@/components/loadingPage";
 
 type AuthGuardProps = {
   children: React.ReactNode;
 };
+
+// Rutas que NO requieren autenticación (debe coincidir con middleware.ts)
+const PUBLIC_ROUTES = [
+  "/conductores/desprendible", // Esto cubrirá /conductores/desprendible/[id]
+  "/login",
+  "/api/public",
+  // Agrega otras rutas públicas aquí
+];
 
 // Función para leer cookies de forma más confiable
 function getCookie(name: string): string | null {
@@ -26,11 +35,23 @@ function getCookie(name: string): string | null {
   return null;
 }
 
+// Función para verificar si una ruta es pública
+function isPublicRoute(pathname: string): boolean {
+  return PUBLIC_ROUTES.some((route) => {
+    if (route.endsWith("*")) {
+      return pathname.startsWith(route.slice(0, -1));
+    }
+
+    return pathname === route || pathname.startsWith(route + "/");
+  });
+}
+
 export function AuthGuard({ children }: AuthGuardProps) {
   const [status, setStatus] = useState<
-    "loading" | "authenticated" | "unauthenticated"
+    "loading" | "authenticated" | "unauthenticated" | "public"
   >("loading");
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     // Marcar que el componente está montado en el cliente
@@ -38,12 +59,18 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
     // Función para verificar autenticación
     const checkAuth = () => {
-      // Obtener token y userInfo
+      // ===== VERIFICAR SI ES RUTA PÚBLICA =====
+      if (isPublicRoute(pathname)) {
+        setStatus("public");
+
+        return;
+      }
+
+      // ===== VERIFICAR AUTENTICACIÓN PARA RUTAS PROTEGIDAS =====
       const token = getCookie("token");
       const userInfo = getCookie("userInfo");
 
       // Si hay token o userInfo, considerar autenticado
-      // (La validación real la hará el middleware)
       if (token || userInfo) {
         setStatus("authenticated");
 
@@ -52,21 +79,23 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
       setStatus("unauthenticated");
 
-      // Redirigir con un pequeño retraso para permitir que los logs se muestren
+      // Solo redirigir como último recurso después de un delay
       setTimeout(() => {
         const authSystem =
           process.env.NEXT_PUBLIC_AUTH_SYSTEM ||
           "https://auth.midominio.com/login";
 
-        window.location.href = authSystem;
-      }, 500);
+        const returnUrl = encodeURIComponent(window.location.href);
+
+        window.location.href = `${authSystem}?returnUrl=${returnUrl}`;
+      }, 2000); // 2 segundos de delay para debug
     };
 
     // Solo verificar si estamos en el cliente
     if (mounted) {
       checkAuth();
     }
-  }, [mounted]);
+  }, [mounted, pathname]); // Agregar pathname como dependencia
 
   // No renderizar nada durante SSR
   if (!mounted) {
@@ -80,9 +109,30 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
   // Si está en proceso de redirección, mostrar mensaje apropiado
   if (status === "unauthenticated") {
-    return <LoadingPage>Redirigiendo al ingreso</LoadingPage>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-8">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
+          <h2 className="text-xl font-bold text-red-600 mb-4">
+            🚨 Error de Autenticación
+          </h2>
+          <p className="text-gray-700 mb-4">
+            Llegaste a una ruta protegida sin autenticación. El middleware
+            debería haber redirigido antes.
+          </p>
+          <p className="text-sm text-gray-500 mb-6">
+            Redirigiendo al sistema de autenticación en 2 segundos...
+          </p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto" />
+        </div>
+      </div>
+    );
   }
 
-  // Si está autenticado, mostrar el contenido
-  return <>{children}</>;
+  // Si es ruta pública O está autenticado, mostrar el contenido
+  if (status === "public" || status === "authenticated") {
+    return <>{children}</>;
+  }
+
+  // Fallback
+  return <LoadingPage>Verificando permisos</LoadingPage>;
 }
