@@ -52,6 +52,7 @@ const CANVAS_CONFIG = {
 };
 
 // Hook corregido con debug completo
+// Hook corregido sin referencias circulares
 const useCanvasSignature = (isDisabled: boolean) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -59,9 +60,20 @@ const useCanvasSignature = (isDisabled: boolean) => {
   const [canvasReady, setCanvasReady] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>("");
   const mountedRef = useRef(false);
+  const setupAttemptsRef = useRef(0);
+  const maxAttempts = 10; // Más intentos para producción
 
   const setupCanvas = useCallback(() => {
     const canvas = canvasRef.current;
+
+    console.log(
+      `🎨 Setup attempt ${setupAttemptsRef.current + 1}/${maxAttempts}`,
+      {
+        canvasExists: !!canvas,
+        isDisabled,
+        mounted: mountedRef.current,
+      },
+    );
 
     if (!canvas || isDisabled) {
       setDebugInfo(
@@ -72,6 +84,16 @@ const useCanvasSignature = (isDisabled: boolean) => {
     }
 
     try {
+      // Verificar que el canvas esté en el DOM y sea visible
+      const rect = canvas.getBoundingClientRect();
+
+      if (rect.width === 0 || rect.height === 0) {
+        console.log("⏳ Canvas not visible yet, dimensions:", rect);
+        setDebugInfo("⏳ Esperando dimensiones...");
+
+        return false;
+      }
+
       // Método más estable para móviles: usar el contenedor si existe, sino viewport
       let containerWidth;
       const container = canvas.parentElement;
@@ -80,11 +102,13 @@ const useCanvasSignature = (isDisabled: boolean) => {
         const containerRect = container.getBoundingClientRect();
 
         containerWidth = containerRect.width - 32; // Padding del contenedor
+        console.log("📦 Using container width:", containerWidth);
       } else {
         containerWidth = Math.min(
           window.innerWidth - 64,
           CANVAS_CONFIG.maxWidth,
         );
+        console.log("📱 Using viewport width:", containerWidth);
       }
 
       const aspectRatio = CANVAS_CONFIG.width / CANVAS_CONFIG.height;
@@ -98,6 +122,11 @@ const useCanvasSignature = (isDisabled: boolean) => {
       canvasWidth = Math.round(canvasWidth);
       canvasHeight = Math.round(canvasHeight);
 
+      console.log("📏 Calculated dimensions:", {
+        canvasWidth,
+        canvasHeight,
+        containerWidth,
+      });
       setDebugInfo(`📏 Dims: ${canvasWidth}x${canvasHeight}`);
 
       // Configurar CSS inmediatamente y de forma fija
@@ -112,6 +141,14 @@ const useCanvasSignature = (isDisabled: boolean) => {
 
       canvas.width = canvasWidth * dpr;
       canvas.height = canvasHeight * dpr;
+
+      console.log("🖼️ Canvas dimensions set:", {
+        cssWidth: canvas.style.width,
+        cssHeight: canvas.style.height,
+        actualWidth: canvas.width,
+        actualHeight: canvas.height,
+        dpr,
+      });
 
       const ctx = canvas.getContext("2d");
 
@@ -142,8 +179,10 @@ const useCanvasSignature = (isDisabled: boolean) => {
       canvas.dataset.logicalHeight = canvasHeight.toString();
       canvas.dataset.dpr = dpr.toString();
 
+      console.log("✅ Canvas setup completed successfully");
       setDebugInfo("✅ Canvas listo");
       setCanvasReady(true);
+      setupAttemptsRef.current = 0; // Reset counter on success
 
       return true;
     } catch (error) {
@@ -154,39 +193,66 @@ const useCanvasSignature = (isDisabled: boolean) => {
     }
   }, [isDisabled]);
 
-  // Setup inicial más robusto
-  useEffect(() => {
-    mountedRef.current = true;
+  // Función de setup con reintentos automáticos SIN referencia circular
+  const attemptSetup = useCallback(() => {
+    if (!mountedRef.current || isDisabled) return;
 
-    if (isDisabled) {
+    setupAttemptsRef.current += 1;
+    console.log(`🔄 Attempt ${setupAttemptsRef.current}/${maxAttempts}`);
+
+    const success = setupCanvas();
+
+    if (success) {
+      console.log("✅ Setup successful!");
+
       return;
     }
 
+    if (setupAttemptsRef.current < maxAttempts) {
+      // Delay incremental más largo para producción
+      const delay = Math.min(setupAttemptsRef.current * 200, 2000);
+
+      console.log(`⏰ Retrying in ${delay}ms...`);
+
+      setTimeout(() => {
+        if (mountedRef.current) {
+          attemptSetup();
+        }
+      }, delay);
+    } else {
+      console.log("❌ All attempts failed");
+      setDebugInfo(`❌ Falló después de ${maxAttempts} intentos`);
+    }
+  }, [setupCanvas, isDisabled, maxAttempts]);
+
+  // Setup inicial más robusto
+  useEffect(() => {
+    mountedRef.current = true;
+    setupAttemptsRef.current = 0;
+
+    if (isDisabled) {
+      console.log("🚫 Canvas disabled, skipping setup");
+
+      return;
+    }
+
+    console.log("🚀 Initial canvas setup effect");
     setCanvasReady(false);
     setDebugInfo("🔄 Iniciando...");
 
-    // Múltiples intentos de setup
-    const attemptSetup = (attempt = 1) => {
-      if (!mountedRef.current) {
-        return;
+    // Delay inicial más largo para producción
+    const initialDelay = process.env.NODE_ENV === "production" ? 100 : 10;
+
+    setTimeout(() => {
+      if (mountedRef.current) {
+        attemptSetup();
       }
-
-      const success = setupCanvas();
-
-      if (!success && attempt < 5) {
-        setTimeout(() => attemptSetup(attempt + 1), attempt * 100);
-      } else if (!success) {
-        forceSetup();
-      }
-    };
-
-    // Primer intento inmediato
-    setTimeout(() => attemptSetup(1), 10);
+    }, initialDelay);
 
     return () => {
       mountedRef.current = false;
     };
-  }, [setupCanvas, isDisabled]);
+  }, [attemptSetup, isDisabled]);
 
   // Resize handler simplificado
   useEffect(() => {
@@ -194,11 +260,14 @@ const useCanvasSignature = (isDisabled: boolean) => {
 
     let timeoutId: NodeJS.Timeout;
     const handleResize = () => {
+      console.log("📱 Window resize detected");
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
         if (mountedRef.current) {
+          console.log("🔄 Reconfiguring canvas after resize");
           setCanvasReady(false);
-          setupCanvas();
+          setupAttemptsRef.current = 0;
+          attemptSetup();
         }
       }, 250);
     };
@@ -209,7 +278,7 @@ const useCanvasSignature = (isDisabled: boolean) => {
       clearTimeout(timeoutId);
       window.removeEventListener("resize", handleResize);
     };
-  }, [setupCanvas, isDisabled, canvasReady]);
+  }, [attemptSetup, isDisabled, canvasReady]);
 
   const getCoordinates = useCallback(
     (
@@ -295,20 +364,25 @@ const useCanvasSignature = (isDisabled: boolean) => {
     const ctx = canvas?.getContext("2d");
 
     if (ctx && canvas) {
-      // Obtener las dimensiones lógicas guardadas durante el setup
       const logicalWidth = parseFloat(canvas.dataset.logicalWidth || "0");
       const logicalHeight = parseFloat(canvas.dataset.logicalHeight || "0");
 
-      // Método de limpieza más simple y confiable
+      console.log("🧹 Clearing canvas:", {
+        cssWidth: canvas.style.width,
+        cssHeight: canvas.style.height,
+        actualWidth: canvas.width,
+        actualHeight: canvas.height,
+        logicalWidth,
+        logicalHeight,
+        hasLogicalDimensions: !!(logicalWidth && logicalHeight),
+      });
+
       if (logicalWidth && logicalHeight) {
-        // Usar las dimensiones lógicas guardadas
         ctx.fillStyle = CANVAS_CONFIG.backgroundColor;
         ctx.fillRect(0, 0, logicalWidth, logicalHeight);
       } else {
-        // Fallback: limpiar todo el canvas y reconfigurar
+        console.log("⚠️ No logical dimensions found, forcing reset");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Obtener dimensiones CSS actuales
         const rect = canvas.getBoundingClientRect();
 
         ctx.fillStyle = CANVAS_CONFIG.backgroundColor;
@@ -319,17 +393,43 @@ const useCanvasSignature = (isDisabled: boolean) => {
     setHasSigned(false);
   }, [isDisabled]);
 
+  const clearSignatureRobust = useCallback(() => {
+    if (isDisabled) return;
+
+    console.log("🔄 Robust clear - forcing canvas reconfiguration");
+    setCanvasReady(false);
+    setHasSigned(false);
+    setupAttemptsRef.current = 0;
+
+    setTimeout(() => {
+      if (mountedRef.current) {
+        attemptSetup();
+      }
+    }, 50);
+  }, [isDisabled, attemptSetup]);
+
   const getSignatureDataURL = useCallback((): string => {
     const canvas = canvasRef.current;
 
     return canvas ? canvas.toDataURL("image/png", 0.8) : "";
   }, []);
 
-  // Función para forzar setup (debug)
+  // Función de setup manual (sin usar attemptSetup para evitar circular)
   const forceSetup = useCallback(() => {
+    console.log("🔧 Manual force setup triggered");
     setCanvasReady(false);
     setDebugInfo("🔧 Forzando setup...");
-    setTimeout(() => setupCanvas(), 50);
+    setupAttemptsRef.current = 0;
+
+    setTimeout(() => {
+      if (mountedRef.current) {
+        const success = setupCanvas();
+
+        if (!success) {
+          setDebugInfo("❌ Setup manual falló");
+        }
+      }
+    }, 50);
   }, [setupCanvas]);
 
   const handleTouchStart = useCallback(
@@ -369,6 +469,7 @@ const useCanvasSignature = (isDisabled: boolean) => {
     draw,
     stopDrawing,
     clearSignature,
+    clearSignatureRobust,
     getSignatureDataURL,
     handleTouchStart,
     handleTouchEnd,
