@@ -644,7 +644,7 @@ const ConductorInfo = ({
       <InfoItem
         documentoFirmado={documentoFirmado}
         label="Nomina"
-        value={info.numero_identificacion}
+        value={info.nomina}
       />
     </div>
   </div>
