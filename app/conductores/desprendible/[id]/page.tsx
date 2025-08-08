@@ -31,7 +31,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { apiClient } from "@/config/apiClient";
-import { MonthAndYear } from "@/helpers/helpers";
+import { formatDate, MonthAndYear } from "@/helpers/helpers";
 import { Liquidacion } from "@/context/NominaContext";
 import handleGeneratePDF from "@/components/pdfMaker";
 import useFirmasExistentes from "@/hooks/useFirmasExistentes";
@@ -72,29 +72,42 @@ const useCanvasSignature = (isDisabled: boolean) => {
     }
 
     try {
-      // Método simplificado: usar viewport width directamente
-      const viewportWidth =
-        typeof window !== "undefined" ? window.innerWidth : 400;
-      const containerMaxWidth = Math.min(
-        viewportWidth - 64,
-        CANVAS_CONFIG.maxWidth,
-      );
-      const aspectRatio = CANVAS_CONFIG.width / CANVAS_CONFIG.height;
+      // Método más estable para móviles: usar el contenedor si existe, sino viewport
+      let containerWidth;
+      const container = canvas.parentElement;
 
+      if (container) {
+        const containerRect = container.getBoundingClientRect();
+
+        containerWidth = containerRect.width - 32; // Padding del contenedor
+      } else {
+        containerWidth = Math.min(
+          window.innerWidth - 64,
+          CANVAS_CONFIG.maxWidth,
+        );
+      }
+
+      const aspectRatio = CANVAS_CONFIG.width / CANVAS_CONFIG.height;
       let canvasWidth = Math.max(
         CANVAS_CONFIG.minWidth,
-        Math.min(containerMaxWidth, CANVAS_CONFIG.width),
+        Math.min(containerWidth, CANVAS_CONFIG.width),
       );
       let canvasHeight = canvasWidth / aspectRatio;
 
+      // Redondear a números enteros para evitar problemas de renderizado
+      canvasWidth = Math.round(canvasWidth);
+      canvasHeight = Math.round(canvasHeight);
+
       setDebugInfo(`📏 Dims: ${canvasWidth}x${canvasHeight}`);
 
-      // Configurar CSS inmediatamente
+      // Configurar CSS inmediatamente y de forma fija
       canvas.style.width = `${canvasWidth}px`;
       canvas.style.height = `${canvasHeight}px`;
       canvas.style.display = "block";
+      canvas.style.maxWidth = "100%";
+      canvas.style.touchAction = "none";
 
-      // Configurar resolución interna
+      // Configurar resolución interna - FIJA para evitar cambios
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
       canvas.width = canvasWidth * dpr;
@@ -109,7 +122,10 @@ const useCanvasSignature = (isDisabled: boolean) => {
         return false;
       }
 
-      // Configurar contexto
+      // Limpiar cualquier transformación previa
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+      // Configurar contexto de forma consistente
       ctx.scale(dpr, dpr);
       ctx.lineCap = CANVAS_CONFIG.lineCap;
       ctx.lineJoin = CANVAS_CONFIG.lineJoin;
@@ -117,9 +133,14 @@ const useCanvasSignature = (isDisabled: boolean) => {
       ctx.lineWidth = CANVAS_CONFIG.lineWidth;
       ctx.imageSmoothingEnabled = true;
 
-      // Fondo blanco
+      // Fondo blanco - usar dimensiones lógicas
       ctx.fillStyle = CANVAS_CONFIG.backgroundColor;
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+      // Guardar las dimensiones lógicas para uso en limpieza
+      canvas.dataset.logicalWidth = canvasWidth.toString();
+      canvas.dataset.logicalHeight = canvasHeight.toString();
+      canvas.dataset.dpr = dpr.toString();
 
       setDebugInfo("✅ Canvas listo");
       setCanvasReady(true);
@@ -274,37 +295,25 @@ const useCanvasSignature = (isDisabled: boolean) => {
     const ctx = canvas?.getContext("2d");
 
     if (ctx && canvas) {
-      // SOLUCIÓN: Usar las dimensiones internas del canvas, no las CSS
-      const actualWidth = canvas.width;
-      const actualHeight = canvas.height;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      // Obtener las dimensiones lógicas guardadas durante el setup
+      const logicalWidth = parseFloat(canvas.dataset.logicalWidth || "0");
+      const logicalHeight = parseFloat(canvas.dataset.logicalHeight || "0");
 
-      // Limpiar usando las dimensiones reales divididas por el DPR
-      const clearWidth = actualWidth / dpr;
-      const clearHeight = actualHeight / dpr;
+      // Método de limpieza más simple y confiable
+      if (logicalWidth && logicalHeight) {
+        // Usar las dimensiones lógicas guardadas
+        ctx.fillStyle = CANVAS_CONFIG.backgroundColor;
+        ctx.fillRect(0, 0, logicalWidth, logicalHeight);
+      } else {
+        // Fallback: limpiar todo el canvas y reconfigurar
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      console.log("🧹 Clearing canvas:", {
-        cssWidth: canvas.style.width,
-        cssHeight: canvas.style.height,
-        actualWidth,
-        actualHeight,
-        clearWidth,
-        clearHeight,
-        dpr,
-      });
+        // Obtener dimensiones CSS actuales
+        const rect = canvas.getBoundingClientRect();
 
-      // Limpiar completamente
-      ctx.save();
-      ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
-      ctx.clearRect(0, 0, actualWidth, actualHeight); // Limpiar todo
-
-      // Reconfigurar el contexto después de limpiar
-      ctx.restore();
-      ctx.scale(dpr, dpr);
-
-      // Rellenar con fondo blanco
-      ctx.fillStyle = CANVAS_CONFIG.backgroundColor;
-      ctx.fillRect(0, 0, clearWidth, clearHeight);
+        ctx.fillStyle = CANVAS_CONFIG.backgroundColor;
+        ctx.fillRect(0, 0, rect.width, rect.height);
+      }
     }
 
     setHasSigned(false);
@@ -397,8 +406,9 @@ export default function Page() {
 
     return {
       nombreCompleto: `${liquidacionData.conductor.nombre} ${liquidacionData.conductor.apellido}`,
-      numero_identificacion: liquidacionData.conductor.numero_identificacion,
-      nomina: `${MonthAndYear(liquidacionData.periodo_end)}`,
+      periodo: `${MonthAndYear(liquidacionData.periodo_end)}`,
+      nomina: `${formatDate(liquidacionData.periodo_start)} - ${formatDate(liquidacionData.periodo_end)}`,
+      id: liquidacionData.id,
     };
   }, [liquidacionData]);
 
@@ -606,11 +616,7 @@ const ConductorInfo = ({
   info,
   documentoFirmado,
 }: {
-  info: {
-    nombreCompleto: string;
-    nomina: string;
-    numero_identificacion: string;
-  };
+  info: { nombreCompleto: string; periodo: string; id: string };
   documentoFirmado: boolean;
 }) => (
   <div
@@ -629,13 +635,13 @@ const ConductorInfo = ({
       />
       <InfoItem
         documentoFirmado={documentoFirmado}
-        label="CC"
-        value={info.numero_identificacion}
+        label="Período"
+        value={info.periodo}
       />
       <InfoItem
         documentoFirmado={documentoFirmado}
-        label="Nomina"
-        value={info.nomina}
+        label="ID"
+        value={info.id}
       />
     </div>
   </div>
@@ -832,19 +838,25 @@ const SignatureActions = ({
   isSubmitting: boolean;
   onSubmit: () => void;
 }) => (
-  <div className="flex gap-3">
+  <div className="space-y-3">
+    {/* Botones de limpieza */}
+    <div className="flex gap-2">
+      <Button
+        className="flex-1"
+        color="danger"
+        isDisabled={!canvasSignature.hasSigned || !canvasSignature.canvasReady}
+        size="sm"
+        startContent={<TrashIcon className="h-3 w-3" />}
+        variant="flat"
+        onPress={canvasSignature.clearSignature}
+      >
+        Limpiar
+      </Button>
+    </div>
+
+    {/* Botón principal */}
     <Button
-      className="flex-1"
-      color="danger"
-      isDisabled={!canvasSignature.hasSigned || !canvasSignature.canvasReady}
-      startContent={<TrashIcon className="h-4 w-4" />}
-      variant="flat"
-      onPress={canvasSignature.clearSignature}
-    >
-      Limpiar
-    </Button>
-    <Button
-      className="flex-1"
+      className="w-full"
       color="primary"
       isDisabled={!canvasSignature.hasSigned || !canvasSignature.canvasReady}
       isLoading={isSubmitting}

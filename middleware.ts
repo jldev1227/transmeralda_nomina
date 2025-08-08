@@ -11,16 +11,6 @@ const PUBLIC_ROUTES = [
   // Agrega otras rutas públicas aquí
 ];
 
-// Rutas que siempre requieren autenticación
-const PROTECTED_ROUTES = [
-  "/admin",
-  "/usuarios",
-  "/liquidaciones",
-  "/conductores/agregar",
-  "/conductores/editar",
-  // Agrega otras rutas protegidas aquí
-];
-
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
