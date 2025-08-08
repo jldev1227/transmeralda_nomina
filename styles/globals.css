@@ -1,3 +1,74 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Estilos para mejorar la experiencia de firma */
+.signature-canvas-container {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.signature-canvas {
+  touch-action: none;
+  -webkit-touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Prevenir zoom en iOS Safari */
+@media screen and (max-width: 768px) {
+  .signature-canvas {
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Estilos para diferentes tamaños de pantalla */
+@media screen and (max-width: 480px) {
+  .signature-canvas-container {
+    padding: 8px;
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .signature-canvas-container {
+    padding: 16px;
+  }
+}
+
+/* Prevenir selección de texto durante la firma */
+.signature-canvas-container *,
+.signature-canvas-container {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Mejorar la experiencia táctil */
+.signature-canvas:focus {
+  outline: none;
+}
+
+/* Prevenir selección de texto en el contenedor */
+.signature-canvas-container::selection,
+.signature-canvas-container *::selection {
+  background: transparent;
+}
+
+.signature-canvas-container::-moz-selection,
+.signature-canvas-container *::-moz-selection {
+  background: transparent;
+}
+
+/* Indicador de carga suave */
+.signature-canvas-container .loading-indicator {
+  backdrop-filter: blur(2px);
+}

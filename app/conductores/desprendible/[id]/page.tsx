@@ -38,38 +38,67 @@ import useFirmasExistentes from "@/hooks/useFirmasExistentes";
 import { FirmaConUrl } from "@/types";
 import SignatureImage from "@/components/ui/signatureImage";
 
-// Constantes
+// Constantes mejoradas para mejor responsive design
 const CANVAS_CONFIG = {
   width: 600,
-  height: 256,
+  height: 200, // Reducido para mejor proporción en móviles
   lineWidth: 2,
-  strokeStyle: "#000000",
+  strokeStyle: "#1f2937", // Color más suave que el negro puro
   lineCap: "round" as CanvasLineCap,
   lineJoin: "round" as CanvasLineJoin,
   backgroundColor: "#ffffff",
+  minWidth: 300, // Ancho mínimo para móviles
+  maxWidth: 800, // Ancho máximo para desktop
 };
 
-// Hook personalizado para manejo del canvas
+// Hook personalizado mejorado para manejo del canvas
 const useCanvasSignature = (isDisabled: boolean) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSigned, setHasSigned] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
 
   const setupCanvas = useCallback(() => {
     const canvas = canvasRef.current;
 
     if (!canvas || isDisabled) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
+    // Obtener el contenedor padre para el tamaño
+    const container = canvas.parentElement;
 
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
+    if (!container) return;
+
+    // Calcular dimensiones basadas en el contenedor
+    const containerRect = container.getBoundingClientRect();
+    const padding = 16; // 2 * 8px de padding del contenedor
+    const maxWidth = containerRect.width - padding;
+    const aspectRatio = CANVAS_CONFIG.width / CANVAS_CONFIG.height;
+
+    // Calcular dimensiones finales
+    let canvasWidth = Math.min(maxWidth, CANVAS_CONFIG.width);
+    let canvasHeight = canvasWidth / aspectRatio;
+
+    // Asegurar que no exceda la altura máxima
+    if (canvasHeight > CANVAS_CONFIG.height) {
+      canvasHeight = CANVAS_CONFIG.height;
+      canvasWidth = canvasHeight * aspectRatio;
+    }
+
+    // Configurar el tamaño CSS del canvas
+    canvas.style.width = `${canvasWidth}px`;
+    canvas.style.height = `${canvasHeight}px`;
+
+    // Configurar la resolución interna del canvas
+    const dpr = Math.min(window.devicePixelRatio || 1, 2); // Limitar DPR para performance
+
+    canvas.width = canvasWidth * dpr;
+    canvas.height = canvasHeight * dpr;
 
     const ctx = canvas.getContext("2d");
 
     if (!ctx) return;
 
+    // Configurar el contexto
     ctx.scale(dpr, dpr);
     ctx.lineCap = CANVAS_CONFIG.lineCap;
     ctx.lineJoin = CANVAS_CONFIG.lineJoin;
@@ -77,23 +106,47 @@ const useCanvasSignature = (isDisabled: boolean) => {
     ctx.lineWidth = CANVAS_CONFIG.lineWidth;
     ctx.imageSmoothingEnabled = true;
 
+    // Limpiar y configurar fondo
     ctx.fillStyle = CANVAS_CONFIG.backgroundColor;
-    ctx.fillRect(0, 0, rect.width, rect.height);
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    setCanvasReady(true);
   }, [isDisabled]);
+
+  // Debounced resize para mejor performance
+  const debouncedSetup = useMemo(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    return () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(setupCanvas, 150);
+    };
+  }, [setupCanvas]);
 
   useEffect(() => {
     if (isDisabled) return;
 
+    setCanvasReady(false);
     setupCanvas();
-    const timer = setTimeout(setupCanvas, 100);
 
-    window.addEventListener("resize", setupCanvas);
+    const resizeObserver = new ResizeObserver(() => {
+      debouncedSetup();
+    });
+
+    const canvas = canvasRef.current;
+
+    if (canvas?.parentElement) {
+      resizeObserver.observe(canvas.parentElement);
+    }
+
+    // Backup con event listener tradicional
+    window.addEventListener("resize", debouncedSetup);
 
     return () => {
-      clearTimeout(timer);
-      window.removeEventListener("resize", setupCanvas);
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", debouncedSetup);
     };
-  }, [setupCanvas, isDisabled]);
+  }, [setupCanvas, debouncedSetup, isDisabled]);
 
   const getCoordinates = useCallback(
     (
@@ -123,8 +176,10 @@ const useCanvasSignature = (isDisabled: boolean) => {
         | React.MouseEvent<HTMLCanvasElement>
         | React.TouchEvent<HTMLCanvasElement>,
     ) => {
-      if (isDisabled) return;
+      if (isDisabled || !canvasReady) return;
+
       e.preventDefault();
+      e.stopPropagation();
 
       const coords = getCoordinates(e);
 
@@ -138,7 +193,7 @@ const useCanvasSignature = (isDisabled: boolean) => {
         ctx.moveTo(coords.x, coords.y);
       }
     },
-    [getCoordinates, isDisabled],
+    [getCoordinates, isDisabled, canvasReady],
   );
 
   const draw = useCallback(
@@ -147,8 +202,10 @@ const useCanvasSignature = (isDisabled: boolean) => {
         | React.MouseEvent<HTMLCanvasElement>
         | React.TouchEvent<HTMLCanvasElement>,
     ) => {
-      if (!isDrawing || isDisabled) return;
+      if (!isDrawing || isDisabled || !canvasReady) return;
+
       e.preventDefault();
+      e.stopPropagation();
 
       const coords = getCoordinates(e);
       const canvas = canvasRef.current;
@@ -159,11 +216,12 @@ const useCanvasSignature = (isDisabled: boolean) => {
         ctx.stroke();
       }
     },
-    [isDrawing, getCoordinates, isDisabled],
+    [isDrawing, getCoordinates, isDisabled, canvasReady],
   );
 
   const stopDrawing = useCallback(() => {
     if (!isDrawing || isDisabled) return;
+
     setIsDrawing(false);
     setHasSigned(true);
   }, [isDrawing, isDisabled]);
@@ -175,32 +233,67 @@ const useCanvasSignature = (isDisabled: boolean) => {
     const ctx = canvas?.getContext("2d");
 
     if (ctx && canvas) {
-      const rect = canvas.getBoundingClientRect();
+      const canvasWidth = canvas.offsetWidth;
+      const canvasHeight = canvas.offsetHeight;
 
       ctx.fillStyle = CANVAS_CONFIG.backgroundColor;
-      ctx.fillRect(0, 0, rect.width, rect.height);
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     }
+
     setHasSigned(false);
   }, [isDisabled]);
 
   const getSignatureDataURL = useCallback((): string => {
     const canvas = canvasRef.current;
 
-    return canvas ? canvas.toDataURL("image/png") : "";
+    return canvas ? canvas.toDataURL("image/png", 0.8) : "";
+  }, []);
+
+  // Manejadores de eventos táctiles mejorados
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent<HTMLCanvasElement>) => {
+      // Prevenir scroll y zoom en dispositivos móviles
+      document.body.style.overflow = "hidden";
+      startDrawing(e);
+    },
+    [startDrawing],
+  );
+
+  const handleTouchEnd = useCallback(() => {
+    document.body.style.overflow = "";
+    stopDrawing();
+  }, [stopDrawing]);
+
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent<HTMLCanvasElement>) => {
+      draw(e);
+    },
+    [draw],
+  );
+
+  // Cleanup en desmontaje
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, []);
 
   return {
     canvasRef,
     hasSigned,
+    canvasReady,
     startDrawing,
     draw,
     stopDrawing,
     clearSignature,
     getSignatureDataURL,
+    handleTouchStart,
+    handleTouchEnd,
+    handleTouchMove,
   };
 };
 
-// Componente principal mejorado
+// Componente principal
 export default function Page() {
   const params = useParams();
   const liquidacionId = params.id as string;
@@ -565,39 +658,68 @@ const SignatureCanvas = ({
   canvasSignature,
 }: {
   canvasSignature: ReturnType<typeof useCanvasSignature>;
-}) => (
-  <div className="space-y-3">
-    <label className="text-sm font-medium text-gray-700" htmlFor="signature">
-      Firme en el recuadro de abajo:
-    </label>
-    <div className="border-2 border-gray-300 rounded-lg bg-white p-2">
-      <canvas
-        ref={canvasSignature.canvasRef}
-        className="cursor-crosshair border border-gray-200 rounded block mx-auto"
-        height={CANVAS_CONFIG.height}
-        id="signature"
-        style={{
-          touchAction: "none",
-          backgroundColor: CANVAS_CONFIG.backgroundColor,
-          width: "100%",
-          maxWidth: `${CANVAS_CONFIG.width}px`,
-          height: "auto",
-        }}
-        width={CANVAS_CONFIG.width}
-        onMouseDown={canvasSignature.startDrawing}
-        onMouseLeave={canvasSignature.stopDrawing}
-        onMouseMove={canvasSignature.draw}
-        onMouseUp={canvasSignature.stopDrawing}
-        onTouchEnd={canvasSignature.stopDrawing}
-        onTouchMove={canvasSignature.draw}
-        onTouchStart={canvasSignature.startDrawing}
-      />
+}) => {
+  return (
+    <div className="space-y-3">
+      <label className="text-sm font-medium text-gray-700" htmlFor="signature">
+        Firme en el recuadro de abajo:
+      </label>
+
+      {/* Contenedor del canvas con dimensiones fijas */}
+      <div className="relative border-2 border-gray-300 rounded-lg bg-white p-2 mx-auto max-w-full overflow-hidden signature-canvas-container">
+        {/* Indicador de carga */}
+        {!canvasSignature.canvasReady && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50 rounded">
+            <div className="flex items-center gap-2 text-gray-500">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500" />
+              <span className="text-sm">Preparando tablero...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Canvas */}
+        <canvas
+          ref={canvasSignature.canvasRef}
+          className={`
+            border border-gray-200 rounded block mx-auto signature-canvas
+            ${canvasSignature.canvasReady ? "cursor-crosshair" : "cursor-wait"}
+            ${!canvasSignature.canvasReady ? "opacity-50" : "opacity-100"}
+            transition-opacity duration-200
+          `}
+          id="signature"
+          style={{
+            touchAction: "none",
+            backgroundColor: CANVAS_CONFIG.backgroundColor,
+            maxWidth: "100%",
+            height: "auto",
+            userSelect: "none",
+            WebkitUserSelect: "none",
+            MozUserSelect: "none",
+          }}
+          onMouseDown={canvasSignature.startDrawing}
+          onMouseMove={canvasSignature.draw}
+          onMouseUp={canvasSignature.stopDrawing}
+          onTouchEnd={canvasSignature.handleTouchEnd}
+          onTouchMove={canvasSignature.handleTouchMove}
+          onMouseLeave={canvasSignature.stopDrawing}
+          // Eventos táctiles mejorados
+          onTouchStart={canvasSignature.handleTouchStart}
+          onTouchCancel={canvasSignature.handleTouchEnd}
+          // Prevenir eventos de contexto
+          onContextMenu={(e) => e.preventDefault()}
+        />
+      </div>
+
+      {/* Texto de ayuda */}
+      <div className="text-xs text-gray-500 text-center space-y-1">
+        <p>Firme con el mouse o dedo en dispositivos táctiles</p>
+        {!canvasSignature.canvasReady && (
+          <p className="text-yellow-600">Configurando área de firma...</p>
+        )}
+      </div>
     </div>
-    <div className="text-xs text-gray-500 text-center">
-      Firme con el mouse o dedo en dispositivos táctiles
-    </div>
-  </div>
-);
+  );
+};
 
 const SignatureConfirmation = () => (
   <div className="flex items-center justify-center gap-2 text-green-600 text-sm bg-green-50 p-3 rounded-lg">
@@ -619,7 +741,7 @@ const SignatureActions = ({
     <Button
       className="flex-1"
       color="danger"
-      isDisabled={!canvasSignature.hasSigned}
+      isDisabled={!canvasSignature.hasSigned || !canvasSignature.canvasReady}
       startContent={<TrashIcon className="h-4 w-4" />}
       variant="flat"
       onPress={canvasSignature.clearSignature}
@@ -629,7 +751,7 @@ const SignatureActions = ({
     <Button
       className="flex-1"
       color="primary"
-      isDisabled={!canvasSignature.hasSigned}
+      isDisabled={!canvasSignature.hasSigned || !canvasSignature.canvasReady}
       isLoading={isSubmitting}
       startContent={!isSubmitting && <CheckCircleIcon className="h-4 w-4" />}
       onPress={onSubmit}
