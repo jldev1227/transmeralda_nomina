@@ -274,11 +274,37 @@ const useCanvasSignature = (isDisabled: boolean) => {
     const ctx = canvas?.getContext("2d");
 
     if (ctx && canvas) {
-      const canvasWidth = canvas.offsetWidth;
-      const canvasHeight = canvas.offsetHeight;
+      // SOLUCIÓN: Usar las dimensiones internas del canvas, no las CSS
+      const actualWidth = canvas.width;
+      const actualHeight = canvas.height;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
+      // Limpiar usando las dimensiones reales divididas por el DPR
+      const clearWidth = actualWidth / dpr;
+      const clearHeight = actualHeight / dpr;
+
+      console.log("🧹 Clearing canvas:", {
+        cssWidth: canvas.style.width,
+        cssHeight: canvas.style.height,
+        actualWidth,
+        actualHeight,
+        clearWidth,
+        clearHeight,
+        dpr,
+      });
+
+      // Limpiar completamente
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
+      ctx.clearRect(0, 0, actualWidth, actualHeight); // Limpiar todo
+
+      // Reconfigurar el contexto después de limpiar
+      ctx.restore();
+      ctx.scale(dpr, dpr);
+
+      // Rellenar con fondo blanco
       ctx.fillStyle = CANVAS_CONFIG.backgroundColor;
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.fillRect(0, 0, clearWidth, clearHeight);
     }
 
     setHasSigned(false);
