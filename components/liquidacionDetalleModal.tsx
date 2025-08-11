@@ -51,6 +51,11 @@ const LiquidacionDetalleModal: React.FC = () => {
   const { liquidacionActual, showDetalleModal, cerrarModales } = useNomina();
   const [activeTab, setActiveTab] = useState<string>("general");
   const [documentoFirmado, setDocumentoFirmado] = useState(false);
+
+  // Estados adicionales para el manejo de firmas
+  const [firmasReady, setFirmasReady] = useState(false);
+  const [firmasError, setFirmasError] = useState<string | null>(null);
+
   const [expandedSections, setExpandedSections] = useState<{
     [key: string]: boolean;
   }>({
@@ -60,6 +65,7 @@ const LiquidacionDetalleModal: React.FC = () => {
     bonificaciones: false,
     anticipos: false,
   });
+
   const {
     firmas,
     loading: firmasLoading,
@@ -70,13 +76,35 @@ const LiquidacionDetalleModal: React.FC = () => {
     if (!liquidacionActual) return;
 
     const loadData = async () => {
-      const tieneFirmas = await cargarFirmas(liquidacionActual.id);
+      try {
+        setFirmasReady(false);
+        setFirmasError(null);
 
-      setDocumentoFirmado(tieneFirmas);
+        const tieneFirmas = await cargarFirmas(liquidacionActual.id);
+
+        // Verificar que las firmas se cargaron correctamente
+        if (tieneFirmas && firmas && firmas.length > 0) {
+          // Si hay firmas, verificar que tengan URLs válidas
+          const firmasConUrl = firmas.filter(
+            (firma) => firma.presignedUrl && !firma.urlError,
+          );
+
+          setFirmasReady(firmasConUrl.length > 0);
+          setDocumentoFirmado(true);
+        } else {
+          // Si no hay firmas, pero la carga fue exitosa, permitir generar PDF sin firmas
+          setFirmasReady(true);
+          setDocumentoFirmado(false);
+        }
+      } catch (error) {
+        console.error("Error cargando firmas:", error);
+        setFirmasError("Error al cargar las firmas");
+        setFirmasReady(false);
+      }
     };
 
     loadData();
-  }, [liquidacionActual, cargarFirmas]);
+  }, [liquidacionActual, cargarFirmas, firmas]);
 
   // Si no hay liquidación o no se debe mostrar el modal, no renderizar nada
   if (!liquidacionActual || !showDetalleModal) return null;
