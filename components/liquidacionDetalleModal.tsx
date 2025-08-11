@@ -104,7 +104,7 @@ const LiquidacionDetalleModal: React.FC = () => {
     };
 
     loadData();
-  }, [liquidacionActual, cargarFirmas, firmas]);
+  }, [liquidacionActual]);
 
   // Si no hay liquidación o no se debe mostrar el modal, no renderizar nada
   if (!liquidacionActual || !showDetalleModal) return null;
@@ -181,6 +181,13 @@ const LiquidacionDetalleModal: React.FC = () => {
     setActiveTab("general");
     cerrarModales();
   };
+
+  const isButtonDisabled = firmasLoading || !firmasReady;
+  const buttonText = firmasLoading
+    ? "Cargando firmas..."
+    : firmasError
+      ? "Error en firmas"
+      : "Ver Desprendible";
 
   return (
     <div
@@ -1916,12 +1923,16 @@ const LiquidacionDetalleModal: React.FC = () => {
             <Button
               className="rounded-md"
               color="primary"
+              isDisabled={isButtonDisabled}
+              isLoading={firmasLoading}
               onPress={() => {
-                handleGeneratePDF(liquidacionActual, firmas);
+                if (!isButtonDisabled) {
+                  handleGeneratePDF(liquidacionActual, firmas);
+                }
               }}
             >
-              <Download className="w-4 h-4 mr-2" />
-              Ver Desprendible
+              {!firmasLoading && <Download className="w-4 h-4 mr-2" />}
+              {buttonText}
             </Button>
           </div>
         </div>
