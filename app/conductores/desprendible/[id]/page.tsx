@@ -561,7 +561,7 @@ export default function Page() {
 
   const viewDocument = useCallback(() => {
     if (liquidacionData) {
-      handleGeneratePDF(liquidacionData);
+      handleGeneratePDF(liquidacionData, []);
     }
   }, [liquidacionData]);
 

@@ -1889,7 +1889,7 @@ const LiquidacionDetalleModal: React.FC = () => {
               className="rounded-md"
               color="primary"
               onPress={() => {
-                handleGeneratePDF(liquidacionActual);
+                handleGeneratePDF(liquidacionActual, firmas);
               }}
             >
               <Download className="w-4 h-4 mr-2" />

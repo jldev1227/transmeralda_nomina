@@ -1,3 +1,4 @@
+// tailwind.config.js - Manteniendo tu configuración original
 import { heroui } from "@heroui/theme";
 
 /** @type {import('tailwindcss').Config} */
@@ -32,7 +33,11 @@ const config = {
     },
   },
   darkMode: "class",
-  plugins: [heroui(), require("tailwindcss-animated")],
+  plugins: [
+    heroui(),
+    // Comentamos tailwindcss-animated temporalmente hasta resolver la compatibilidad
+    // require("tailwindcss-animated")
+  ],
 };
 
-module.exports = config;
+export default config;

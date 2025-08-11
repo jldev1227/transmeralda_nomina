@@ -116,7 +116,6 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: 5,
     textAlign: "center",
-    borderRightWidth: 1,
     borderColor: "#E0E0E0",
     fontWeight: "bold",
   },
@@ -152,7 +151,6 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: 5,
     textAlign: "center",
-    borderRightWidth: 1,
     borderColor: "#E0E0E0",
     height: "100%", // Ocupar toda la altura disponible
   },
@@ -213,6 +211,9 @@ const styles = StyleSheet.create({
     left: 30,
     right: 30,
     textAlign: "center",
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "column",
     color: "#9E9E9E",
   },
   // Section headers
@@ -229,6 +230,7 @@ type LiquidacionPDFProps = {
   totalRecargosParex: number;
   recargosParex: Recargo[];
   recargosActualizados: Recargo[];
+  firmas: any[];
 };
 
 // Función para manejar valores undefined/null
@@ -242,6 +244,7 @@ export const LiquidacionPDF = ({
   totalRecargosParex,
   recargosParex,
   recargosActualizados,
+  firmas,
 }: LiquidacionPDFProps) => {
   if (!item) {
     return (
@@ -693,7 +696,50 @@ export const LiquidacionPDF = ({
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text>Documento generado el {new Date().toLocaleDateString()}</Text>
+          {firmas[0]?.presignedUrl && (
+            <View
+              style={{
+                width: 220,
+                height: 110,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Image
+                source={firmas[0].presignedUrl}
+                style={{
+                  width: 180,
+                  height: 50,
+                  objectFit: "contain",
+                }}
+              />
+              {/* Línea para la firma */}
+              <View
+                style={{
+                  width: "80%",
+                  height: 1,
+                  backgroundColor: "#BDBDBD",
+                  marginBottom: 2,
+                  alignSelf: "center",
+                }}
+              />
+              <Text
+                style={{
+                  fontSize: 10,
+                  color: "#2E8B57",
+                  textAlign: "center",
+                  fontWeight: "bold",
+                  marginTop: 4,
+                  marginBottom: 7,
+                }}
+              >
+                Firma de recibido
+              </Text>
+            </View>
+          )}
+          <Text style={{ fontSize: 9, color: "#9E9E9E" }}>
+            Documento generado el {new Date().toLocaleDateString()}
+          </Text>
         </View>
       </Page>
     </Document>
@@ -701,7 +747,10 @@ export const LiquidacionPDF = ({
 };
 
 // Función para generar el PDF y descargarlo
-const handleGeneratePDF = async (item: Liquidacion | null): Promise<void> => {
+const handleGeneratePDF = async (
+  item: Liquidacion | null,
+  firmas: any[],
+): Promise<void> => {
   try {
     if (!item) {
       return;
@@ -730,6 +779,7 @@ const handleGeneratePDF = async (item: Liquidacion | null): Promise<void> => {
     // Generar el PDF con los datos filtrados
     const blob = await pdf(
       <LiquidacionPDF
+        firmas={firmas}
         item={item}
         recargosActualizados={recargosActualizados}
         recargosParex={recargosParex}
