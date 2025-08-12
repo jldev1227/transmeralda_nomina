@@ -61,7 +61,7 @@ const LiquidacionDetalleModal: React.FC = () => {
   }>({
     recargos: false,
     pernotes: false,
-    mantenimientos: false,
+    mantenimientos: true,
     bonificaciones: false,
     anticipos: false,
   });
@@ -1227,7 +1227,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                                 groupedMaintenance[key].quantity +=
                                   value.quantity;
                                 groupedMaintenance[key].totalValue +=
-                                  mant.value * value.quantity;
+                                  value.quantity;
                               }
                             });
                           });
@@ -1255,24 +1255,6 @@ const LiquidacionDetalleModal: React.FC = () => {
                                     <span>
                                       {entry.quantity} mantenimiento
                                       {entry.quantity !== 1 ? "s" : ""}
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-600">
-                                      Valor total:
-                                    </span>
-                                    <span className="font-medium">
-                                      {formatCurrency(entry.totalValue)}
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-600">
-                                      Valor unitario:
-                                    </span>
-                                    <span className="font-medium">
-                                      {formatCurrency(
-                                        entry.totalValue / entry.quantity,
-                                      )}
                                     </span>
                                   </div>
                                 </div>
@@ -1303,18 +1285,6 @@ const LiquidacionDetalleModal: React.FC = () => {
                                 scope="col"
                               >
                                 Cantidad
-                              </th>
-                              <th
-                                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                scope="col"
-                              >
-                                Valor por mes
-                              </th>
-                              <th
-                                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                scope="col"
-                              >
-                                Valor unitario
                               </th>
                             </tr>
                           </thead>
@@ -1390,14 +1360,6 @@ const LiquidacionDetalleModal: React.FC = () => {
                                     <td className="px-3 py-2 text-xs">
                                       {entry.quantity} mantenimiento
                                       {entry.quantity !== 1 ? "s" : ""}
-                                    </td>
-                                    <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
-                                      {formatCurrency(entry.totalValue)}
-                                    </td>
-                                    <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
-                                      {formatCurrency(
-                                        entry.totalValue / entry.quantity,
-                                      )}
                                     </td>
                                   </tr>
                                 ));
