@@ -191,7 +191,7 @@ const LiquidacionDetalleModal: React.FC = () => {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto p-10"
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto sm:p-10"
       role="button"
       onClick={handleOverlayClick}
     >
@@ -1167,10 +1167,7 @@ const LiquidacionDetalleModal: React.FC = () => {
               </div>
             </>
           )}
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Nulla
-          maiores, vero architecto inventore perferendis incidunt eligendi
-          impedit mollitia expedita minus error illo cumque harum soluta eveniet
-          fugit nesciunt, distinctio enim?
+
           {/* Pestaña: Detalles */}
           {activeTab === "detalles" && (
             <>
@@ -1206,133 +1203,208 @@ const LiquidacionDetalleModal: React.FC = () => {
                   liquidacionActual.mantenimientos.some((mantenimiento) =>
                     mantenimiento.values.some((value) => value.quantity > 0),
                   ) && (
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th
-                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                              scope="col"
-                            >
-                              Vehículo
-                            </th>
-                            <th
-                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                              scope="col"
-                            >
-                              Mes
-                            </th>
-                            <th
-                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                              scope="col"
-                            >
-                              Cantidad
-                            </th>
-                            <th
-                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                              scope="col"
-                            >
-                              Valor por mes
-                            </th>
-                            <th
-                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                              scope="col"
-                            >
-                              Valor unitario
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {(() => {
-                            // Group maintenance values by vehicle and month
-                            const groupedMaintenance: any = {};
+                    <div className="space-y-3">
+                      {/* Mobile Cards */}
+                      <div className="md:hidden space-y-3">
+                        {(() => {
+                          const groupedMaintenance: any = {};
 
-                            liquidacionActual.mantenimientos.forEach((mant) => {
-                              const placa = mant.vehiculo.placa;
+                          liquidacionActual.mantenimientos.forEach((mant) => {
+                            const placa = mant.vehiculo.placa;
 
-                              mant.values.forEach((value) => {
-                                // Only consider values with quantity > 0
-                                if (value.quantity > 0) {
-                                  // Create a unique key for each vehicle-month combination
-                                  const key = `${placa}-${value.mes}`;
+                            mant.values.forEach((value) => {
+                              if (value.quantity > 0) {
+                                const key = `${placa}-${value.mes}`;
 
-                                  if (!groupedMaintenance[key]) {
-                                    groupedMaintenance[key] = {
-                                      placa,
-                                      mes: value.mes,
-                                      quantity: 0,
-                                      totalValue: 0,
-                                    };
-                                  }
-
-                                  // Add quantity and calculate total value
-                                  groupedMaintenance[key].quantity +=
-                                    value.quantity;
-                                  groupedMaintenance[key].totalValue +=
-                                    mant.value * value.quantity;
+                                if (!groupedMaintenance[key]) {
+                                  groupedMaintenance[key] = {
+                                    placa,
+                                    mes: value.mes,
+                                    quantity: 0,
+                                    totalValue: 0,
+                                  };
                                 }
-                              });
+                                groupedMaintenance[key].quantity +=
+                                  value.quantity;
+                                groupedMaintenance[key].totalValue +=
+                                  mant.value * value.quantity;
+                              }
                             });
+                          });
 
-                            // Convert to sorted array and filter out entries with zero quantity
-                            return Object.values(groupedMaintenance)
-                              .filter((entry: any) => entry.quantity > 0)
-                              .sort((a: any, b: any) => {
-                                // Sort by placa, then by month
-                                if (a.placa !== b.placa) {
-                                  return a.placa.localeCompare(b.placa);
-                                }
-                                // Assuming month format is like "Feb 2025"
-                                const monthOrder = [
-                                  "Ene",
-                                  "Feb",
-                                  "Mar",
-                                  "Abr",
-                                  "May",
-                                  "Jun",
-                                  "Jul",
-                                  "Ago",
-                                  "Sep",
-                                  "Oct",
-                                  "Nov",
-                                  "Dic",
-                                ];
-                                const aMonth = a.mes.split(" ")[0];
-                                const bMonth = b.mes.split(" ")[0];
-
-                                return (
-                                  monthOrder.indexOf(aMonth) -
-                                  monthOrder.indexOf(bMonth)
-                                );
-                              })
-                              .map((entry: any) => (
-                                <tr
-                                  key={`${entry.placa}-${entry.mes}`}
-                                  className="hover:bg-gray-50"
-                                >
-                                  <td className="px-3 py-2 whitespace-nowrap text-xs">
+                          return Object.values(groupedMaintenance)
+                            .filter((entry: any) => entry.quantity > 0)
+                            .map((entry: any) => (
+                              <div
+                                key={`${entry.placa}-${entry.mes}`}
+                                className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                              >
+                                <div className="flex justify-between items-start mb-2">
+                                  <span className="font-medium text-gray-900">
                                     {entry.placa}
-                                  </td>
-                                  <td className="px-3 py-2 text-xs">
+                                  </span>
+                                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                                     {entry.mes}
-                                  </td>
-                                  <td className="px-3 py-2 text-xs">
-                                    {entry.quantity} mantenimiento
-                                    {entry.quantity !== 1 ? "s" : ""}
-                                  </td>
-                                  <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
-                                    {formatCurrency(entry.totalValue)}
-                                  </td>
-                                  <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
-                                    {formatCurrency(
-                                      entry.totalValue / entry.quantity,
-                                    )}
-                                  </td>
-                                </tr>
-                              ));
-                          })()}
-                        </tbody>
-                      </table>
+                                  </span>
+                                </div>
+                                <div className="space-y-2 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">
+                                      Cantidad:
+                                    </span>
+                                    <span>
+                                      {entry.quantity} mantenimiento
+                                      {entry.quantity !== 1 ? "s" : ""}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">
+                                      Valor total:
+                                    </span>
+                                    <span className="font-medium">
+                                      {formatCurrency(entry.totalValue)}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">
+                                      Valor unitario:
+                                    </span>
+                                    <span className="font-medium">
+                                      {formatCurrency(
+                                        entry.totalValue / entry.quantity,
+                                      )}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            ));
+                        })()}
+                      </div>
+
+                      {/* Desktop Table */}
+                      <div className="hidden md:block overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th
+                                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                scope="col"
+                              >
+                                Vehículo
+                              </th>
+                              <th
+                                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                scope="col"
+                              >
+                                Mes
+                              </th>
+                              <th
+                                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                scope="col"
+                              >
+                                Cantidad
+                              </th>
+                              <th
+                                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                scope="col"
+                              >
+                                Valor por mes
+                              </th>
+                              <th
+                                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                scope="col"
+                              >
+                                Valor unitario
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {/* El mismo código de agrupación que tenías originalmente */}
+                            {(() => {
+                              const groupedMaintenance: any = {};
+
+                              liquidacionActual.mantenimientos.forEach(
+                                (mant) => {
+                                  const placa = mant.vehiculo.placa;
+
+                                  mant.values.forEach((value) => {
+                                    if (value.quantity > 0) {
+                                      const key = `${placa}-${value.mes}`;
+
+                                      if (!groupedMaintenance[key]) {
+                                        groupedMaintenance[key] = {
+                                          placa,
+                                          mes: value.mes,
+                                          quantity: 0,
+                                          totalValue: 0,
+                                        };
+                                      }
+                                      groupedMaintenance[key].quantity +=
+                                        value.quantity;
+                                      groupedMaintenance[key].totalValue +=
+                                        mant.value * value.quantity;
+                                    }
+                                  });
+                                },
+                              );
+
+                              return Object.values(groupedMaintenance)
+                                .filter((entry: any) => entry.quantity > 0)
+                                .sort((a: any, b: any) => {
+                                  if (a.placa !== b.placa) {
+                                    return a.placa.localeCompare(b.placa);
+                                  }
+                                  const monthOrder = [
+                                    "Ene",
+                                    "Feb",
+                                    "Mar",
+                                    "Abr",
+                                    "May",
+                                    "Jun",
+                                    "Jul",
+                                    "Ago",
+                                    "Sep",
+                                    "Oct",
+                                    "Nov",
+                                    "Dic",
+                                  ];
+                                  const aMonth = a.mes.split(" ")[0];
+                                  const bMonth = b.mes.split(" ")[0];
+
+                                  return (
+                                    monthOrder.indexOf(aMonth) -
+                                    monthOrder.indexOf(bMonth)
+                                  );
+                                })
+                                .map((entry: any) => (
+                                  <tr
+                                    key={`${entry.placa}-${entry.mes}`}
+                                    className="hover:bg-gray-50"
+                                  >
+                                    <td className="px-3 py-2 whitespace-nowrap text-xs">
+                                      {entry.placa}
+                                    </td>
+                                    <td className="px-3 py-2 text-xs">
+                                      {entry.mes}
+                                    </td>
+                                    <td className="px-3 py-2 text-xs">
+                                      {entry.quantity} mantenimiento
+                                      {entry.quantity !== 1 ? "s" : ""}
+                                    </td>
+                                    <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
+                                      {formatCurrency(entry.totalValue)}
+                                    </td>
+                                    <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
+                                      {formatCurrency(
+                                        entry.totalValue / entry.quantity,
+                                      )}
+                                    </td>
+                                  </tr>
+                                ));
+                            })()}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   )}
 
@@ -1347,7 +1419,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                   )}
               </div>
 
-              {/* Lista completa de Recargos */}
+              {/* Recargos */}
               <div className="mb-6 pb-6 border-b border-gray-200">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm font-medium text-gray-500">
@@ -1357,103 +1429,175 @@ const LiquidacionDetalleModal: React.FC = () => {
 
                 {liquidacionActual.recargos &&
                 liquidacionActual.recargos.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            Mes
-                          </th>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            Empresa
-                          </th>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            Vehículo
-                          </th>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            Valor
-                          </th>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            Pago Cliente
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {liquidacionActual.recargos
-                          .sort((a: any, b: any) => {
-                            // Primero ordenamos por vehículo (placa)
-                            const placaA = a.vehiculo?.placa || "";
-                            const placaB = b.vehiculo?.placa || "";
+                  <div className="space-y-3">
+                    {/* Mobile Cards */}
+                    <div className="md:hidden space-y-3">
+                      {liquidacionActual.recargos
+                        .sort((a: any, b: any) => {
+                          const placaA = a.vehiculo?.placa || "";
+                          const placaB = b.vehiculo?.placa || "";
 
-                            if (placaA !== placaB) {
-                              return placaA.localeCompare(placaB);
-                            }
+                          if (placaA !== placaB) {
+                            return placaA.localeCompare(placaB);
+                          }
+                          const mesesOrden: any = {
+                            Enero: 1,
+                            Febrero: 2,
+                            Marzo: 3,
+                            Abril: 4,
+                            Mayo: 5,
+                            Junio: 6,
+                            Julio: 7,
+                            Agosto: 8,
+                            Septiembre: 9,
+                            Octubre: 10,
+                            Noviembre: 11,
+                            Diciembre: 12,
+                          };
+                          const mesA = a.mes || "";
+                          const mesB = b.mes || "";
 
-                            // Luego ordenamos por mes
-                            const mesesOrden: any = {
-                              Enero: 1,
-                              Febrero: 2,
-                              Marzo: 3,
-                              Abril: 4,
-                              Mayo: 5,
-                              Junio: 6,
-                              Julio: 7,
-                              Agosto: 8,
-                              Septiembre: 9,
-                              Octubre: 10,
-                              Noviembre: 11,
-                              Diciembre: 12,
-                            };
+                          return (
+                            (mesesOrden[mesA] || 0) - (mesesOrden[mesB] || 0)
+                          );
+                        })
+                        .map((recargo) => (
+                          <div
+                            key={recargo.id}
+                            className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                          >
+                            <div className="flex justify-between items-start mb-3">
+                              <div>
+                                <span className="font-medium text-gray-900">
+                                  {recargo.empresa.nombre}
+                                </span>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {recargo.mes || "-"}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <span className="font-bold text-lg">
+                                  {formatCurrency(recargo.valor)}
+                                </span>
+                                <p className="text-xs text-gray-500">
+                                  {recargo.pag_cliente ? (
+                                    <span className="text-green-600">
+                                      Pago Cliente: Sí
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-500">
+                                      Pago Cliente: No
+                                    </span>
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              <span className="font-medium">Vehículo: </span>
+                              {recargo.vehiculo
+                                ? `${recargo.vehiculo.marca} ${recargo.vehiculo.modelo} (${recargo.vehiculo.placa})`
+                                : "No asociado"}
+                            </div>
+                          </div>
+                        ))}
+                    </div>
 
-                            const mesA = a.mes || "";
-                            const mesB = b.mes || "";
-                            const mesAOrden = mesesOrden[mesA] || 0;
-                            const mesBOrden = mesesOrden[mesB] || 0;
+                    {/* Desktop Table */}
+                    <div className="hidden md:block overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              Mes
+                            </th>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              Empresa
+                            </th>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              Vehículo
+                            </th>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              Valor
+                            </th>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              Pago Cliente
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {liquidacionActual.recargos
+                            .sort((a: any, b: any) => {
+                              const placaA = a.vehiculo?.placa || "";
+                              const placaB = b.vehiculo?.placa || "";
 
-                            return mesAOrden - mesBOrden;
-                          })
-                          .map((recargo) => (
-                            <tr key={recargo.id} className="hover:bg-gray-50">
-                              <td className="px-3 py-2 whitespace-nowrap text-xs">
-                                {recargo.mes || "-"}
-                              </td>
-                              <td className="px-3 py-2 text-xs">
-                                {recargo.empresa.nombre}
-                              </td>
-                              <td className="px-3 py-2 whitespace-nowrap text-xs">
-                                {recargo.vehiculo
-                                  ? `${recargo.vehiculo.marca} ${recargo.vehiculo.modelo} (${recargo.vehiculo.placa})`
-                                  : "No asociado"}
-                              </td>
-                              <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
-                                {formatCurrency(recargo.valor)}
-                              </td>
-                              <td className="px-3 py-2 whitespace-nowrap text-xs">
-                                {recargo.pag_cliente ? (
-                                  <span className="text-green-600">Sí</span>
-                                ) : (
-                                  <span className="text-gray-500">No</span>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
+                              if (placaA !== placaB) {
+                                return placaA.localeCompare(placaB);
+                              }
+                              const mesesOrden: any = {
+                                Enero: 1,
+                                Febrero: 2,
+                                Marzo: 3,
+                                Abril: 4,
+                                Mayo: 5,
+                                Junio: 6,
+                                Julio: 7,
+                                Agosto: 8,
+                                Septiembre: 9,
+                                Octubre: 10,
+                                Noviembre: 11,
+                                Diciembre: 12,
+                              };
+                              const mesA = a.mes || "";
+                              const mesB = b.mes || "";
+
+                              return (
+                                (mesesOrden[mesA] || 0) -
+                                (mesesOrden[mesB] || 0)
+                              );
+                            })
+                            .map((recargo) => (
+                              <tr key={recargo.id} className="hover:bg-gray-50">
+                                <td className="px-3 py-2 whitespace-nowrap text-xs">
+                                  {recargo.mes || "-"}
+                                </td>
+                                <td className="px-3 py-2 text-xs">
+                                  {recargo.empresa.nombre}
+                                </td>
+                                <td className="px-3 py-2 whitespace-nowrap text-xs">
+                                  {recargo.vehiculo
+                                    ? `${recargo.vehiculo.marca} ${recargo.vehiculo.modelo} (${recargo.vehiculo.placa})`
+                                    : "No asociado"}
+                                </td>
+                                <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
+                                  {formatCurrency(recargo.valor)}
+                                </td>
+                                <td className="px-3 py-2 whitespace-nowrap text-xs">
+                                  {recargo.pag_cliente ? (
+                                    <span className="text-green-600">Sí</span>
+                                  ) : (
+                                    <span className="text-gray-500">No</span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 ) : (
                   <p className="text-sm text-gray-500 italic">
@@ -1462,7 +1606,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                 )}
               </div>
 
-              {/* Lista completa de Pernotes */}
+              {/* Pernotes */}
               <div className="mb-6 pb-6 border-b border-gray-200">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm font-medium text-gray-500">
@@ -1472,91 +1616,163 @@ const LiquidacionDetalleModal: React.FC = () => {
 
                 {liquidacionActual.pernotes &&
                 liquidacionActual.pernotes.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            Fecha(s)
-                          </th>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            Empresa
-                          </th>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            Vehículo
-                          </th>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            Cantidad
-                          </th>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            Valor
-                          </th>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            Total
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {liquidacionActual.pernotes.map((pernote: any) => (
-                          <tr key={pernote.id} className="hover:bg-gray-50">
-                            <td className="px-3 py-2 whitespace-nowrap text-xs">
-                              {pernote.fechas && pernote.fechas.length > 0 ? (
-                                <div className="flex flex-col">
-                                  {pernote.fechas.map(
-                                    (fecha: string, index: number) => (
-                                      <span key={index} className="mb-1">
-                                        {formatDateShort(fecha)}
-                                      </span>
-                                    ),
-                                  )}
-                                </div>
-                              ) : (
-                                <span className="text-gray-400">
-                                  Sin fechas
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-3 py-2 text-xs">
-                              {pernote.empresa
-                                ? `${pernote.empresa.nombre}`
-                                : "No asociada"}
-                            </td>
-                            <td className="px-3 py-2 text-xs">
-                              {pernote.vehiculo
-                                ? `${pernote.vehiculo.marca} ${pernote.vehiculo.modelo} (${pernote.vehiculo.placa})`
-                                : "No asociado"}
-                            </td>
-                            <td className="px-3 py-2 text-xs">
-                              {pernote.cantidad || pernote.fechas?.length || 0}
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
-                              {formatCurrency(parseFloat(pernote.valor))}
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
-                              {formatCurrency(pernote.valor * pernote.cantidad)}
-                            </td>
+                  <div className="space-y-3">
+                    {/* Mobile Cards */}
+                    <div className="md:hidden space-y-3">
+                      {liquidacionActual.pernotes.map((pernote: any) => (
+                        <div
+                          key={pernote.id}
+                          className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                        >
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="flex-1">
+                              <span className="font-medium text-gray-900">
+                                {pernote.empresa
+                                  ? pernote.empresa.nombre
+                                  : "No asociada"}
+                              </span>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {pernote.vehiculo
+                                  ? `${pernote.vehiculo.marca} ${pernote.vehiculo.modelo} (${pernote.vehiculo.placa})`
+                                  : "No asociado"}
+                              </p>
+                            </div>
+                            <div className="text-right ml-4">
+                              <span className="font-bold text-lg">
+                                {formatCurrency(
+                                  pernote.valor * pernote.cantidad,
+                                )}
+                              </span>
+                              <p className="text-xs text-gray-500">
+                                {pernote.cantidad ||
+                                  pernote.fechas?.length ||
+                                  0}{" "}
+                                × {formatCurrency(parseFloat(pernote.valor))}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="text-sm text-gray-600">
+                            <span className="font-medium">Fechas: </span>
+                            {pernote.fechas && pernote.fechas.length > 0 ? (
+                              <span className="break-words">
+                                {pernote.fechas
+                                  .map((fecha: string) =>
+                                    formatDateShort(fecha),
+                                  )
+                                  .join(", ")}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">Sin fechas</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Desktop Table */}
+                    <div className="hidden md:block overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              Fecha(s)
+                            </th>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              Empresa
+                            </th>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              Vehículo
+                            </th>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              Cantidad
+                            </th>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              Valor
+                            </th>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              Total
+                            </th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {liquidacionActual.pernotes.map((pernote: any) => (
+                            <tr key={pernote.id} className="hover:bg-gray-50">
+                              <td className="px-3 py-2 whitespace-nowrap text-xs">
+                                {pernote.fechas && pernote.fechas.length > 0 ? (
+                                  <div
+                                    className="flex flex-wrap gap-2"
+                                    style={{
+                                      maxWidth: 350,
+                                      wordBreak: "break-word",
+                                      whiteSpace: "normal",
+                                    }}
+                                  >
+                                    {pernote.fechas
+                                      .map((fecha: string) =>
+                                        formatDateShort(fecha),
+                                      )
+                                      .join(", ")
+                                      .split(/(.{1,100})(,|$)/g)
+                                      .filter(Boolean)
+                                      .map((chunk: string, idx: number) => (
+                                        <span key={idx} className="block mb-1">
+                                          {chunk}
+                                        </span>
+                                      ))}
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-400">
+                                    Sin fechas
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-3 py-2 text-xs">
+                                {pernote.empresa
+                                  ? pernote.empresa.nombre
+                                  : "No asociada"}
+                              </td>
+                              <td className="px-3 py-2 text-xs">
+                                {pernote.vehiculo
+                                  ? `${pernote.vehiculo.marca} ${pernote.vehiculo.modelo} (${pernote.vehiculo.placa})`
+                                  : "No asociado"}
+                              </td>
+                              <td className="px-3 py-2 text-xs">
+                                {pernote.cantidad ||
+                                  pernote.fechas?.length ||
+                                  0}
+                              </td>
+                              <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
+                                {formatCurrency(parseFloat(pernote.valor))}
+                              </td>
+                              <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
+                                {formatCurrency(
+                                  pernote.valor * pernote.cantidad,
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 ) : (
                   <p className="text-sm text-gray-500 italic">
@@ -1565,7 +1781,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                 )}
               </div>
 
-              {/* Lista completa de Bonificaciones */}
+              {/* Bonificaciones */}
               <div className="mb-6 pb-6 border-b border-gray-200">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm font-medium text-gray-500">
@@ -1575,156 +1791,171 @@ const LiquidacionDetalleModal: React.FC = () => {
 
                 {liquidacionActual.bonificaciones &&
                 liquidacionActual.bonificaciones.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            MES
-                          </th>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            CONCEPTO
-                          </th>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            VEHICULO
-                          </th>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            CANTIDAD
-                          </th>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            VALOR UNITARIO
-                          </th>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            TOTAL
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {(() => {
-                          const rows: any = [];
+                  <div className="space-y-3">
+                    {/* Mobile Cards */}
+                    <div className="md:hidden space-y-3">
+                      {(() => {
+                        const cards: any = [];
 
-                          // Recorremos directamente todas las bonificaciones y sus valores
-                          liquidacionActual.bonificaciones.forEach(
-                            (bonificacion: any) => {
-                              // Obtenemos los datos del vehículo
-                              const vehiculoPlaca =
-                                bonificacion.vehiculo?.placa || "N/A";
-                              const vehiculoModelo =
-                                bonificacion.vehiculo?.modelo || "N/A";
-                              const vehiculoMarca =
-                                bonificacion.vehiculo?.marca || "N/A";
-                              const valorUnitario = Number(bonificacion.value);
+                        liquidacionActual.bonificaciones.forEach(
+                          (bonificacion: any) => {
+                            const vehiculoPlaca =
+                              bonificacion.vehiculo?.placa || "N/A";
+                            const vehiculoModelo =
+                              bonificacion.vehiculo?.modelo || "N/A";
+                            const vehiculoMarca =
+                              bonificacion.vehiculo?.marca || "N/A";
+                            const valorUnitario = Number(bonificacion.value);
 
-                              // Para cada bonificación, procesamos sus valores por mes
-                              bonificacion.values.forEach(
-                                (mesItem: {
-                                  mes: string;
-                                  quantity: number;
-                                }) => {
-                                  // Calculamos el total para esta combinación específica
-                                  const total =
-                                    mesItem.quantity * valorUnitario;
+                            bonificacion.values.forEach(
+                              (mesItem: { mes: string; quantity: number }) => {
+                                const total = mesItem.quantity * valorUnitario;
 
-                                  // Agregamos una fila a la tabla
-                                  rows.push(
-                                    <tr
-                                      key={`${bonificacion.id}-${mesItem.mes}`}
-                                      className="hover:bg-gray-50"
-                                    >
-                                      <td className="px-3 py-2 whitespace-nowrap text-xs">
-                                        {mesItem.mes}
-                                      </td>
-                                      <td className="px-3 py-2 text-xs">
-                                        {bonificacion.name}
-                                      </td>
-                                      <td className="px-3 py-2 whitespace-nowrap text-xs">
-                                        {vehiculoMarca} {vehiculoModelo}{" "}
-                                        <span>({vehiculoPlaca})</span>
-                                      </td>
-                                      <td className="px-3 py-2 whitespace-nowrap text-xs">
-                                        {mesItem.quantity}
-                                      </td>
-                                      <td className="px-3 py-2 whitespace-nowrap text-xs">
-                                        {formatCurrency(valorUnitario)}
-                                      </td>
-                                      <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
-                                        {formatCurrency(total)}
-                                      </td>
-                                    </tr>,
-                                  );
-                                },
-                              );
-                            },
-                          );
+                                cards.push(
+                                  <div
+                                    key={`${bonificacion.id}-${mesItem.mes}`}
+                                    className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                                  >
+                                    <div className="flex justify-between items-start mb-3">
+                                      <div>
+                                        <span className="font-medium text-gray-900">
+                                          {bonificacion.name}
+                                        </span>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                          {mesItem.mes}
+                                        </p>
+                                      </div>
+                                      <div className="text-right">
+                                        <span className="font-bold text-lg">
+                                          {formatCurrency(total)}
+                                        </span>
+                                        <p className="text-xs text-gray-500">
+                                          {mesItem.quantity} ×{" "}
+                                          {formatCurrency(valorUnitario)}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="text-sm text-gray-600">
+                                      <span className="font-medium">
+                                        Vehículo:{" "}
+                                      </span>
+                                      {vehiculoMarca} {vehiculoModelo} (
+                                      {vehiculoPlaca})
+                                    </div>
+                                  </div>,
+                                );
+                              },
+                            );
+                          },
+                        );
 
-                          // Ordenamos las filas por placa, mes y concepto
-                          rows.sort((a: any, b: any) => {
-                            // Primero ordenamos por vehículo
-                            const vehiculoA =
-                              a.props.children[2].props.children[2];
-                            const vehiculoB =
-                              b.props.children[2].props.children[2];
+                        return cards;
+                      })()}
+                    </div>
 
-                            if (vehiculoA !== vehiculoB) {
-                              return vehiculoA.localeCompare(vehiculoB);
-                            }
+                    {/* Desktop Table */}
+                    <div className="hidden md:block overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              MES
+                            </th>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              CONCEPTO
+                            </th>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              VEHICULO
+                            </th>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              CANTIDAD
+                            </th>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              VALOR UNITARIO
+                            </th>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              TOTAL
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {(() => {
+                            const rows: any = [];
 
-                            // Luego por mes (considerando un orden cronológico)
-                            const mesesOrden: any = {
-                              Enero: 1,
-                              Febrero: 2,
-                              Marzo: 3,
-                              Abril: 4,
-                              Mayo: 5,
-                              Junio: 6,
-                              Julio: 7,
-                              Agosto: 8,
-                              Septiembre: 9,
-                              Octubre: 10,
-                              Noviembre: 11,
-                              Diciembre: 12,
-                            };
+                            liquidacionActual.bonificaciones.forEach(
+                              (bonificacion: any) => {
+                                const vehiculoPlaca =
+                                  bonificacion.vehiculo?.placa || "N/A";
+                                const vehiculoModelo =
+                                  bonificacion.vehiculo?.modelo || "N/A";
+                                const vehiculoMarca =
+                                  bonificacion.vehiculo?.marca || "N/A";
+                                const valorUnitario = Number(
+                                  bonificacion.value,
+                                );
 
-                            const mesA = a.props.children[0].props.children;
-                            const mesB = b.props.children[0].props.children;
-                            const mesAOrden = mesesOrden[mesA] || 0;
-                            const mesBOrden = mesesOrden[mesB] || 0;
+                                bonificacion.values.forEach(
+                                  (mesItem: {
+                                    mes: string;
+                                    quantity: number;
+                                  }) => {
+                                    const total =
+                                      mesItem.quantity * valorUnitario;
 
-                            if (mesAOrden !== mesBOrden) {
-                              return mesAOrden - mesBOrden;
-                            }
+                                    rows.push(
+                                      <tr
+                                        key={`${bonificacion.id}-${mesItem.mes}`}
+                                        className="hover:bg-gray-50"
+                                      >
+                                        <td className="px-3 py-2 whitespace-nowrap text-xs">
+                                          {mesItem.mes}
+                                        </td>
+                                        <td className="px-3 py-2 text-xs">
+                                          {bonificacion.name}
+                                        </td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-xs">
+                                          {vehiculoMarca} {vehiculoModelo}{" "}
+                                          <span>({vehiculoPlaca})</span>
+                                        </td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-xs">
+                                          {mesItem.quantity}
+                                        </td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-xs">
+                                          {formatCurrency(valorUnitario)}
+                                        </td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
+                                          {formatCurrency(total)}
+                                        </td>
+                                      </tr>,
+                                    );
+                                  },
+                                );
+                              },
+                            );
 
-                            // Finalmente por concepto
-                            const conceptoA =
-                              a.props.children[1].props.children;
-                            const conceptoB =
-                              b.props.children[1].props.children;
-
-                            return conceptoA.localeCompare(conceptoB);
-                          });
-
-                          return rows;
-                        })()}
-                      </tbody>
-                    </table>
+                            return rows;
+                          })()}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 ) : (
                   <p className="text-sm text-gray-500 italic">
@@ -1733,7 +1964,7 @@ const LiquidacionDetalleModal: React.FC = () => {
                 )}
               </div>
 
-              {/* Lista completa de Anticipos */}
+              {/* Anticipos */}
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm font-medium text-gray-500">
@@ -1743,55 +1974,90 @@ const LiquidacionDetalleModal: React.FC = () => {
 
                 {liquidacionActual.anticipos &&
                 liquidacionActual.anticipos.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            Fecha
-                          </th>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            Concepto
-                          </th>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            Valor
-                          </th>
-                          <th
-                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            scope="col"
-                          >
-                            Observaciones
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {liquidacionActual.anticipos.map((anticipo: any) => (
-                          <tr key={anticipo.id} className="hover:bg-gray-50">
-                            <td className="px-3 py-2 whitespace-nowrap text-xs">
-                              {formatDate(anticipo.fecha)}
-                            </td>
-                            <td className="px-3 py-2 text-xs">
-                              {anticipo.concepto || "Anticipo"}
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap text-xs font-medium text-red-600">
+                  <div className="space-y-3">
+                    {/* Mobile Cards */}
+                    <div className="md:hidden space-y-3">
+                      {liquidacionActual.anticipos.map((anticipo: any) => (
+                        <div
+                          key={anticipo.id}
+                          className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <span className="font-medium text-gray-900">
+                                {anticipo.concepto || "Anticipo"}
+                              </span>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {formatDate(anticipo.fecha)}
+                              </p>
+                            </div>
+                            <span className="font-bold text-lg text-red-600">
                               -{formatCurrency(anticipo.valor)}
-                            </td>
-                            <td className="px-3 py-2 text-xs">
-                              {anticipo.observaciones || "-"}
-                            </td>
+                            </span>
+                          </div>
+                          {anticipo.observaciones && (
+                            <div className="text-sm text-gray-600">
+                              <span className="font-medium">
+                                Observaciones:{" "}
+                              </span>
+                              {anticipo.observaciones}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Desktop Table */}
+                    <div className="hidden md:block overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              Fecha
+                            </th>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              Concepto
+                            </th>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              Valor
+                            </th>
+                            <th
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              scope="col"
+                            >
+                              Observaciones
+                            </th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {liquidacionActual.anticipos.map((anticipo: any) => (
+                            <tr key={anticipo.id} className="hover:bg-gray-50">
+                              <td className="px-3 py-2 whitespace-nowrap text-xs">
+                                {formatDate(anticipo.fecha)}
+                              </td>
+                              <td className="px-3 py-2 text-xs">
+                                {anticipo.concepto || "Anticipo"}
+                              </td>
+                              <td className="px-3 py-2 whitespace-nowrap text-xs font-medium text-red-600">
+                                -{formatCurrency(anticipo.valor)}
+                              </td>
+                              <td className="px-3 py-2 text-xs">
+                                {anticipo.observaciones || "-"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 ) : (
                   <p className="text-sm text-gray-500 italic">
@@ -1801,6 +2067,7 @@ const LiquidacionDetalleModal: React.FC = () => {
               </div>
             </>
           )}
+
           {/* Pestaña: Auditoría */}
           {activeTab === "auditoria" && (
             <div className="space-y-6">
