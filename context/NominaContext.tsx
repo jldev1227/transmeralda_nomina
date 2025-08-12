@@ -201,7 +201,6 @@ export interface NuevoAnticipoData {
 export interface FiltrosLiquidacion {
   conductor_id: string;
   periodoStart: string;
-  periodoEnd: string;
   estado: string;
   busqueda: string;
 }
@@ -276,6 +275,10 @@ interface NominaContextType {
 
   // Métodos para UI
   setFiltros: React.Dispatch<React.SetStateAction<FiltrosLiquidacion>>;
+  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
+  setItemsPerPage: React.Dispatch<React.SetStateAction<number>>;
+  currentPage: number;
+  itemsPerPage: number;
   resetearFiltros: () => void;
   abrirModalCrear: () => void;
   abrirModalEditar: (id: string) => Promise<void>;
@@ -322,11 +325,14 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
     direction: "desc",
   });
 
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+
   // Estados para filtros y paginación
   const [filtros, setFiltros] = useState<FiltrosLiquidacion>({
     conductor_id: "",
     periodoStart: "",
-    periodoEnd: "",
     estado: "",
     busqueda: "",
   });
@@ -798,24 +804,9 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         const conductor = liquidacion.conductor
           ? `${liquidacion.conductor.nombre} ${liquidacion.conductor.apellido}`.toLowerCase()
           : "";
-        const periodoStart = liquidacion.periodo_start
-          ? liquidacion.periodo_start.toLowerCase()
-          : "";
-        const periodoEnd = liquidacion.periodo_end
-          ? liquidacion.periodo_end.toLowerCase()
-          : "";
-        const observaciones = liquidacion.observaciones
-          ? liquidacion.observaciones.toLowerCase()
-          : "";
 
         // Buscar en los campos relevantes
         const matchConductor = conductor.includes(busqueda);
-        const matchPeriodo =
-          periodoStart.includes(busqueda) || periodoEnd.includes(busqueda);
-        const matchObservaciones = observaciones.includes(busqueda);
-        const matchEstado = liquidacion.estado
-          ? liquidacion.estado.toLowerCase().includes(busqueda)
-          : false;
 
         // También buscar en vehículos si están disponibles
         let matchVehiculos = false;
@@ -830,15 +821,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         }
 
         // Si no coincide con ningún campo, filtrar
-        if (
-          !(
-            matchConductor ||
-            matchPeriodo ||
-            matchObservaciones ||
-            matchEstado ||
-            matchVehiculos
-          )
-        ) {
+        if (!(matchConductor || matchVehiculos)) {
           return false;
         }
       }
@@ -1047,10 +1030,11 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
     setFiltros({
       conductor_id: "",
       periodoStart: "",
-      periodoEnd: "",
       estado: "",
       busqueda: "",
     });
+    setCurrentPage(1);
+    setItemsPerPage(10);
   };
 
   // Manejo de modales
@@ -1221,6 +1205,10 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
 
     // Métodos para UI
     setFiltros,
+    setItemsPerPage,
+    setCurrentPage,
+    currentPage,
+    itemsPerPage,
     resetearFiltros,
     abrirModalCrear,
     abrirModalEditar,

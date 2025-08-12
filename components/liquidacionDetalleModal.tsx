@@ -386,7 +386,6 @@ const LiquidacionDetalleModal: React.FC = () => {
               )}
             </>
           )}
-
           {/* Pestaña: Conceptos */}
           {activeTab === "conceptos" && (
             <>
@@ -1168,7 +1167,10 @@ const LiquidacionDetalleModal: React.FC = () => {
               </div>
             </>
           )}
-
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Nulla
+          maiores, vero architecto inventore perferendis incidunt eligendi
+          impedit mollitia expedita minus error illo cumque harum soluta eveniet
+          fugit nesciunt, distinctio enim?
           {/* Pestaña: Detalles */}
           {activeTab === "detalles" && (
             <>
@@ -1799,7 +1801,6 @@ const LiquidacionDetalleModal: React.FC = () => {
               </div>
             </>
           )}
-
           {/* Pestaña: Auditoría */}
           {activeTab === "auditoria" && (
             <div className="space-y-6">
@@ -1918,7 +1919,6 @@ const LiquidacionDetalleModal: React.FC = () => {
               </div>
             </div>
           )}
-
           <div className="flex justify-end space-x-3 mt-6">
             <Button
               className="rounded-md"

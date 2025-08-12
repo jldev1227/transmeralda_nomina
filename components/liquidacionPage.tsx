@@ -14,6 +14,7 @@ import {
 import { Button } from "@heroui/button";
 import { Chip } from "@heroui/chip";
 import toast from "react-hot-toast";
+import { useMediaQuery } from "react-responsive";
 
 import LiquidacionForm from "./liquidacionForm";
 import LoadingPage from "./loadingPage";
@@ -36,6 +37,8 @@ const LiquidacionPage = ({ mode = "create" }) => {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  const isMobile = useMediaQuery({ maxWidth: 1024 });
 
   // Obtener la liquidación actual cuando se monta el componente y estamos en modo edición
   useEffect(() => {
@@ -130,13 +133,13 @@ const LiquidacionPage = ({ mode = "create" }) => {
     <div className="container mx-auto py-6 px-4">
       <div className="bg-white rounded-lg shadow-md">
         {/* Cabecera */}
-        <div className="flex items-center justify-between px-6 py-4 bg-gray-50 border-b">
+        <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-4 px-6 py-4 bg-gray-50 border-b">
           <h2 className="text-xl font-semibold text-gray-800 flex items-center">
             <FilePlus className="mr-2 text-emerald-600" size={20} />
             {mode === "create" ? "Nueva Liquidación" : "Editar Liquidación"}
           </h2>
 
-          <div className="flex items-center gap-3">
+          <div className="flex max-sm:w-full items-center gap-3">
             {mode === "edit" && liquidacionActual && (
               <div className="flex items-center gap-3">
                 <Chip
@@ -155,7 +158,7 @@ const LiquidacionPage = ({ mode = "create" }) => {
             )}
             <Button
               color="primary"
-              size="sm"
+              fullWidth={isMobile}
               startContent={<ArrowLeft size={16} />}
               onPress={handleBack}
             >

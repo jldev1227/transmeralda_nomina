@@ -6,7 +6,6 @@ import {
   Filter,
   Calendar,
   ChevronDown,
-  ChevronUp,
   Download,
   FileText,
   AlertCircle,
@@ -28,6 +27,10 @@ const LiquidacionesDashboard: React.FC = () => {
     error,
     filtros,
     setFiltros,
+    currentPage,
+    setCurrentPage,
+    itemsPerPage,
+    setItemsPerPage,
     resetearFiltros,
     estadisticas,
     sortConfig,
@@ -37,13 +40,6 @@ const LiquidacionesDashboard: React.FC = () => {
 
   const router = useRouter();
 
-  // Estados para paginación
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
-
-  // Estado para mostrar/ocultar filtros avanzados
-  const [showAdvancedFilters, setShowAdvancedFilters] =
-    useState<boolean>(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   // Cálculos para paginación
@@ -141,12 +137,12 @@ const LiquidacionesDashboard: React.FC = () => {
 
         {/* Filtros y búsqueda */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8 border border-gray-100">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
             <h2 className="text-xl font-semibold text-gray-800">
               Liquidaciones
             </h2>
 
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col md:flex-row lg:flex-row gap-3">
               <button
                 className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition flex items-center justify-center"
                 onClick={() => router.push("/conductores/agregar")}
@@ -155,7 +151,6 @@ const LiquidacionesDashboard: React.FC = () => {
                 Nueva Liquidación
               </button>
 
-              {/* Reemplazar el botón anidado con el componente directo */}
               <GenericExportButton
                 buttonClassName="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition w-full"
                 buttonProps={{
@@ -171,14 +166,14 @@ const LiquidacionesDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-4 mb-4">
+          <div className="flex flex-col md:flex-col lg:flex-row gap-4 mb-4">
             {/* Búsqueda */}
-            <div className="relative flex-grow">
+            <div className="relative flex-2">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className="h-5 w-5 text-gray-400" />
               </div>
               <input
-                className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
+                className="block w-full h-12 pl-10 pr-3 py-2 border border-gray-200 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
                 placeholder="Buscar por conductor o ID..."
                 type="text"
                 value={filtros.busqueda}
@@ -188,149 +183,102 @@ const LiquidacionesDashboard: React.FC = () => {
               />
             </div>
 
-            {/* Filtros básicos */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Calendar className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
-                  type="month"
-                  value={
-                    filtros.periodoStart
-                      ? filtros.periodoStart.substring(0, 7)
-                      : ""
-                  }
-                  onChange={(e) => {
-                    const value = e.target.value;
-
-                    if (value) {
-                      setFiltros({
-                        ...filtros,
-                        periodoStart: `${value}-01`,
-                      });
-                    } else {
-                      setFiltros({
-                        ...filtros,
-                        periodoStart: "",
-                      });
-                    }
-                  }}
-                />
+            {/* Filtro de fecha */}
+            <div className="relative flex-1">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Calendar className="h-5 w-5 text-gray-400" />
               </div>
+              <input
+                className="block w-full h-12 pl-10 pr-3 py-2 border border-gray-200 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
+                type="month"
+                value={
+                  filtros.periodoStart
+                    ? filtros.periodoStart.substring(0, 7)
+                    : ""
+                }
+                onChange={(e) => {
+                  const value = e.target.value;
 
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Filter className="h-5 w-5 text-gray-400" />
-                </div>
-                <select
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-md focus:ring-emerald-500 focus:border-emerald-500 appearance-none"
-                  value={filtros.estado}
-                  onChange={(e) =>
-                    setFiltros({ ...filtros, estado: e.target.value })
+                  setCurrentPage(1); // Reset to first page on filter change
+
+                  if (value) {
+                    setFiltros({
+                      ...filtros,
+                      periodoStart: `${value}-01`,
+                    });
+                  } else {
+                    setFiltros({
+                      ...filtros,
+                      periodoStart: "",
+                    });
                   }
-                >
-                  <option value="">Todos los estados</option>
-                  <option value="Liquidado">Liquidado</option>
-                  <option value="Pendiente">Pendiente</option>
-                </select>
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <ChevronDown className="h-4 w-4 text-gray-400" />
-                </div>
-              </div>
+                }}
+              />
+            </div>
 
-              <button
-                className="px-4 py-2 border border-gray-200 text-gray-600 rounded-md hover:bg-gray-50 transition flex items-center justify-center"
-                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            {/* Filtro de estado */}
+            <div className="relative flex-1">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Filter className="h-5 w-5 text-gray-400" />
+              </div>
+              <select
+                className="block w-full h-12 pl-10 pr-3 py-2 border border-gray-200 rounded-md focus:ring-emerald-500 focus:border-emerald-500 appearance-none"
+                value={filtros.estado}
+                onChange={(e) =>
+                  setFiltros({ ...filtros, estado: e.target.value })
+                }
               >
-                {showAdvancedFilters ? "Ocultar filtros" : "Más filtros"}
-                {showAdvancedFilters ? (
-                  <ChevronUp className="ml-2 w-4 h-4" />
-                ) : (
-                  <ChevronDown className="ml-2 w-4 h-4" />
-                )}
+                <option value="">Todos los estados</option>
+                <option value="Liquidado">Liquidado</option>
+                <option value="Pendiente">Pendiente</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <ChevronDown className="h-4 w-4 text-gray-400" />
+              </div>
+            </div>
+
+            {/* Items per page */}
+            <div className="flex-1">
+              <select
+                className="block w-full h-12 py-2 px-3 border border-gray-200 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
+                id="itemPerPage"
+                value={itemsPerPage}
+                onChange={(e) => {
+                  if (itemsPerPage === Number(e.target.value)) return;
+
+                  if (itemsPerPage === liquidaciones.length) {
+                    setCurrentPage(1); // Reset to first page when switching from "All"
+                  } else if (
+                    currentPage >
+                    Math.ceil(liquidaciones.length / Number(e.target.value))
+                  ) {
+                    setCurrentPage(
+                      Math.ceil(liquidaciones.length / Number(e.target.value)),
+                    );
+                  }
+
+                  setItemsPerPage(Number(e.target.value));
+                }}
+              >
+                <option value="5">5 por página</option>
+                <option value="10">10 por página</option>
+                <option value="20">20 por página</option>
+                <option value="50">50 por página</option>
+                <option value={liquidaciones.length}>Todos</option>
+              </select>
+            </div>
+
+            {/* Botón limpiar filtros */}
+            <div className="flex-1">
+              <button
+                className="w-full h-12 px-4 py-2 border border-gray-200 bg-gray-50 text-gray-600 rounded-md hover:bg-gray-100 transition flex items-center justify-center"
+                onClick={resetearFiltros}
+              >
+                <RefreshCw className="mr-2 w-4 h-4" />
+                Limpiar filtros
               </button>
             </div>
           </div>
-
-          {/* Filtros avanzados */}
-          {showAdvancedFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-100">
-              <div>
-                <label
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                  htmlFor="conductorSelected"
-                >
-                  Conductor
-                </label>
-                <select
-                  className="block w-full py-2 px-3 border border-gray-200 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
-                  id="conductorSelected"
-                  value={filtros.conductor_id}
-                  onChange={(e) =>
-                    setFiltros({ ...filtros, conductor_id: e.target.value })
-                  }
-                >
-                  <option value="">Todos los conductores</option>
-                  {/* Eliminar duplicados y ordenar por nombre */}
-                  {Array.from(
-                    new Set(liquidaciones.map((liq) => liq.conductor?.id)),
-                  )
-                    .map((conductorId) => {
-                      const conductor = liquidaciones.find(
-                        (liq) => liq.conductor?.id === conductorId,
-                      )?.conductor;
-
-                      return conductor
-                        ? {
-                            id: conductorId,
-                            nombre: `${conductor.nombre} ${conductor.apellido}`,
-                          }
-                        : null;
-                    })
-                    .filter(Boolean)
-                    .sort((a: any, b: any) => a.nombre.localeCompare(b.nombre))
-                    .map((conductor) => (
-                      <option key={conductor?.id} value={conductor?.id}>
-                        {conductor?.nombre}
-                      </option>
-                    ))}
-                </select>
-              </div>
-
-              <div>
-                <label
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                  htmlFor={"itemPerPage"}
-                >
-                  Registros por página
-                </label>
-                <select
-                  className="block w-full py-2 px-3 border border-gray-200 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
-                  id="itemPerPage"
-                  value={itemsPerPage}
-                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                >
-                  <option value="5">5 por página</option>
-                  <option value="10">10 por página</option>
-                  <option value="20">20 por página</option>
-                  <option value="50">50 por página</option>
-                  <option value={liquidaciones.length}>Todos</option>
-                </select>
-              </div>
-
-              <div className="flex items-end">
-                <button
-                  className="px-4 py-2 border border-gray-200 bg-gray-50 text-gray-600 rounded-md hover:bg-gray-100 transition flex items-center justify-center"
-                  onClick={resetearFiltros}
-                >
-                  <RefreshCw className="mr-2 w-4 h-4" />
-                  Limpiar filtros
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Tabla de liquidaciones */}
@@ -355,7 +303,7 @@ const LiquidacionesDashboard: React.FC = () => {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto mb-5">
               <LiquidacionesTable
                 confirmarEliminarLiquidacion={confirmarEliminarLiquidacion}
                 currentItems={currentItems}
@@ -368,81 +316,190 @@ const LiquidacionesDashboard: React.FC = () => {
 
           {/* Paginación */}
           {!loading && !error && liquidacionesFiltradas.length > 0 && (
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-              <div className="text-sm text-gray-500">
-                Mostrando {indexOfFirstItem + 1} a{" "}
-                {Math.min(indexOfLastItem, liquidacionesFiltradas.length)} de{" "}
-                {liquidacionesFiltradas.length} registros
+            <div className="px-4 lg:px-6 py-4 border-t border-gray-200">
+              {/* Desktop - Layout horizontal completo */}
+              <div className="hidden lg:flex items-center justify-between">
+                <div className="text-sm text-gray-500">
+                  Mostrando {indexOfFirstItem + 1} a{" "}
+                  {Math.min(indexOfLastItem, liquidacionesFiltradas.length)} de{" "}
+                  {liquidacionesFiltradas.length} registros
+                </div>
+
+                <div className="flex space-x-2">
+                  <button
+                    className={`px-3 py-1 border rounded-md ${
+                      currentPage === 1
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                    disabled={currentPage === 1}
+                    onClick={prevPage}
+                  >
+                    Anterior
+                  </button>
+
+                  {Array.from(
+                    {
+                      length: Math.min(
+                        5,
+                        Math.ceil(liquidacionesFiltradas.length / itemsPerPage),
+                      ),
+                    },
+                    (_, i) => {
+                      // Lógica para mostrar páginas alrededor de la página actual
+                      let pageNum;
+                      const totalPages = Math.ceil(
+                        liquidacionesFiltradas.length / itemsPerPage,
+                      );
+
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+
+                      return (
+                        <button
+                          key={pageNum}
+                          className={`px-3 py-1 border rounded-md ${
+                            currentPage === pageNum
+                              ? "bg-emerald-600 text-white"
+                              : "bg-white text-gray-700 hover:bg-gray-50"
+                          }`}
+                          onClick={() => paginate(pageNum)}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    },
+                  )}
+
+                  <button
+                    className={`px-3 py-1 border rounded-md ${
+                      currentPage ===
+                      Math.ceil(liquidacionesFiltradas.length / itemsPerPage)
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                    disabled={
+                      currentPage ===
+                      Math.ceil(liquidacionesFiltradas.length / itemsPerPage)
+                    }
+                    onClick={nextPage}
+                  >
+                    Siguiente
+                  </button>
+                </div>
               </div>
 
-              <div className="flex space-x-2">
-                <button
-                  className={`px-3 py-1 border rounded-md ${
-                    currentPage === 1
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-white text-gray-700 hover:bg-gray-50"
-                  }`}
-                  disabled={currentPage === 1}
-                  onClick={prevPage}
-                >
-                  Anterior
-                </button>
+              {/* Mobile/Tablet - Layout optimizado */}
+              <div className="lg:hidden space-y-3">
+                {/* Información de registros - Mobile */}
+                <div className="text-center text-sm text-gray-500 bg-gray-50 rounded-lg py-2 px-3">
+                  Mostrando {indexOfFirstItem + 1} a{" "}
+                  {Math.min(indexOfLastItem, liquidacionesFiltradas.length)} de{" "}
+                  {liquidacionesFiltradas.length} registros
+                </div>
 
-                {Array.from(
-                  {
-                    length: Math.min(
-                      5,
-                      Math.ceil(liquidacionesFiltradas.length / itemsPerPage),
-                    ),
-                  },
-                  (_, i) => {
-                    // Lógica para mostrar páginas alrededor de la página actual
-                    let pageNum;
-                    const totalPages = Math.ceil(
-                      liquidacionesFiltradas.length / itemsPerPage,
-                    );
+                {/* Controles de paginación - Mobile */}
+                <div className="flex flex-col space-y-3">
+                  {/* Botones Anterior/Siguiente más prominentes */}
+                  <div className="flex space-x-3">
+                    <button
+                      className={`flex-1 px-4 py-3 border rounded-lg font-medium transition-colors ${
+                        currentPage === 1
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-white text-gray-700 hover:bg-gray-50 active:bg-gray-100"
+                      }`}
+                      disabled={currentPage === 1}
+                      onClick={prevPage}
+                    >
+                      ← Anterior
+                    </button>
 
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = currentPage - 2 + i;
-                    }
+                    <button
+                      className={`flex-1 px-4 py-3 border rounded-lg font-medium transition-colors ${
+                        currentPage ===
+                        Math.ceil(liquidacionesFiltradas.length / itemsPerPage)
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-white text-gray-700 hover:bg-gray-50 active:bg-gray-100"
+                      }`}
+                      disabled={
+                        currentPage ===
+                        Math.ceil(liquidacionesFiltradas.length / itemsPerPage)
+                      }
+                      onClick={nextPage}
+                    >
+                      Siguiente →
+                    </button>
+                  </div>
 
-                    return (
-                      <button
-                        key={pageNum}
-                        className={`px-3 py-1 border rounded-md ${
-                          currentPage === pageNum
-                            ? "bg-emerald-600 text-white"
-                            : "bg-white text-gray-700 hover:bg-gray-50"
-                        }`}
-                        onClick={() => paginate(pageNum)}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  },
-                )}
+                  {/* Navegación por páginas - Solo en Tablet */}
+                  <div className="hidden md:block lg:hidden">
+                    <div className="flex justify-center space-x-1 overflow-x-auto py-2">
+                      {Array.from(
+                        {
+                          length: Math.min(
+                            5,
+                            Math.ceil(
+                              liquidacionesFiltradas.length / itemsPerPage,
+                            ),
+                          ),
+                        },
+                        (_, i) => {
+                          let pageNum;
+                          const totalPages = Math.ceil(
+                            liquidacionesFiltradas.length / itemsPerPage,
+                          );
 
-                <button
-                  className={`px-3 py-1 border rounded-md ${
-                    currentPage ===
-                    Math.ceil(liquidacionesFiltradas.length / itemsPerPage)
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-white text-gray-700 hover:bg-gray-50"
-                  }`}
-                  disabled={
-                    currentPage ===
-                    Math.ceil(liquidacionesFiltradas.length / itemsPerPage)
-                  }
-                  onClick={nextPage}
-                >
-                  Siguiente
-                </button>
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+
+                          return (
+                            <button
+                              key={pageNum}
+                              className={`min-w-[44px] px-3 py-2 border rounded-md text-sm transition-colors ${
+                                currentPage === pageNum
+                                  ? "bg-emerald-600 text-white border-emerald-600"
+                                  : "bg-white text-gray-700 hover:bg-gray-50 active:bg-gray-100"
+                              }`}
+                              onClick={() => paginate(pageNum)}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        },
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Indicador de página actual - Solo Mobile */}
+                  <div className="md:hidden text-center">
+                    <div className="inline-flex items-center space-x-2 bg-emerald-50 text-emerald-700 px-3 py-2 rounded-lg text-sm">
+                      <span>Página</span>
+                      <span className="font-semibold bg-emerald-600 text-white px-2 py-1 rounded text-xs">
+                        {currentPage}
+                      </span>
+                      <span>de</span>
+                      <span className="font-semibold">
+                        {Math.ceil(
+                          liquidacionesFiltradas.length / itemsPerPage,
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}

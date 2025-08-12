@@ -40,6 +40,7 @@ import { Badge } from "@heroui/badge";
 import { parseDate } from "@internationalized/date";
 import { DateRangePicker } from "@heroui/date-picker";
 import toast from "react-hot-toast";
+import { useMediaQuery } from "react-responsive";
 
 import {
   formatCurrency,
@@ -166,6 +167,8 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
   const [anticipoDate, setAnticipoDate] = useState("");
   const [isInvalidValorAnticipo, setIsInvalidValorAnticipo] = useState(false);
   const [isInvalidDateAnticipo, setIsInvalidDateAnticipo] = useState(false);
+
+  const isMobile = useMediaQuery({ maxWidth: 1024 });
 
   // Opciones para selectores
   const conductoresOptions = React.useMemo(
@@ -1386,9 +1389,11 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
               <Tab
                 key="datos"
                 title={
-                  <div className="flex items-center">
+                  <div className="flex flex-row items-center">
                     <Calendar className="h-4 w-4 mr-2" />
-                    <span>Días Laborados</span>
+                    {!isMobile && (
+                      <span className="hidden md:inline">Días Laborados</span>
+                    )}
                   </div>
                 }
               >
@@ -1650,7 +1655,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                 title={
                   <div className="flex items-center">
                     <DollarSign className="h-4 w-4 mr-2" />
-                    <span>Bonificaciones</span>
+                    {!isMobile && <span>Bonificaciones</span>}
                   </div>
                 }
               >
@@ -1678,16 +1683,12 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                               key={bono.name}
                               className="border border-gray-100 rounded-lg p-4 bg-gray-50"
                             >
-                              <div className="flex justify-between mb-3">
+                              <div className="flex flex-col items-center sm:flex-row sm:justify-between mb-3">
                                 <h5 className="font-medium text-gray-800">
                                   {bono.name}
                                 </h5>
-                                <Tooltip
-                                  content={`Valor unitario: ${formatToCOP(bono.value)}`}
-                                >
-                                  <Badge color="success" variant="flat">
-                                    {formatToCOP(bono.value)}
-                                  </Badge>
+                                <Tooltip content={"Valor unitario"}>
+                                  {formatToCOP(bono.value)}
                                 </Tooltip>
                               </div>
 
@@ -1786,7 +1787,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                 title={
                   <div className="flex items-center">
                     <Plus className="h-4 w-4 mr-2" />
-                    <span>Pernotes y Recargos</span>
+                    {!isMobile && <span>Pernotes y Recargos</span>}
                   </div>
                 }
               >
@@ -2208,173 +2209,168 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                 title={
                   <div className="flex items-center">
                     <MinusCircle className="h-4 w-4 mr-2" />
-                    <p>Anticipos</p>
+                    {!isMobile && <p>Anticipos</p>}
                   </div>
                 }
               >
-                <div className="mt-4">
-                  <Card className="shadow-sm border">
-                    <div className="p-5">
-                      {!isVisibleFormAnticipo && anticipos.length === 0 && (
-                        <div className="text-center py-8 px-4 bg-gray-50 rounded-lg border border-gray-100">
-                          <div className="flex flex-col items-center justify-center gap-2">
-                            <MinusCircle className="h-10 w-10 text-gray-300" />
-                            <div className="text-gray-500 font-medium">
-                              No hay anticipos registrados
-                            </div>
-                            <div className="text-gray-400 text-sm mb-3">
-                              Los anticipos se descontarán del valor final de la
-                              liquidación
-                            </div>
-                            <Button
-                              className="mt-2"
-                              color="success"
-                              size="sm"
-                              startContent={<Plus size={16} />}
-                              variant="flat"
-                              onPress={handleAddAnticipo}
-                            >
-                              Añadir anticipo
-                            </Button>
-                          </div>
+                <Card className="shadow-none">
+                  {!isVisibleFormAnticipo && anticipos.length === 0 && (
+                    <div className="text-center py-8 px-4 bg-gray-50 rounded-lg border border-gray-100">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <MinusCircle className="h-10 w-10 text-gray-300" />
+                        <div className="text-gray-500 font-medium">
+                          No hay anticipos registrados
                         </div>
-                      )}
-
-                      {isVisibleFormAnticipo && (
-                        <div className="bg-gray-50 rounded-lg border border-gray-100 p-5">
-                          <div className="flex items-center mb-4">
-                            <h3 className="text-lg font-medium text-gray-800">
-                              Registrar nuevo anticipo
-                            </h3>
-                          </div>
-
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <Input
-                                isRequired
-                                className="max-w-full"
-                                isInvalid={isInvalidValorAnticipo}
-                                label="Valor del anticipo"
-                                placeholder="$0"
-                                type="text"
-                                value={
-                                  valorAnticipo
-                                    ? formatCurrency(Number(valorAnticipo))
-                                    : ""
-                                }
-                                onChange={(e) => {
-                                  const inputVal = e.target.value.replace(
-                                    /[^\d]/g,
-                                    "",
-                                  );
-
-                                  handleOnchangeAnticipo(inputVal);
-                                }}
-                              />
-
-                              <DatePicker
-                                isRequired
-                                className="max-w-full"
-                                isInvalid={isInvalidDateAnticipo}
-                                label="Fecha del anticipo"
-                                onChange={handleDateChangeAnticipo}
-                              />
-                            </div>
-
-                            <div className="flex gap-2 mt-4 justify-end">
-                              <Button
-                                size="md"
-                                variant="flat"
-                                onPress={() => setIsVisibleFormAnticipo(false)}
-                              >
-                                Cancelar
-                              </Button>
-
-                              <Button
-                                className="font-medium bg-emerald-600 text-white"
-                                color="success"
-                                size="md"
-                                startContent={<Plus size={16} />}
-                                onPress={handleRegisterAnticipo}
-                              >
-                                Registrar anticipo
-                              </Button>
-                            </div>
-                          </div>
+                        <div className="text-gray-400 text-sm mb-3">
+                          Los anticipos se descontarán del valor final de la
+                          liquidación
                         </div>
-                      )}
-
-                      {anticipos.length > 0 && (
-                        <div className="space-y-4 mt-4">
-                          <div className="flex justify-between items-center mt-5">
-                            <h2 className="text-gray-800 text-lg font-semibold">
-                              Anticipos registrados
-                            </h2>
-                            <Button
-                              className="h-8 font-medium"
-                              color="success"
-                              size="sm"
-                              startContent={<Plus size={16} />}
-                              variant="flat"
-                              onPress={handleAddAnticipo}
-                            >
-                              Añadir anticipo
-                            </Button>
-                          </div>
-                          <Table className="w-full">
-                            <TableHeader>
-                              <TableColumn className="bg-red-50 text-red-600 py-2 px-4 font-medium">
-                                FECHA
-                              </TableColumn>
-                              <TableColumn className="bg-red-50 text-red-600 py-2 px-4 font-medium">
-                                VALOR
-                              </TableColumn>
-                              <TableColumn className="bg-red-50 text-red-600 py-2 px-4 font-medium text-right">
-                                ACCIONES
-                              </TableColumn>
-                            </TableHeader>
-                            <TableBody>
-                              {anticipos.map((anticipo) => (
-                                <TableRow
-                                  key={anticipo.id}
-                                  className="hover:bg-gray-50 transition-colors"
-                                >
-                                  <TableCell className="py-3 px-4">
-                                    {anticipo.fechaFormateada ||
-                                      new Date(
-                                        anticipo.fecha,
-                                      ).toLocaleDateString()}
-                                  </TableCell>
-                                  <TableCell className="py-3 px-4">
-                                    {formatCurrency(anticipo.valor)}
-                                  </TableCell>
-                                  <TableCell className="py-3 px-4 text-right">
-                                    <Tooltip
-                                      color="danger"
-                                      content={"Eliminar anticipo"}
-                                    >
-                                      <Button
-                                        isIconOnly
-                                        color="danger"
-                                        size="sm"
-                                        variant="light"
-                                        onPress={() =>
-                                          handleDeleteAnticipo(anticipo.id)
-                                        }
-                                      >
-                                        <Trash2 size={16} />
-                                      </Button>
-                                    </Tooltip>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      )}
+                        <Button
+                          className="mt-2"
+                          color="success"
+                          size="sm"
+                          startContent={<Plus size={16} />}
+                          variant="flat"
+                          onPress={handleAddAnticipo}
+                        >
+                          Añadir anticipo
+                        </Button>
+                      </div>
                     </div>
-                  </Card>
-                </div>
+                  )}
+
+                  {isVisibleFormAnticipo && (
+                    <div className="bg-gray-50 rounded-lg border border-gray-100 p-5">
+                      <div className="flex items-center mb-4">
+                        <h3 className="text-lg font-medium text-gray-800">
+                          Registrar nuevo anticipo
+                        </h3>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <Input
+                            isRequired
+                            className="max-w-full"
+                            isInvalid={isInvalidValorAnticipo}
+                            label="Valor del anticipo"
+                            placeholder="$0"
+                            type="text"
+                            value={
+                              valorAnticipo
+                                ? formatCurrency(Number(valorAnticipo))
+                                : ""
+                            }
+                            onChange={(e) => {
+                              const inputVal = e.target.value.replace(
+                                /[^\d]/g,
+                                "",
+                              );
+
+                              handleOnchangeAnticipo(inputVal);
+                            }}
+                          />
+
+                          <DatePicker
+                            isRequired
+                            className="max-w-full"
+                            isInvalid={isInvalidDateAnticipo}
+                            label="Fecha del anticipo"
+                            onChange={handleDateChangeAnticipo}
+                          />
+                        </div>
+
+                        <div className="flex gap-2 mt-4 justify-end">
+                          <Button
+                            size="md"
+                            variant="flat"
+                            onPress={() => setIsVisibleFormAnticipo(false)}
+                          >
+                            Cancelar
+                          </Button>
+
+                          <Button
+                            className="font-medium bg-emerald-600 text-white"
+                            color="success"
+                            size="md"
+                            startContent={<Plus size={16} />}
+                            onPress={handleRegisterAnticipo}
+                          >
+                            Registrar anticipo
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {anticipos.length > 0 && (
+                    <div className="space-y-4 mt-4">
+                      <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-2">
+                        <h2 className="text-gray-800 text-lg font-semibold">
+                          Anticipos registrados
+                        </h2>
+                        <Button
+                          className="h-8 font-medium"
+                          color="success"
+                          fullWidth={isMobile}
+                          size="sm"
+                          startContent={<Plus size={16} />}
+                          variant="flat"
+                          onPress={handleAddAnticipo}
+                        >
+                          Añadir anticipo
+                        </Button>
+                      </div>
+                      <Table className="w-full">
+                        <TableHeader>
+                          <TableColumn className="bg-red-50 text-red-600 py-2 px-4 font-medium">
+                            FECHA
+                          </TableColumn>
+                          <TableColumn className="bg-red-50 text-red-600 py-2 px-4 font-medium">
+                            VALOR
+                          </TableColumn>
+                          <TableColumn className="bg-red-50 text-red-600 py-2 px-4 font-medium text-right">
+                            ACCIONES
+                          </TableColumn>
+                        </TableHeader>
+                        <TableBody>
+                          {anticipos.map((anticipo) => (
+                            <TableRow
+                              key={anticipo.id}
+                              className="hover:bg-gray-50 transition-colors"
+                            >
+                              <TableCell className="py-3 px-4">
+                                {anticipo.fechaFormateada ||
+                                  new Date(anticipo.fecha).toLocaleDateString()}
+                              </TableCell>
+                              <TableCell className="py-3 px-4">
+                                {formatCurrency(anticipo.valor)}
+                              </TableCell>
+                              <TableCell className="py-3 px-4 text-right">
+                                <Tooltip
+                                  color="danger"
+                                  content={"Eliminar anticipo"}
+                                >
+                                  <Button
+                                    isIconOnly
+                                    color="danger"
+                                    size="sm"
+                                    variant="light"
+                                    onPress={() =>
+                                      handleDeleteAnticipo(anticipo.id)
+                                    }
+                                  >
+                                    <Trash2 size={16} />
+                                  </Button>
+                                </Tooltip>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </Card>
               </Tab>
             </Tabs>
           </div>
