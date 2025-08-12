@@ -57,7 +57,7 @@ interface ResultadoPernote {
   conductor: string;
 }
 
-// Componente de Paginación
+// Componente de Paginación Responsive
 const Pagination = ({
   currentPage,
   totalPages,
@@ -69,7 +69,7 @@ const Pagination = ({
 }) => {
   const getPageNumbers = () => {
     const pages = [];
-    const delta = 2; // Número de páginas a mostrar a cada lado de la página actual
+    const delta = window.innerWidth < 640 ? 1 : 2; // Menos páginas en móvil
 
     for (
       let i = Math.max(1, currentPage - delta);
@@ -85,23 +85,24 @@ const Pagination = ({
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-between mt-4">
-      <div className="text-sm text-gray-700">
+    <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-3">
+      <div className="text-sm text-gray-700 order-2 sm:order-1">
         Página {currentPage} de {totalPages}
       </div>
-      <div className="flex space-x-1">
+      <div className="flex space-x-1 order-1 sm:order-2">
         <button
-          className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={currentPage === 1}
           onClick={() => onPageChange(currentPage - 1)}
         >
-          Anterior
+          <span className="hidden sm:inline">Anterior</span>
+          <span className="sm:hidden">←</span>
         </button>
 
         {getPageNumbers().map((page) => (
           <button
             key={page}
-            className={`px-3 py-2 text-sm font-medium rounded-md ${
+            className={`px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-md ${
               page === currentPage
                 ? "text-blue-600 bg-blue-50 border border-blue-300"
                 : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-50"
@@ -113,16 +114,35 @@ const Pagination = ({
         ))}
 
         <button
-          className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={currentPage === totalPages}
           onClick={() => onPageChange(currentPage + 1)}
         >
-          Siguiente
+          <span className="hidden sm:inline">Siguiente</span>
+          <span className="sm:hidden">→</span>
         </button>
       </div>
     </div>
   );
 };
+
+// Componente de Card para datos en móvil
+const DataCard = ({
+  title,
+  children,
+  className = "",
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) => (
+  <div
+    className={`bg-white border border-gray-200 rounded-lg p-4 shadow-sm ${className}`}
+  >
+    <h3 className="font-medium text-gray-900 mb-3 text-sm">{title}</h3>
+    {children}
+  </div>
+);
 
 const Page = () => {
   const { liquidaciones } = useNomina();
@@ -184,25 +204,21 @@ const Page = () => {
     return Array.from(placasSet).sort();
   }, [liquidaciones]);
 
-  // Filtrar liquidaciones según criterios
+  // [Aquí van todos los useMemo existentes para filtros y datos - mantener igual]
   const liquidacionesFiltradas = useMemo(() => {
     if (!liquidaciones?.length) return [];
 
     return liquidaciones.filter((liquidacion) => {
       if (!liquidacion?.periodo_start) return false;
-
       const fechaInicio = new Date(liquidacion.periodo_start);
       const fechaFin = new Date(liquidacion.periodo_end);
-
       const anoInicio = fechaInicio.getFullYear().toString();
       const anoFin = fechaFin.getFullYear().toString();
       const cumpleAno =
         !filtroAno || anoInicio === filtroAno || anoFin === filtroAno;
-
       const cumplePlaca =
         !filtroPlaca ||
         liquidacion.vehiculos?.some((v) => v.placa === filtroPlaca);
-
       const cumpleMes =
         !filtroMes ||
         liquidacion.mantenimientos?.some((mantenimiento: Mantenimiento) =>
@@ -237,21 +253,19 @@ const Page = () => {
     return mesesMap[nombreMes] || "";
   };
 
-  // Datos para gráficos y tablas
+  // [Mantener todos los useMemo de datos existentes...]
   const datosBonificaciones = useMemo<ResultadoBonificacion[]>(() => {
     const resultado: ResultadoBonificacion[] = [];
 
     liquidacionesFiltradas.forEach((liquidacion) => {
       liquidacion.bonificaciones?.forEach((bonificacion) => {
         if (!bonificacion.vehiculo_id) return;
-
         const vehiculo = liquidacion.vehiculos?.find(
           (v) => v.id === bonificacion.vehiculo_id,
         );
 
         if (!vehiculo || (filtroPlaca && vehiculo.placa !== filtroPlaca))
           return;
-
         bonificacion.values?.forEach(
           (item: { mes: string; quantity: number }) => {
             if (filtroMes) {
@@ -259,7 +273,6 @@ const Page = () => {
 
               if (mesNumero !== filtroMes) return;
             }
-
             const valorUnitario = Number(bonificacion.value);
             const valorTotal = valorUnitario * item.quantity;
             const conductor =
@@ -280,8 +293,6 @@ const Page = () => {
         );
       });
     });
-
-    // Unificar por placa, nombre, valorUnitario y conductor
     const agrupado = new Map<string, ResultadoBonificacion>();
 
     resultado.forEach((item) => {
@@ -292,8 +303,6 @@ const Page = () => {
 
         existente.cantidad += item.cantidad;
         existente.valorTotal += item.valorTotal;
-        // Opcional: puedes concatenar los meses si quieres mostrar todos los meses involucrados
-        // existente.mes += `, ${item.mes}`;
       } else {
         agrupado.set(key, { ...item });
       }
@@ -302,27 +311,24 @@ const Page = () => {
     return Array.from(agrupado.values());
   }, [liquidacionesFiltradas, filtroPlaca, filtroMes]);
 
-  // Para el bloque de datosRecargos
+  // [Incluir todos los demás useMemo existentes para datosRecargos, datosPernotes, etc...]
   const datosRecargos = useMemo<ResultadoRecargo[]>(() => {
     const resultado: ResultadoRecargo[] = [];
 
     liquidacionesFiltradas.forEach((liquidacion) => {
       liquidacion.recargos?.forEach((recargo) => {
         if (!recargo.vehiculo_id) return;
-
         const vehiculo = liquidacion.vehiculos?.find(
           (v) => v.id === recargo.vehiculo_id,
         );
 
         if (!vehiculo || (filtroPlaca && vehiculo.placa !== filtroPlaca))
           return;
-
         if (filtroMes) {
           const mesNumero = obtenerNumeroMes(recargo.mes);
 
           if (mesNumero !== filtroMes) return;
         }
-
         resultado.push({
           placa: vehiculo.placa,
           valor: Number(recargo.valor),
@@ -339,21 +345,18 @@ const Page = () => {
     return resultado;
   }, [liquidacionesFiltradas, filtroPlaca, filtroMes]);
 
-  // Para el bloque de datosPernotes
   const datosPernotes = useMemo<ResultadoPernote[]>(() => {
     const resultado: ResultadoPernote[] = [];
 
     liquidacionesFiltradas.forEach((liquidacion) => {
       liquidacion.pernotes?.forEach((pernote) => {
         if (!pernote.vehiculo_id) return;
-
         const vehiculo = liquidacion.vehiculos?.find(
           (v) => v.id === pernote.vehiculo_id,
         );
 
         if (!vehiculo || (filtroPlaca && vehiculo.placa !== filtroPlaca))
           return;
-
         let incluirPorMes = true;
 
         if (filtroMes && pernote.fechas && pernote.fechas.length > 0) {
@@ -365,10 +368,8 @@ const Page = () => {
 
             return parts[1] === filtroMes;
           });
-
           if (!incluirPorMes) return;
         }
-
         resultado.push({
           placa: vehiculo.placa,
           cantidad: pernote.cantidad,
@@ -384,7 +385,7 @@ const Page = () => {
     return resultado;
   }, [liquidacionesFiltradas, filtroPlaca, filtroMes]);
 
-  // Datos paginados para cada pestaña
+  // [Continúa con todos los demás useMemo y funciones existentes...]
   const datosBonificacionesPaginados = useMemo(() => {
     const startIndex = (currentPageBonificaciones - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -406,34 +407,25 @@ const Page = () => {
     return datosPernotes.slice(startIndex, endIndex);
   }, [datosPernotes, currentPagePernotes]);
 
-  // Calcular total de páginas para cada pestaña
   const totalPagesBonificaciones = Math.ceil(
     datosBonificaciones.length / itemsPerPage,
   );
   const totalPagesRecargos = Math.ceil(datosRecargos.length / itemsPerPage);
   const totalPagesPernotes = Math.ceil(datosPernotes.length / itemsPerPage);
 
-  // Funciones para manejar cambios de página
-  const handlePageChangeBonificaciones = (page: number) => {
+  const handlePageChangeBonificaciones = (page: number) =>
     setCurrentPageBonificaciones(page);
-  };
-
-  const handlePageChangeRecargos = (page: number) => {
+  const handlePageChangeRecargos = (page: number) =>
     setCurrentPageRecargos(page);
-  };
-
-  const handlePageChangePernotes = (page: number) => {
+  const handlePageChangePernotes = (page: number) =>
     setCurrentPagePernotes(page);
-  };
 
-  // Resetear páginas cuando cambien los filtros
   React.useEffect(() => {
     setCurrentPageBonificaciones(1);
     setCurrentPageRecargos(1);
     setCurrentPagePernotes(1);
   }, [filtroPlaca, filtroMes, filtroAno]);
 
-  // Datos agrupados para gráficos (estos se mantienen sin paginar)
   const bonificacionesPorPlaca = useMemo(() => {
     const agrupado: Record<string, number> = {};
 
@@ -444,10 +436,7 @@ const Page = () => {
       agrupado[item.placa] += item.valorTotal;
     });
 
-    return Object.entries(agrupado).map(([placa, total]) => ({
-      placa,
-      total,
-    }));
+    return Object.entries(agrupado).map(([placa, total]) => ({ placa, total }));
   }, [datosBonificaciones]);
 
   const recargosPorPlaca = useMemo(() => {
@@ -460,10 +449,7 @@ const Page = () => {
       agrupado[item.placa] += item.valor;
     });
 
-    return Object.entries(agrupado).map(([placa, total]) => ({
-      placa,
-      total,
-    }));
+    return Object.entries(agrupado).map(([placa, total]) => ({ placa, total }));
   }, [datosRecargos]);
 
   const pernotesPorPlaca = useMemo(() => {
@@ -476,10 +462,7 @@ const Page = () => {
       agrupado[item.placa] += item.valorTotal;
     });
 
-    return Object.entries(agrupado).map(([placa, total]) => ({
-      placa,
-      total,
-    }));
+    return Object.entries(agrupado).map(([placa, total]) => ({ placa, total }));
   }, [datosPernotes]);
 
   const recargosClientePie = useMemo(() => {
@@ -502,7 +485,6 @@ const Page = () => {
 
   const totalCantidadMantenimientos = useMemo(() => {
     const nombreMesFiltro = meses.find((m) => m.valor === filtroMes)?.nombre;
-
     const total = liquidacionesFiltradas.reduce((totalSum, liquidacion) => {
       if (!Array.isArray(liquidacion.mantenimientos)) return totalSum;
 
@@ -514,11 +496,9 @@ const Page = () => {
           );
 
           if (!vehiculo) return mntSum;
-
           const placa = vehiculo.placa;
 
           if (filtroPlaca && placa !== filtroPlaca) return mntSum;
-
           if (!Array.isArray(mnt.values)) return mntSum;
 
           return (
@@ -526,11 +506,10 @@ const Page = () => {
             mnt.values.reduce((valSum: number, val: any) => {
               const cantidad = Number(val.quantity) || 0;
 
-              if (cantidad === 0) return valSum; // ✅ Excluir cantidad 0
-
+              if (cantidad === 0) return valSum;
               const mes = val.mes || "";
 
-              if (filtroMes && mes !== nombreMesFiltro) return valSum; // ✅ Filtrar por mes
+              if (filtroMes && mes !== nombreMesFiltro) return valSum;
 
               return valSum + cantidad;
             }, 0)
@@ -543,12 +522,15 @@ const Page = () => {
   }, [liquidacionesFiltradas, filtroMes, filtroPlaca]);
 
   return (
-    <div className="flex-grow px-6 py-8">
+    <div className="flex-grow px-3 sm:px-6 py-4 sm:py-8">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h1 className="text-2xl font-bold mb-6">Analisis de liquidaciones</h1>
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+          <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">
+            Análisis de liquidaciones
+          </h1>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {/* Filtros - Responsive Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
             <div>
               <label
                 className="block text-sm font-medium text-gray-700 mb-1"
@@ -558,7 +540,7 @@ const Page = () => {
               </label>
               <Select
                 isClearable
-                className="react-select-container"
+                className="react-select-container text-sm"
                 classNamePrefix="react-select"
                 id="filtroPlaca"
                 options={[
@@ -587,7 +569,7 @@ const Page = () => {
               </label>
               <Select
                 isClearable
-                className="react-select-container"
+                className="react-select-container text-sm"
                 classNamePrefix="react-select"
                 id="filtroMes"
                 options={[
@@ -601,10 +583,7 @@ const Page = () => {
                 value={
                   filtroMes
                     ? meses
-                        .map((mes) => ({
-                          value: mes.valor,
-                          label: mes.nombre,
-                        }))
+                        .map((mes) => ({ value: mes.valor, label: mes.nombre }))
                         .find((mes) => mes.value === filtroMes)
                     : { value: "", label: "Todos los meses" }
                 }
@@ -612,7 +591,7 @@ const Page = () => {
               />
             </div>
 
-            <div>
+            <div className="sm:col-span-2 lg:col-span-1">
               <label
                 className="block text-sm font-medium text-gray-700 mb-1"
                 htmlFor="filtroAno"
@@ -622,7 +601,7 @@ const Page = () => {
               <Select
                 isClearable
                 isSearchable
-                className="react-select-container"
+                className="react-select-container text-sm"
                 classNamePrefix="react-select"
                 id="filtroAno"
                 options={[
@@ -643,71 +622,61 @@ const Page = () => {
             </div>
           </div>
 
-          <div className="mb-6">
+          {/* Tabs - Responsive */}
+          <div className="mb-4 sm:mb-6">
             <div className="border-b border-gray-200">
-              <nav className="flex -mb-px">
-                <button
-                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === "bonificaciones"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                  onClick={() => setActiveTab("bonificaciones")}
-                >
-                  Bonificaciones
-                </button>
-                <button
-                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === "recargos"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                  onClick={() => setActiveTab("recargos")}
-                >
-                  Recargos
-                </button>
-                <button
-                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === "pernotes"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                  onClick={() => setActiveTab("pernotes")}
-                >
-                  Pernotes
-                </button>
-                <button
-                  className={`mr-6 py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === "mantenimientos"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                  onClick={() => setActiveTab("mantenimientos")}
-                >
-                  Mantenimientos
-                </button>
+              <nav className="flex -mb-px overflow-x-auto">
+                {[
+                  { key: "bonificaciones", label: "Bonificaciones" },
+                  { key: "recargos", label: "Recargos" },
+                  { key: "pernotes", label: "Pernotes" },
+                  { key: "mantenimientos", label: "Mantenimientos" },
+                ].map((tab) => (
+                  <button
+                    key={tab.key}
+                    className={`mr-4 sm:mr-6 py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
+                      activeTab === tab.key
+                        ? "border-blue-500 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                    onClick={() => setActiveTab(tab.key)}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </nav>
             </div>
           </div>
 
+          {/* Contenido de Bonificaciones */}
           {activeTab === "bonificaciones" && (
             <div>
-              <div className="bg-white rounded-lg shadow mb-6">
-                <div className="p-4 border-b border-gray-200">
-                  <h2 className="text-lg font-semibold">
+              <div className="bg-white rounded-lg shadow mb-4 sm:mb-6">
+                <div className="p-3 sm:p-4 border-b border-gray-200">
+                  <h2 className="text-base sm:text-lg font-semibold">
                     Bonificaciones por Vehículo
                   </h2>
                 </div>
-                <div className="p-4">
-                  <div className="h-72">
+                <div className="p-3 sm:p-4">
+                  {/* Gráfico responsivo */}
+                  <div className="h-64 sm:h-72 mb-4 sm:mb-6">
                     <ResponsiveContainer height="100%" width="100%">
                       <BarChart
                         data={bonificacionesPorPlaca}
-                        margin={{ top: 20, right: 20, left: 50, bottom: 5 }}
+                        margin={{
+                          top: 20,
+                          right: window.innerWidth < 640 ? 10 : 20,
+                          left: window.innerWidth < 640 ? 20 : 50,
+                          bottom: 5,
+                        }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="placa" />
+                        <XAxis
+                          dataKey="placa"
+                          fontSize={window.innerWidth < 640 ? 10 : 12}
+                        />
                         <YAxis
+                          fontSize={window.innerWidth < 640 ? 10 : 12}
                           tickFormatter={(value) =>
                             `$${value.toLocaleString()}`
                           }
@@ -728,17 +697,71 @@ const Page = () => {
                     </ResponsiveContainer>
                   </div>
 
-                  <div className="mt-6">
-                    <div className="flex justify-between items-center mb-3">
-                      <h3 className="text-lg font-medium">
+                  {/* Tabla/Cards responsivos */}
+                  <div>
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
+                      <h3 className="text-base sm:text-lg font-medium">
                         Detalle de Bonificaciones
                       </h3>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-xs sm:text-sm text-gray-600">
                         Mostrando {datosBonificacionesPaginados.length} de{" "}
                         {datosBonificaciones.length} registros
                       </div>
                     </div>
-                    <div className="overflow-x-auto">
+
+                    {/* Mobile Cards */}
+                    <div className="md:hidden space-y-3">
+                      {datosBonificacionesPaginados.length > 0 ? (
+                        datosBonificacionesPaginados.map((item, index) => (
+                          <DataCard
+                            key={index}
+                            title={`${item.placa} - ${item.nombre}`}
+                          >
+                            <div className="space-y-2 text-sm">
+                              <div className="flex flex-wrap justify-between items-center">
+                                <span className="text-gray-600">
+                                  Conductor:
+                                </span>
+                                <span className="font-medium break-words max-w-[60%] text-right">
+                                  {item.conductor}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Mes:</span>
+                                <span>{item.mes}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Cantidad:</span>
+                                <span>{item.cantidad}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">
+                                  Valor unitario:
+                                </span>
+                                <span>
+                                  ${item.valorUnitario.toLocaleString()}
+                                </span>
+                              </div>
+                              <div className="flex justify-between border-t pt-2">
+                                <span className="text-gray-600 font-medium">
+                                  Total:
+                                </span>
+                                <span className="font-bold text-green-600">
+                                  ${item.valorTotal.toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+                          </DataCard>
+                        ))
+                      ) : (
+                        <div className="text-center py-8 text-gray-500">
+                          No hay datos disponibles
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Desktop Table */}
+                    <div className="hidden md:block overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                           <tr>
@@ -817,28 +840,38 @@ const Page = () => {
             </div>
           )}
 
+          {/* Contenido de Recargos */}
           {activeTab === "recargos" && (
             <div>
-              <div className="bg-white rounded-lg shadow mb-6">
-                <div className="p-4 border-b border-gray-200">
-                  <h2 className="text-lg font-semibold">
+              <div className="bg-white rounded-lg shadow mb-4 sm:mb-6">
+                <div className="p-3 sm:p-4 border-b border-gray-200">
+                  <h2 className="text-base sm:text-lg font-semibold">
                     Recargos por Vehículo
                   </h2>
                 </div>
-                <div className="p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="h-72">
+                <div className="p-3 sm:p-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                    {/* Gráfico de barras */}
+                    <div className="h-64 sm:h-72">
                       <ResponsiveContainer height="100%" width="100%">
                         <BarChart
                           data={recargosPorPlaca}
-                          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                          margin={{
+                            top: 20,
+                            right: window.innerWidth < 640 ? 10 : 30,
+                            left: window.innerWidth < 640 ? 10 : 20,
+                            bottom: 5,
+                          }}
                         >
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="placa" />
-                          <YAxis />
+                          <XAxis
+                            dataKey="placa"
+                            fontSize={window.innerWidth < 640 ? 10 : 12}
+                          />
+                          <YAxis fontSize={window.innerWidth < 640 ? 10 : 12} />
                           <Tooltip
                             formatter={(value) => [
-                              `$${value.toLocaleString()}`,
+                              `${value.toLocaleString()}`,
                               "Total",
                             ]}
                           />
@@ -852,7 +885,8 @@ const Page = () => {
                       </ResponsiveContainer>
                     </div>
 
-                    <div className="h-72">
+                    {/* Gráfico circular */}
+                    <div className="h-64 sm:h-72">
                       <ResponsiveContainer height="100%" width="100%">
                         <PieChart>
                           <Pie
@@ -861,11 +895,12 @@ const Page = () => {
                             data={recargosClientePie}
                             dataKey="value"
                             fill="#8884d8"
+                            fontSize={window.innerWidth < 640 ? 10 : 12}
                             label={({ name, percent }) =>
                               `${name}: ${(percent * 100).toFixed(0)}%`
                             }
                             labelLine={false}
-                            outerRadius={80}
+                            outerRadius={window.innerWidth < 640 ? 60 : 80}
                           >
                             {recargosClientePie.map((entry, index) => (
                               <Cell
@@ -876,7 +911,7 @@ const Page = () => {
                           </Pie>
                           <Tooltip
                             formatter={(value) => [
-                              `$${value.toLocaleString()}`,
+                              `${value.toLocaleString()}`,
                               "Valor",
                             ]}
                           />
@@ -886,17 +921,74 @@ const Page = () => {
                     </div>
                   </div>
 
-                  <div className="mt-6">
-                    <div className="flex justify-between items-center mb-3">
-                      <h3 className="text-lg font-medium">
+                  {/* Tabla/Cards de recargos */}
+                  <div className="mt-4 sm:mt-6">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
+                      <h3 className="text-base sm:text-lg font-medium">
                         Detalle de Recargos
                       </h3>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-xs sm:text-sm text-gray-600">
                         Mostrando {datosRecargosPaginados.length} de{" "}
                         {datosRecargos.length} registros
                       </div>
                     </div>
-                    <div className="overflow-x-auto">
+
+                    {/* Mobile Cards */}
+                    <div className="md:hidden space-y-3">
+                      {datosRecargosPaginados.length > 0 ? (
+                        datosRecargosPaginados.map((item, index) => (
+                          <DataCard
+                            key={index}
+                            className={
+                              item.pagaCliente === "No"
+                                ? "border-red-200 bg-red-50"
+                                : ""
+                            }
+                            title={`${item.placa} - ${item.empresa_nombre}`}
+                          >
+                            <div className="space-y-2 text-sm">
+                              <div className="flex flex-wrap justify-between items-center">
+                                <span className="text-gray-600">
+                                  Conductor:
+                                </span>
+                                <span className="font-medium break-words max-w-[60%] text-right">
+                                  {item.conductor}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Mes:</span>
+                                <span>{item.mes}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">
+                                  Paga cliente:
+                                </span>
+                                <span
+                                  className={`font-medium ${item.pagaCliente === "Sí" ? "text-green-600" : "text-red-600"}`}
+                                >
+                                  {item.pagaCliente}
+                                </span>
+                              </div>
+                              <div className="flex justify-between border-t pt-2">
+                                <span className="text-gray-600 font-medium">
+                                  Valor:
+                                </span>
+                                <span className="font-bold">
+                                  ${item.valor.toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+                          </DataCard>
+                        ))
+                      ) : (
+                        <div className="text-center py-8 text-gray-500">
+                          No hay datos disponibles
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Desktop Table */}
+                    <div className="hidden md:block overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                           <tr>
@@ -951,7 +1043,7 @@ const Page = () => {
                             <tr>
                               <td
                                 className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center"
-                                colSpan={5}
+                                colSpan={6}
                               >
                                 No hay datos disponibles
                               </td>
@@ -972,27 +1064,36 @@ const Page = () => {
             </div>
           )}
 
+          {/* Contenido de Pernotes */}
           {activeTab === "pernotes" && (
             <div>
-              <div className="bg-white rounded-lg shadow mb-6">
-                <div className="p-4 border-b border-gray-200">
-                  <h2 className="text-lg font-semibold">
+              <div className="bg-white rounded-lg shadow mb-4 sm:mb-6">
+                <div className="p-3 sm:p-4 border-b border-gray-200">
+                  <h2 className="text-base sm:text-lg font-semibold">
                     Pernotes por Vehículo
                   </h2>
                 </div>
-                <div className="p-4">
-                  <div className="h-72">
+                <div className="p-3 sm:p-4">
+                  <div className="h-64 sm:h-72 mb-4 sm:mb-6">
                     <ResponsiveContainer height="100%" width="100%">
                       <BarChart
                         data={pernotesPorPlaca}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                        margin={{
+                          top: 20,
+                          right: window.innerWidth < 640 ? 10 : 30,
+                          left: window.innerWidth < 640 ? 10 : 20,
+                          bottom: 5,
+                        }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="placa" />
-                        <YAxis />
+                        <XAxis
+                          dataKey="placa"
+                          fontSize={window.innerWidth < 640 ? 10 : 12}
+                        />
+                        <YAxis fontSize={window.innerWidth < 640 ? 10 : 12} />
                         <Tooltip
                           formatter={(value) => [
-                            `$${value.toLocaleString()}`,
+                            `${value.toLocaleString()}`,
                             "Total",
                           ]}
                         />
@@ -1006,17 +1107,69 @@ const Page = () => {
                     </ResponsiveContainer>
                   </div>
 
-                  <div className="mt-6">
-                    <div className="flex justify-between items-center mb-3">
-                      <h3 className="text-lg font-medium">
+                  {/* Tabla/Cards de pernotes */}
+                  <div>
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
+                      <h3 className="text-base sm:text-lg font-medium">
                         Detalle de Pernotes
                       </h3>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-xs sm:text-sm text-gray-600">
                         Mostrando {datosPernotePaginados.length} de{" "}
                         {datosPernotes.length} registros
                       </div>
                     </div>
-                    <div className="overflow-x-auto">
+
+                    {/* Mobile Cards */}
+                    <div className="md:hidden space-y-3">
+                      {datosPernotePaginados.length > 0 ? (
+                        datosPernotePaginados.map((item, index) => (
+                          <DataCard
+                            key={index}
+                            title={`${item.placa} - ${item.conductor}`}
+                          >
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Cantidad:</span>
+                                <span>{item.cantidad}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">
+                                  Valor unitario:
+                                </span>
+                                <span>
+                                  ${Number(item.valor).toLocaleString()}
+                                </span>
+                              </div>
+                              <div className="flex justify-between border-t pt-2">
+                                <span className="text-gray-600 font-medium">
+                                  Total:
+                                </span>
+                                <span className="font-bold text-yellow-600">
+                                  ${item.valorTotal.toLocaleString()}
+                                </span>
+                              </div>
+                              <div className="border-t pt-2">
+                                <span className="text-gray-600 font-medium">
+                                  Fechas:
+                                </span>
+                                <p className="text-xs mt-1 break-words">
+                                  {agruparFechasConsecutivas(item.fechas).join(
+                                    ", ",
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                          </DataCard>
+                        ))
+                      ) : (
+                        <div className="text-center py-8 text-gray-500">
+                          No hay datos disponibles
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Desktop Table */}
+                    <div className="hidden md:block overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                           <tr>
@@ -1059,7 +1212,7 @@ const Page = () => {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                   ${item.valorTotal.toLocaleString()}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 max-w-xs truncate">
+                                <td className="px-6 py-4 whitespace-pre-line text-sm text-gray-500 max-w-md break-words">
                                   {agruparFechasConsecutivas(item.fechas).join(
                                     ", ",
                                   )}
@@ -1091,16 +1244,109 @@ const Page = () => {
             </div>
           )}
 
+          {/* Contenido de Mantenimientos */}
           {activeTab === "mantenimientos" && (
             <div>
-              <div className="bg-white rounded-lg shadow mb-6">
-                <div className="p-4 border-b border-gray-200">
-                  <h2 className="text-lg font-semibold">
+              <div className="bg-white rounded-lg shadow mb-4 sm:mb-6">
+                <div className="p-3 sm:p-4 border-b border-gray-200">
+                  <h2 className="text-base sm:text-lg font-semibold">
                     Cantidad de Mantenimientos por Vehículo
                   </h2>
                 </div>
-                <div className="p-4">
-                  <div className="overflow-x-auto">
+                <div className="p-3 sm:p-4">
+                  {/* Mobile Cards para mantenimientos */}
+                  <div className="md:hidden space-y-3">
+                    {(() => {
+                      type Row = {
+                        placa: string;
+                        conductor: string;
+                        mes: string;
+                        cantidad: number;
+                      };
+                      const agrupado = new Map<string, Row>();
+                      const nombreMesFiltro = meses.find(
+                        (m) => m.valor === filtroMes,
+                      )?.nombre;
+
+                      liquidacionesFiltradas.forEach((liq) => {
+                        const conductor =
+                          `${liq.conductor?.nombre || ""} ${liq.conductor?.apellido || ""}`.trim();
+
+                        if (!Array.isArray(liq.mantenimientos)) return;
+
+                        liq.mantenimientos.forEach((mnt: any) => {
+                          const vehiculo = liq.vehiculos?.find(
+                            (v: any) => v.id === mnt.vehiculo_id,
+                          );
+
+                          if (!vehiculo) return;
+                          const placa = vehiculo.placa;
+
+                          if (filtroPlaca && placa !== filtroPlaca) return;
+                          if (!Array.isArray(mnt.values)) return;
+
+                          mnt.values.forEach((val: any) => {
+                            const cantidad = Number(val.quantity) || 0;
+
+                            if (cantidad === 0) return;
+                            const mes = val.mes || "";
+
+                            if (filtroMes && mes !== nombreMesFiltro) return;
+
+                            const key = `${placa}|${conductor}|${mes}`;
+
+                            if (agrupado.has(key)) {
+                              agrupado.get(key)!.cantidad += cantidad;
+                            } else {
+                              agrupado.set(key, {
+                                placa,
+                                conductor,
+                                mes,
+                                cantidad,
+                              });
+                            }
+                          });
+                        });
+                      });
+
+                      const rows = Array.from(agrupado.values()).filter(
+                        (item) => item.cantidad > 0,
+                      );
+
+                      if (rows.length === 0) {
+                        return (
+                          <div className="text-center py-8 text-gray-500">
+                            No hay datos disponibles
+                          </div>
+                        );
+                      }
+
+                      return rows.map((item, idx) => (
+                        <DataCard
+                          key={idx}
+                          title={`${item.placa} - ${item.conductor}`}
+                        >
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Mes:</span>
+                              <span>{item.mes}</span>
+                            </div>
+                            <div className="flex justify-between border-t pt-2">
+                              <span className="text-gray-600 font-medium">
+                                Cantidad:
+                              </span>
+                              <span className="font-bold text-purple-600">
+                                {item.cantidad}
+                              </span>
+                            </div>
+                          </div>
+                        </DataCard>
+                      ));
+                    })()}
+                  </div>
+
+                  {/* Desktop Table para mantenimientos */}
+                  <div className="hidden md:block overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
@@ -1126,15 +1372,7 @@ const Page = () => {
                             mes: string;
                             cantidad: number;
                           };
-
                           const agrupado = new Map<string, Row>();
-                          let totalProcesados = 0;
-                          let totalExcluidos = 0;
-                          let totalCantidad0 = 0;
-                          let totalFiltradosPorMes = 0;
-                          let totalFiltradosPorPlaca = 0;
-
-                          // Convertir filtroMes a nombre UNA VEZ
                           const nombreMesFiltro = meses.find(
                             (m) => m.valor === filtroMes,
                           )?.nombre;
@@ -1143,55 +1381,27 @@ const Page = () => {
                             const conductor =
                               `${liq.conductor?.nombre || ""} ${liq.conductor?.apellido || ""}`.trim();
 
-                            if (!Array.isArray(liq.mantenimientos)) {
-                              return;
-                            }
+                            if (!Array.isArray(liq.mantenimientos)) return;
 
                             liq.mantenimientos.forEach((mnt: any) => {
                               const vehiculo = liq.vehiculos?.find(
                                 (v: any) => v.id === mnt.vehiculo_id,
                               );
 
-                              if (!vehiculo) {
-                                totalExcluidos++;
-
-                                return;
-                              }
-
+                              if (!vehiculo) return;
                               const placa = vehiculo.placa;
 
-                              // Filtrar por placa si hay filtro
-                              if (filtroPlaca && placa !== filtroPlaca) {
-                                totalFiltradosPorPlaca++;
-
-                                return;
-                              }
-
-                              if (!Array.isArray(mnt.values)) {
-                                totalExcluidos++;
-
-                                return;
-                              }
+                              if (filtroPlaca && placa !== filtroPlaca) return;
+                              if (!Array.isArray(mnt.values)) return;
 
                               mnt.values.forEach((val: any) => {
-                                totalProcesados++;
-
                                 const cantidad = Number(val.quantity) || 0;
 
-                                if (cantidad === 0) {
-                                  totalCantidad0++;
-
-                                  return;
-                                }
-
+                                if (cantidad === 0) return;
                                 const mes = val.mes || "";
 
-                                // Filtro por mes
-                                if (filtroMes && mes !== nombreMesFiltro) {
-                                  totalFiltradosPorMes++;
-
+                                if (filtroMes && mes !== nombreMesFiltro)
                                   return;
-                                }
 
                                 const key = `${placa}|${conductor}|${mes}`;
 
@@ -1252,64 +1462,67 @@ const Page = () => {
           )}
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6 mt-8">
-          <h2 className="text-xl font-semibold mb-4">Resumen de Información</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium text-blue-700 mb-2">
+        {/* Resumen de Información - Responsive Grid */}
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6 mt-6 sm:mt-8">
+          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">
+            Resumen de Información
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="bg-blue-50 p-3 sm:p-4 rounded-lg">
+              <h3 className="text-sm sm:text-lg font-medium text-blue-700 mb-2">
                 Total Bonificaciones
               </h3>
-              <p className="text-2xl font-bold">
+              <p className="text-lg sm:text-2xl font-bold">
                 $
                 {datosBonificaciones
                   .reduce((sum, item) => sum + item.valorTotal, 0)
                   .toLocaleString()}
               </p>
-              <p className="text-sm text-blue-500 mt-2">
+              <p className="text-xs sm:text-sm text-blue-500 mt-2">
                 {datosBonificaciones.length} bonificaciones en total
               </p>
             </div>
 
-            <div className="bg-green-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium text-green-700 mb-2">
+            <div className="bg-green-50 p-3 sm:p-4 rounded-lg">
+              <h3 className="text-sm sm:text-lg font-medium text-green-700 mb-2">
                 Total Recargos
               </h3>
-              <p className="text-2xl font-bold">
+              <p className="text-lg sm:text-2xl font-bold">
                 $
                 {datosRecargos
                   .reduce((sum, item) => sum + item.valor, 0)
                   .toLocaleString()}
               </p>
-              <p className="text-sm text-green-500 mt-2">
+              <p className="text-xs sm:text-sm text-green-500 mt-2">
                 {datosRecargos.length} recargos en total
               </p>
             </div>
 
-            <div className="bg-yellow-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium text-yellow-700 mb-2">
+            <div className="bg-yellow-50 p-3 sm:p-4 rounded-lg">
+              <h3 className="text-sm sm:text-lg font-medium text-yellow-700 mb-2">
                 Total Pernotes
               </h3>
-              <p className="text-2xl font-bold">
+              <p className="text-lg sm:text-2xl font-bold">
                 $
                 {datosPernotes
                   .reduce((sum, item) => sum + item.valorTotal, 0)
                   .toLocaleString()}
               </p>
-              <p className="text-sm text-yellow-500 mt-2">
+              <p className="text-xs sm:text-sm text-yellow-500 mt-2">
                 {datosPernotes.length} pernotes en total
               </p>
             </div>
 
-            <div className="bg-purple-50 p-4 rounded-lg flex flex-col justify-between h-full">
+            <div className="bg-purple-50 p-3 sm:p-4 rounded-lg flex flex-col justify-between h-full">
               <div>
-                <h3 className="text-lg font-medium text-purple-700 mb-2 flex items-center">
+                <h3 className="text-sm sm:text-lg font-medium text-purple-700 mb-2 flex items-center">
                   Total Mantenimientos
                 </h3>
-                <p className="text-2xl font-bold text-purple-800">
+                <p className="text-lg sm:text-2xl font-bold text-purple-800">
                   {totalCantidadMantenimientos}
                 </p>
               </div>
-              <p className="text-sm text-purple-500 mt-2">
+              <p className="text-xs sm:text-sm text-purple-500 mt-2">
                 Mantenimientos realizados en total
               </p>
             </div>
