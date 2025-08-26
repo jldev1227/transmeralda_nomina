@@ -452,8 +452,7 @@ const PaginaRecargos = ({ grupos, numeroPagina, totalPaginas }) => (
     </Text>
 
     {grupos.map((grupo, index) => {
-      const valorHoraBase = grupo.configuracion_salarial ?
-        parseFloat(grupo.configuracion_salarial.valor_hora_trabajador) : 8741;
+      const valorHoraBase = grupo.configuracion_salarial.salario_basico / grupo.configuracion_salarial.horas_mensuales_base;
 
       return (
         <View
@@ -488,7 +487,7 @@ const PaginaRecargos = ({ grupos, numeroPagina, totalPaginas }) => (
               </Text>
             )}
             <Text style={{ fontSize: 9, color: "#666", marginTop: 2 }}>
-              Valor/Hora Base: ${Math.floor(valorHoraBase).toLocaleString()}
+              Valor/Hora Base: ${Math.round(valorHoraBase).toLocaleString()}
               {grupo.configuracion_salarial?.empresa && ` (${grupo.empresa.nombre})`}
             </Text>
           </View>
@@ -575,7 +574,7 @@ const PaginaRecargos = ({ grupos, numeroPagina, totalPaginas }) => (
                     TIPO RECARGO
                   </Text>
                 </View>
-                <View style={{ width: "15%", paddingHorizontal: 3 }}>
+                <View style={{ width: "10%", paddingHorizontal: 3 }}>
                   <Text style={{ color: "#2E8B57", fontSize: 9, fontWeight: "bold", textAlign: "center" }}>
                     %
                   </Text>
@@ -590,9 +589,9 @@ const PaginaRecargos = ({ grupos, numeroPagina, totalPaginas }) => (
                     V/+ %
                   </Text>
                 </View>
-                <View style={{ width: "10%", paddingHorizontal: 3 }}>
+                <View style={{ width: "15%", paddingHorizontal: 3 }}>
                   <Text style={{ color: "#2E8B57", fontSize: 9, fontWeight: "bold", textAlign: "center" }}>
-                    UDS
+                    CANTIDAD
                   </Text>
                 </View>
                 <View style={{ width: "10%", paddingHorizontal: 3 }}>
@@ -619,29 +618,29 @@ const PaginaRecargos = ({ grupos, numeroPagina, totalPaginas }) => (
                         )}
                       </Text>
                     </View>
-                    <View style={{ width: "15%", paddingHorizontal: 3 }}>
+                    <View style={{ width: "10%", paddingHorizontal: 3 }}>
                       <Text style={{ textAlign: "center", fontSize: 8 }}>
                         {tipo.porcentaje}%
                       </Text>
                     </View>
                     <View style={{ width: "15%", paddingHorizontal: 3 }}>
                       <Text style={{ textAlign: "center", fontSize: 8, color: "#666" }}>
-                        ${Math.floor(tipo.valor_hora_base).toLocaleString()}
+                        ${Math.round(tipo.valor_hora_base).toLocaleString()}
                       </Text>
                     </View>
                     <View style={{ width: "15%", paddingHorizontal: 3 }}>
                       <Text style={{ textAlign: "center", fontSize: 8, fontWeight: "bold", color: "#2E8B57" }}>
-                        ${Math.floor(tipo.valor_hora_con_recargo).toLocaleString()}
+                        ${Math.round(tipo.valor_hora_con_recargo).toLocaleString()}
                       </Text>
                     </View>
-                    <View style={{ width: "10%", paddingHorizontal: 3 }}>
+                    <View style={{ width: "15%", paddingHorizontal: 3 }}>
                       <Text style={{ textAlign: "center", fontSize: 8 }}>
                         {tipo.horas}
                       </Text>
                     </View>
                     <View style={{ width: "10%", paddingHorizontal: 3 }}>
                       <Text style={{ textAlign: "center", fontSize: 8, fontWeight: "bold" }}>
-                        ${Math.floor(tipo.valor_calculado).toLocaleString()}
+                        ${Math.round(tipo.valor_calculado).toLocaleString()}
                       </Text>
                     </View>
                   </View>
@@ -650,18 +649,12 @@ const PaginaRecargos = ({ grupos, numeroPagina, totalPaginas }) => (
 
               {/* Total */}
               <View style={{ flexDirection: "row", padding: 4, backgroundColor: "#2E8B57" }}>
-                <View style={{ width: "35%", paddingHorizontal: 3 }}>
+                <View style={{ width: "90%", paddingHorizontal: 3 }}>
                   <Text style={{ color: "white", fontSize: 9, fontWeight: "bold" }}>TOTALES</Text>
                 </View>
-                <View style={{ width: "45%", paddingHorizontal: 3 }}></View>
                 <View style={{ width: "10%", paddingHorizontal: 3 }}>
                   <Text style={{ color: "white", fontSize: 8, textAlign: "center", fontWeight: "bold" }}>
-                    {grupo.tipos_recargos_consolidados.reduce((sum, tipo) => sum + (tipo.es_bono_festivo ? 0 : tipo.horas), 0)}
-                  </Text>
-                </View>
-                <View style={{ width: "10%", paddingHorizontal: 3 }}>
-                  <Text style={{ color: "white", fontSize: 8, textAlign: "center", fontWeight: "bold" }}>
-                    ${Math.floor(grupo.totales.valor_total).toLocaleString()}
+                    ${Math.round(grupo.totales.valor_total).toLocaleString()}
                   </Text>
                 </View>
               </View>
@@ -674,256 +667,435 @@ const PaginaRecargos = ({ grupos, numeroPagina, totalPaginas }) => (
     {/* Footer */}
     <View style={{ position: "absolute", bottom: 20, right: 20 }}>
       <Text style={{ fontSize: 8, color: "#666" }}>
-        Generado: {new Date().toLocaleDateString()} - Pág. {numeroPagina}/{totalPaginas}
+        Página {numeroPagina} de {totalPaginas}
       </Text>
     </View>
   </Page>
 );
 
-const getColorByPercentage = (percentage: number) => {
-  if (percentage < 80) {
-    return "#2E8B57"; // Verde
-  } else if (percentage >= 80 && percentage < 100) {
-    return "#007AFF"; // Azul
-  } else {
-    return "#E60F0F"; // Rojo
-  }
-};
-
-const getColorByPercentageBackground = (percentage: number) => {
-  if (percentage < 80) {
-    return "#2E8B5710"; // Verde
-  } else if (percentage >= 80 && percentage < 100) {
-    return "#F0F7FF"; // Azul
-  } else {
-    return "#FDF1F1"; // Rojo
-  }
-};
-
 const agruparRecargos = (recargos, configuraciones_salario) => {
+  console.log('\n=== INICIANDO AGRUPACIÓN DE RECARGOS ===');
+  console.log('Total de recargos a procesar:', recargos.length);
+
   const grupos = {};
 
-  recargos.forEach(recargo => {
-    // Crear clave única para agrupar por vehículo, mes y empresa
-    const clave = `${recargo.vehiculo.placa}-${recargo.mes}-${recargo.año}-${recargo.empresa.nit}`;
+  // Función auxiliar para crear clave única
+  const crearClave = (recargo) =>
+    `${recargo.vehiculo.placa}-${recargo.mes}-${recargo.año}-${recargo.empresa.nit}`;
 
-    if (!grupos[clave]) {
-      grupos[clave] = {
-        vehiculo: recargo.vehiculo,
-        mes: recargo.mes,
-        año: recargo.año,
-        empresa: recargo.empresa,
-        recargos: [],
-        configuracion_salarial: null,
-        valor_hora_base: 8741, // Valor por defecto
-        totales: {
-          total_dias: 0,
-          total_horas: 0,
-          total_hed: 0,
-          total_rn: 0,
-          total_hen: 0,
-          total_rd: 0,
-          total_hefd: 0,
-          total_hefn: 0,
-          valor_total: 0,
-          // Nuevos contadores para días festivos
-          total_dias_festivos: 0,
-          total_dias_domingos: 0
-        },
-        dias_laborales_unificados: [],
-        tipos_recargos_consolidados: []
-      };
+  // Función auxiliar para obtener configuración salarial
+  const obtenerConfiguracion = (empresaId) => {
+    if (!configuraciones_salario) {
+      console.warn("No hay configuraciones de salario disponibles");
+      return null;
+    }
 
-      // Determinar configuración salarial para este grupo
-      const configEmpresa = configuraciones_salario?.find(config =>
-        config.empresa_id === recargo.empresa.id && config.activo === true
-      );
+    // Buscar configuración específica de la empresa
+    const configEmpresa = configuraciones_salario.find(config =>
+      config.empresa_id === empresaId && config.activo === true
+    );
 
-      if (configEmpresa) {
-        grupos[clave].configuracion_salarial = configEmpresa;
-        grupos[clave].valor_hora_base = parseFloat(configEmpresa.valor_hora_trabajador);
-      } else {
-        // Usar configuración base del sistema
-        const configBase = configuraciones_salario?.find(config =>
-          config.empresa_id === null && config.activo === true
-        );
-        if (configBase) {
-          grupos[clave].configuracion_salarial = configBase;
-          grupos[clave].valor_hora_base = parseFloat(configBase.valor_hora_trabajador);
+    if (configEmpresa) {
+      console.log(`Configuración específica encontrada para empresa ${empresaId}`);
+      return configEmpresa;
+    }
+
+    // Buscar configuración base del sistema
+    const configBase = configuraciones_salario.find(config =>
+      config.empresa_id === null && config.activo === true
+    );
+
+    if (configBase) {
+      console.log(`Usando configuración base del sistema para empresa ${empresaId}`);
+      return configBase;
+    }
+
+    console.warn(`No se encontró configuración para empresa ${empresaId}`);
+    return null;
+  };
+
+  // Función auxiliar para inicializar grupo
+  const inicializarGrupo = (recargo) => {
+    console.log(`\n--- INICIALIZANDO GRUPO ---`);
+    console.log(`Clave: ${crearClave(recargo)}`);
+    console.log(`Empresa: ${recargo.empresa.nombre}`);
+    console.log(`Vehículo: ${recargo.vehiculo.placa}`);
+    console.log(`Período: ${recargo.mes}/${recargo.año}`);
+
+    const configuracion = obtenerConfiguracion(recargo.empresa.id);
+
+    const grupo = {
+      vehiculo: recargo.vehiculo,
+      mes: recargo.mes,
+      año: recargo.año,
+      empresa: recargo.empresa,
+      recargos: [],
+      configuracion_salarial: configuracion,
+      valor_hora_base: configuracion?.salario_basico / configuracion?.horas_mensuales_base || 0,
+      totales: {
+        total_dias: 0,
+        total_horas: 0,
+        total_hed: 0,
+        total_rn: 0,
+        total_hen: 0,
+        total_rd: 0,
+        total_hefd: 0,
+        total_hefn: 0,
+        valor_total: 0,
+        total_dias_festivos: 0,
+        total_dias_domingos: 0
+      },
+      dias_laborales_unificados: [],
+      tipos_recargos_consolidados: []
+    };
+
+    if (configuracion) {
+      console.log('--- CONFIGURACIÓN SALARIAL ENCONTRADA ---');
+      console.log('Salario básico:', configuracion.salario_basico);
+      console.log('Valor hora trabajador:', configuracion.salario_basico / configuracion.horas_mensuales_base);
+      console.log('Paga días festivos:', configuracion.paga_dias_festivos);
+    }
+
+    return grupo;
+  };
+
+  // Función auxiliar para procesar día laboral
+  const procesarDiaLaboral = (grupo, dia, recargoIndex) => {
+    console.log(`\n  --- PROCESANDO DÍA LABORAL (Recargo ${recargoIndex + 1}) ---`);
+    console.log(`  Fecha: ${dia.dia}`);
+    console.log(`  Es festivo: ${dia.es_festivo}`);
+    console.log(`  Es domingo: ${dia.es_domingo}`);
+    console.log(`  Total horas: ${dia.total_horas}`);
+
+    // Contar días especiales
+    if (dia.es_festivo) {
+      grupo.totales.total_dias_festivos++;
+      console.log(`  ✓ Día festivo contado. Total festivos: ${grupo.totales.total_dias_festivos}`);
+    }
+    if (dia.es_domingo) {
+      grupo.totales.total_dias_domingos++;
+      console.log(`  ✓ Día domingo contado. Total domingos: ${grupo.totales.total_dias_domingos}`);
+    }
+
+    // Buscar si ya existe un día con la misma fecha
+    const diaExistente = grupo.dias_laborales_unificados.find(d => d.dia === dia.dia);
+
+    if (diaExistente) {
+      console.log(`  >> Unificando con día existente`);
+      // Sumar horas al día existente
+      const camposHoras = ['hed', 'rn', 'hen', 'rd', 'hefd', 'hefn', 'total_horas'];
+      camposHoras.forEach(campo => {
+        const valorAnterior = diaExistente[campo] || 0;
+        const valorNuevo = dia[campo] || 0;
+        diaExistente[campo] = valorAnterior + valorNuevo;
+        if (valorNuevo > 0) {
+          console.log(`    ${campo}: ${valorAnterior} + ${valorNuevo} = ${diaExistente[campo]}`);
         }
+      });
+    } else {
+      console.log(`  >> Agregando nuevo día`);
+      // Agregar nuevo día con valores por defecto
+      const nuevoDia = {
+        ...dia,
+        hed: dia.hed || 0,
+        rn: dia.rn || 0,
+        hen: dia.hen || 0,
+        rd: dia.rd || 0,
+        hefd: dia.hefd || 0,
+        hefn: dia.hefn || 0
+      };
+      grupo.dias_laborales_unificados.push(nuevoDia);
+
+      // Mostrar horas del nuevo día
+      const camposConHoras = Object.entries(nuevoDia)
+        .filter(([key, value]) => ['hed', 'rn', 'hen', 'rd', 'hefd', 'hefn'].includes(key) && value > 0)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join(', ');
+
+      if (camposConHoras) {
+        console.log(`    Horas: ${camposConHoras}`);
       }
     }
+  };
 
-    grupos[clave].recargos.push(recargo);
+  // Función auxiliar para calcular valor por hora con recargo
+  const calcularValorRecargo = (valorBase, porcentaje, horas, esAdicional, esValorFijo = false, valorFijo = 0) => {
+    console.log(`    --- CALCULANDO VALOR RECARGO ---`);
+    console.log(`    Valor base por hora: ${valorBase}`);
+    console.log(`    Horas: ${horas}`);
+    console.log(`    Porcentaje: ${porcentaje}%`);
+    console.log(`    Es adicional: ${esAdicional}`);
+    console.log(`    Es valor fijo: ${esValorFijo}`);
 
-    // Acumular totales
-    grupos[clave].totales.total_dias += recargo.total_dias || 0;
-    grupos[clave].totales.total_horas += recargo.total_horas || 0;
-
-    // Procesar días laborales
-    if (recargo.dias_laborales) {
-      recargo.dias_laborales.forEach(dia => {
-        // Contar días festivos y domingos
-        if (dia.es_festivo || dia.es_domingo) {
-          if (dia.es_festivo) {
-            grupos[clave].totales.total_dias_festivos++;
-          }
-          if (dia.es_domingo) {
-            grupos[clave].totales.total_dias_domingos++;
-          }
-        }
-
-        // Buscar si ya existe un día con la misma fecha
-        const diaExistente = grupos[clave].dias_laborales_unificados.find(d => d.dia === dia.dia);
-
-        if (diaExistente) {
-          // Sumar las horas al día existente
-          diaExistente.hed = (diaExistente.hed || 0) + (dia.hed || 0);
-          diaExistente.rn = (diaExistente.rn || 0) + (dia.rn || 0);
-          diaExistente.hen = (diaExistente.hen || 0) + (dia.hen || 0);
-          diaExistente.rd = (diaExistente.rd || 0) + (dia.rd || 0);
-          diaExistente.hefd = (diaExistente.hefd || 0) + (dia.hefd || 0);
-          diaExistente.hefn = (diaExistente.hefn || 0) + (dia.hefn || 0);
-          diaExistente.total_horas = (diaExistente.total_horas || 0) + (dia.total_horas || 0);
-        } else {
-          // Agregar nuevo día
-          grupos[clave].dias_laborales_unificados.push({
-            ...dia,
-            hed: dia.hed || 0,
-            rn: dia.rn || 0,
-            hen: dia.hen || 0,
-            rd: dia.rd || 0,
-            hefd: dia.hefd || 0,
-            hefn: dia.hefn || 0
-          });
-        }
-
-        // Consolidar tipos de recargos
-        if (dia.tipos_recargos) {
-          dia.tipos_recargos.forEach(tipo => {
-            // ===== VERIFICAR SI SE EXCLUYE POR CONFIGURACIÓN DE DÍAS FESTIVOS =====
-            const configSalarial = grupos[clave].configuracion_salarial;
-            const pagaDiasFestivos = configSalarial?.paga_dias_festivos || false;
-
-            // Si la configuración paga días festivos, excluir recargos dominicales y festivos
-            if (pagaDiasFestivos && (tipo.codigo === 'RD')) {
-              return; // Saltar este tipo de recargo
-            }
-
-            const tipoExistente = grupos[clave].tipos_recargos_consolidados.find(t => t.codigo === tipo.codigo);
-
-            const valorHoraBase = grupos[clave].valor_hora_base;
-            const porcentaje = parseFloat(tipo.porcentaje) || 0;
-            const horas = parseFloat(tipo.horas) || 0;
-
-            // ===== CÁLCULO BASADO EN tipo_recargo.adicional =====
-            let valorHoraConRecargo;
-            let valorCalculadoCorreto;
-
-            const esAdicional = tipo.adicional || false;
-
-            if (esAdicional) {
-              // MODO ADICIONAL: valor_hora + (valor_hora * porcentaje/100)
-              const incremento = valorHoraBase * (porcentaje / 100);
-              valorHoraConRecargo = valorHoraBase + incremento;
-              valorCalculadoCorreto = horas * valorHoraConRecargo;
-            } else {
-              // MODO MULTIPLICATIVO: valor_hora * (1 + porcentaje/100)
-              valorHoraConRecargo = valorHoraBase * (porcentaje / 100);
-              valorCalculadoCorreto = horas * valorHoraConRecargo;
-            }
-
-            if (tipoExistente) {
-              // Sumar horas y recalcular total
-              tipoExistente.horas += horas;
-
-              // Recalcular el valor total con las nuevas horas
-              if (esAdicional) {
-                const incremento = valorHoraBase * (porcentaje / 100);
-                const valorHoraFinal = valorHoraBase + incremento;
-                tipoExistente.valor_calculado = tipoExistente.horas * valorHoraFinal;
-              } else {
-                const valorHoraFinal = valorHoraBase * (porcentaje / 100);
-                tipoExistente.valor_calculado = tipoExistente.horas * valorHoraFinal;
-              }
-
-              tipoExistente.valor_hora_con_recargo = tipoExistente.valor_calculado / tipoExistente.horas;
-              tipoExistente.es_adicional = esAdicional;
-            } else {
-              // Crear nuevo tipo de recargo
-              grupos[clave].tipos_recargos_consolidados.push({
-                codigo: tipo.codigo,
-                nombre: tipo.nombre,
-                porcentaje: porcentaje,
-                horas: horas,
-                valor_calculado: valorCalculadoCorreto,
-                valor_hora_base: valorHoraBase,
-                valor_hora_con_recargo: valorHoraConRecargo,
-                es_adicional: esAdicional
-              });
-            }
-          });
-        }
-      });
+    if (esValorFijo && valorFijo > 0) {
+      console.log(`    >>> MODO VALOR FIJO <<<`);
+      console.log(`    Valor fijo configurado: ${valorFijo}`);
+      const valorFijoRedondeado = Number(valorFijo);
+      console.log(`    Valor fijo redondeado: ${valorFijoRedondeado}`);
+      return valorFijoRedondeado;
     }
-  });
 
-  // Calcular totales finales para cada grupo
-  Object.values(grupos).forEach(grupo => {
+    console.log(`    >>> MODO PORCENTAJE <<<`);
+
+    let valorHoraConRecargo;
+    let valorTotal;
+
+    if (esAdicional) {
+      console.log(`    -- Calculando como ADICIONAL --`);
+      // MODO ADICIONAL: valor_hora * (1 + porcentaje/100)
+      valorHoraConRecargo = valorBase * (1 + porcentaje / 100);
+      console.log(`    Valor hora con recargo (antes de redondeo): ${valorHoraConRecargo}`);
+
+      // Redondear el valor por hora
+      valorHoraConRecargo = Number(valorHoraConRecargo);
+      console.log(`    Valor hora con recargo (redondeado): ${valorHoraConRecargo}`);
+
+      valorTotal = valorHoraConRecargo * horas;
+      console.log(`    Valor total: ${valorHoraConRecargo} * ${horas} = ${valorTotal}`);
+    } else {
+      console.log(`    -- Calculando como MULTIPLICATIVO --`);
+      // MODO MULTIPLICATIVO: valor_hora * (porcentaje/100)
+      valorHoraConRecargo = valorBase * (porcentaje / 100);
+      console.log(`    Valor hora con recargo (antes de redondeo): ${valorHoraConRecargo}`);
+
+      // Redondear el valor por hora
+      valorHoraConRecargo = Number(valorHoraConRecargo);
+      console.log(`    Valor hora con recargo (redondeado): ${valorHoraConRecargo}`);
+
+      valorTotal = valorHoraConRecargo * horas;
+      console.log(`    Valor total: ${valorHoraConRecargo} * ${horas} = ${valorTotal}`);
+    }
+
+    // Redondear también el valor total
+    valorTotal = Number(valorTotal);
+    console.log(`    ✓ Resultado final (redondeado): ${valorTotal}`);
+    return { valorTotal, valorHoraConRecargo };
+  };
+
+  // Función auxiliar para consolidar tipos de recargos
+  const consolidarTipoRecargo = (grupo, tipo, diaIndex) => {
+    console.log(`\n    >> CONSOLIDANDO TIPO DE RECARGO: ${tipo.codigo} - ${tipo.nombre}`);
+    console.log(`       Día: ${diaIndex + 1}`);
+    console.log(`       Porcentaje: ${tipo.porcentaje}%`);
+    console.log(`       Horas: ${tipo.horas}`);
+    console.log(`       Es adicional: ${tipo.adicional}`);
+
     const configSalarial = grupo.configuracion_salarial;
-
     const pagaDiasFestivos = configSalarial?.paga_dias_festivos || false;
 
-    grupo.totales.total_hed = grupo.dias_laborales_unificados.reduce((sum, dia) => sum + (dia.hed || 0), 0);
-    grupo.totales.total_rn = grupo.dias_laborales_unificados.reduce((sum, dia) => sum + (dia.rn || 0), 0);
-    grupo.totales.total_hen = grupo.dias_laborales_unificados.reduce((sum, dia) => sum + (dia.hen || 0), 0);
-    grupo.totales.total_hefd = grupo.dias_laborales_unificados.reduce((sum, dia) => sum + (dia.hefd || 0), 0);
-    grupo.totales.total_hefn = grupo.dias_laborales_unificados.reduce((sum, dia) => sum + (dia.hefn || 0), 0);
-
-    // Solo sumar RD si NO se pagan días festivos
-    grupo.totales.total_rd = pagaDiasFestivos ? 0 : grupo.dias_laborales_unificados.reduce((sum, dia) => sum + (dia.rd || 0), 0);
-
-    // ===== AGREGAR TIPO DE RECARGO PARA PAGO POR DÍAS FESTIVOS =====
-    if (pagaDiasFestivos && (grupo.totales.total_dias_festivos > 0 || grupo.totales.total_dias_domingos > 0)) {
-      const salarioBasico = parseFloat(configSalarial.salario_basico) || 0;
-      const porcentajeFestivos = parseFloat(configSalarial.porcentaje_festivos) || 0;
-
-      // Calcular valor unitario por día festivo: (salario_base / 30) * (porcentaje/100)
-      const valorDiarioBase = salarioBasico / 30;
-      const valorDiarioConRecargo = valorDiarioBase * (porcentajeFestivos / 100);
-
-      // Total de días festivos/domingos (evitar duplicados)
-      const totalDiasEspeciales = grupo.totales.total_dias_festivos + grupo.totales.total_dias_domingos;
-      const valorTotalDiasFestivos = totalDiasEspeciales * valorDiarioConRecargo;
-
-      // Agregar tipo de recargo especial para días festivos
-      grupo.tipos_recargos_consolidados.push({
-        codigo: 'BONO_FESTIVO',
-        nombre: 'Bono Días Festivos/Dominicales',
-        porcentaje: porcentajeFestivos,
-        horas: totalDiasEspeciales, // En este caso representan días
-        valor_calculado: valorTotalDiasFestivos,
-        valor_hora_base: valorDiarioBase, // En este contexto es valor diario base
-        valor_hora_con_recargo: valorDiarioConRecargo, // Valor por día con recargo
-        es_adicional: false,
-        es_bono_festivo: true // Flag especial para identificarlo
-      });
+    // Excluir recargos dominicales si la configuración paga días festivos
+    if (pagaDiasFestivos && tipo.codigo === 'RD') {
+      console.log(`       ⚠️ EXCLUIDO: La configuración paga días festivos, saltando RD`);
+      return; // Saltar este tipo de recargo
     }
 
-    // Calcular valor total de recargos usando los valores recalculados
-    grupo.totales.valor_total = grupo.tipos_recargos_consolidados.reduce((sum, tipo) => sum + tipo.valor_calculado, 0);
+    const tipoExistente = grupo.tipos_recargos_consolidados.find(t => t.codigo === tipo.codigo);
+    const valorHoraBase = grupo.valor_hora_base;
+    const porcentaje = parseFloat(tipo.porcentaje) || 0;
+    const horas = parseFloat(tipo.horas) || 0;
+    const esAdicional = tipo.adicional || false;
 
-    // Ordenar días por fecha y tipos de recargos por porcentaje
+    if (horas <= 0) {
+      console.log(`       ⚠️ Sin horas válidas para ${tipo.codigo}. Saltando...`);
+      return;
+    }
+
+    const resultado = calcularValorRecargo(valorHoraBase, porcentaje, horas, esAdicional);
+
+    if (tipoExistente) {
+      console.log(`       >> ACTUALIZANDO TIPO EXISTENTE`);
+      console.log(`       Horas anteriores: ${tipoExistente.horas}`);
+
+      // Sumar horas y recalcular total
+      tipoExistente.horas += horas;
+      console.log(`       Horas nuevas: ${tipoExistente.horas}`);
+
+      // Recalcular el valor total con las nuevas horas
+      const nuevoResultado = calcularValorRecargo(valorHoraBase, porcentaje, tipoExistente.horas, esAdicional);
+      tipoExistente.valor_calculado = nuevoResultado.valorTotal;
+      tipoExistente.valor_hora_con_recargo = nuevoResultado.valorHoraConRecargo;
+      tipoExistente.es_adicional = esAdicional;
+
+      console.log(`       ✓ Valor recalculado: ${tipoExistente.valor_calculado}`);
+    } else {
+      console.log(`       >> CREANDO NUEVO TIPO DE RECARGO`);
+      // Crear nuevo tipo de recargo
+      const nuevoTipo = {
+        codigo: tipo.codigo,
+        nombre: tipo.nombre,
+        porcentaje: porcentaje,
+        horas: horas,
+        valor_calculado: resultado.valorTotal,
+        valor_hora_base: valorHoraBase,
+        valor_hora_con_recargo: resultado.valorHoraConRecargo,
+        es_adicional: esAdicional
+      };
+
+      grupo.tipos_recargos_consolidados.push(nuevoTipo);
+      console.log(`       ✓ Tipo agregado: ${nuevoTipo.valor_calculado}`);
+    }
+  };
+
+  // Función auxiliar para agregar bono festivo
+  const agregarBonoFestivo = (grupo) => {
+    const configSalarial = grupo.configuracion_salarial;
+    const totalDiasEspeciales = grupo.totales.total_dias_festivos + grupo.totales.total_dias_domingos;
+
+    if (!configSalarial?.paga_dias_festivos || totalDiasEspeciales === 0) {
+      return;
+    }
+
+    console.log(`\n--- AGREGANDO BONO FESTIVO ---`);
+    console.log(`Total días festivos: ${grupo.totales.total_dias_festivos}`);
+    console.log(`Total días domingos: ${grupo.totales.total_dias_domingos}`);
+    console.log(`Total días especiales: ${totalDiasEspeciales}`);
+
+    const salarioBasico = parseFloat(configSalarial.salario_basico) || 0;
+    const porcentajeFestivos = parseFloat(configSalarial.porcentaje_festivos) || 0;
+
+    console.log(`Salario básico: ${salarioBasico}`);
+    console.log(`Porcentaje festivos: ${porcentajeFestivos}%`);
+
+    const valorDiarioBase = salarioBasico / 30;
+    console.log(`Valor diario base (salario/30): ${valorDiarioBase}`);
+
+    // FÓRMULA: valorDiarioBase * (porcentaje/100)
+    const valorDiarioConRecargoTemp = valorDiarioBase * (porcentajeFestivos / 100);
+    console.log(`Valor diario con recargo (antes de redondeo): ${valorDiarioConRecargoTemp}`);
+
+    // Redondear el valor diario con recargo
+    const valorDiarioConRecargo = Number(valorDiarioConRecargoTemp);
+    console.log(`Valor diario con recargo (redondeado): ${valorDiarioConRecargo}`);
+
+    const valorTotalDiasFestivos = totalDiasEspeciales * valorDiarioConRecargo;
+    console.log(`Valor total: ${totalDiasEspeciales} * ${valorDiarioConRecargo} = ${valorTotalDiasFestivos}`);
+
+    grupo.tipos_recargos_consolidados.push({
+      codigo: 'BONO_FESTIVO',
+      nombre: 'Bono Días Festivos/Dominicales',
+      porcentaje: porcentajeFestivos,
+      horas: totalDiasEspeciales,
+      valor_calculado: valorTotalDiasFestivos,
+      valor_hora_base: valorDiarioBase,
+      valor_hora_con_recargo: valorDiarioConRecargo,
+      es_adicional: false,
+      es_bono_festivo: true
+    });
+
+    console.log(`✓ Bono festivo agregado: ${valorTotalDiasFestivos}`);
+  };
+
+  // Función auxiliar para calcular totales finales
+  const calcularTotalesFinales = (grupo) => {
+    console.log(`\n--- CALCULANDO TOTALES FINALES ---`);
+    console.log(`Grupo: ${grupo.empresa.nombre} - ${grupo.vehiculo.placa}`);
+
+    const configSalarial = grupo.configuracion_salarial;
+    const pagaDiasFestivos = configSalarial?.paga_dias_festivos || false;
+
+    // Calcular totales de horas por tipo
+    const campos = ['hed', 'rn', 'hen', 'hefd', 'hefn'];
+    campos.forEach(campo => {
+      const total = grupo.dias_laborales_unificados.reduce((sum, dia) => sum + (dia[campo] || 0), 0);
+      grupo.totales[`total_${campo}`] = total;
+      if (total > 0) {
+        console.log(`Total ${campo}: ${total} horas`);
+      }
+    });
+
+    // Solo sumar RD si NO se pagan días festivos
+    grupo.totales.total_rd = pagaDiasFestivos ? 0 :
+      grupo.dias_laborales_unificados.reduce((sum, dia) => sum + (dia.rd || 0), 0);
+
+    if (grupo.totales.total_rd > 0) {
+      console.log(`Total rd: ${grupo.totales.total_rd} horas`);
+    } else if (pagaDiasFestivos) {
+      console.log(`Total rd: 0 horas (excluido por configuración de días festivos)`);
+    }
+
+    // Agregar bono festivo si aplica
+    agregarBonoFestivo(grupo);
+
+    // Calcular valor total
+    const valorAnterior = grupo.totales.valor_total;
+    grupo.totales.valor_total = grupo.tipos_recargos_consolidados
+      .reduce((sum, tipo) => sum + tipo.valor_calculado, 0);
+
+    console.log(`\n--- RESUMEN DE RECARGOS ---`);
+    grupo.tipos_recargos_consolidados.forEach((tipo, index) => {
+      console.log(`${index + 1}. ${tipo.codigo}: ${tipo.horas}h × $${tipo.valor_hora_con_recargo.toFixed(2)} = $${tipo.valor_calculado.toFixed(2)}`);
+    });
+
+    console.log(`\n=== VALOR TOTAL DEL GRUPO: $${grupo.totales.valor_total.toFixed(2)} ===`);
+
+    // Ordenar resultados
     grupo.dias_laborales_unificados.sort((a, b) => new Date(a.dia) - new Date(b.dia));
     grupo.tipos_recargos_consolidados.sort((a, b) => {
-      // Poner el bono festivo al final
       if (a.es_bono_festivo) return 1;
       if (b.es_bono_festivo) return -1;
       return a.porcentaje - b.porcentaje;
     });
+  };
+
+  // PROCESO PRINCIPAL
+  console.log('\n--- INICIANDO PROCESAMIENTO ---');
+
+  recargos.forEach((recargo, recargoIndex) => {
+    console.log(`\n=== PROCESANDO RECARGO ${recargoIndex + 1}/${recargos.length} ===`);
+    console.log(`ID: ${recargo.id}`);
+    console.log(`Empresa: ${recargo.empresa.nombre}`);
+    console.log(`Vehículo: ${recargo.vehiculo.placa}`);
+    console.log(`Total días: ${recargo.total_dias}`);
+    console.log(`Total horas: ${recargo.total_horas}`);
+
+    const clave = crearClave(recargo);
+
+    // Crear grupo si no existe
+    if (!grupos[clave]) {
+      grupos[clave] = inicializarGrupo(recargo);
+    }
+
+    // Agregar recargo al grupo
+    grupos[clave].recargos.push(recargo);
+
+    // Acumular totales básicos
+    grupos[clave].totales.total_dias += recargo.total_dias || 0;
+    grupos[clave].totales.total_horas += recargo.total_horas || 0;
+
+    // Procesar días laborales
+    if (recargo.dias_laborales && recargo.dias_laborales.length > 0) {
+      console.log(`\n--- PROCESANDO ${recargo.dias_laborales.length} DÍAS LABORALES ---`);
+
+      recargo.dias_laborales.forEach((dia, diaIndex) => {
+        procesarDiaLaboral(grupos[clave], dia, recargoIndex);
+
+        // Procesar tipos de recargos del día
+        if (dia.tipos_recargos && dia.tipos_recargos.length > 0) {
+          console.log(`\n  --- PROCESANDO ${dia.tipos_recargos.length} TIPOS DE RECARGOS DEL DÍA ---`);
+          dia.tipos_recargos.forEach(tipo => {
+            consolidarTipoRecargo(grupos[clave], tipo, diaIndex);
+          });
+        }
+      });
+    } else {
+      console.log(`⚠️ Sin días laborales para procesar`);
+    }
   });
 
-  return Object.values(grupos);
+  console.log('\n=== CALCULANDO TOTALES FINALES PARA TODOS LOS GRUPOS ===');
+
+  // Calcular totales finales para cada grupo
+  Object.values(grupos).forEach((grupo, index) => {
+    console.log(`\n--- GRUPO ${index + 1}/${Object.keys(grupos).length} ---`);
+    calcularTotalesFinales(grupo);
+  });
+
+  const resultado = Object.values(grupos);
+  console.log(`\n=== AGRUPACIÓN COMPLETADA ===`);
+  console.log(`Total de grupos generados: ${resultado.length}`);
+  console.log(`==============================\n`);
+
+  return resultado;
 };
 
 export const LiquidacionPDF = ({
