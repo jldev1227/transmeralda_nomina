@@ -271,6 +271,14 @@ export const agruparFechasConsecutivas = (fechas: string[]) => {
   });
 };
 
+export const formatearHora = (hora : string) => {
+  if (!hora) return '';
+
+  return hora
+    .replace(/\./g, ':')  // Cambiar puntos por dos puntos
+    .replace(/:50/g, ':30'); // Cambiar :50 por :30
+};
+
 export function toDateValue(date: any): DateValue {
   // Aquí puedes agregar lógica específica para la conversión si es necesario
   return date as DateValue;
