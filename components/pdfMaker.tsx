@@ -14,6 +14,10 @@ import {
   Bonificacion,
   Liquidacion,
   Recargo,
+  RecargoPlanilla,
+  ConfiguracionSalario,
+  Empresa,
+  Vehiculo,
 } from "@/context/NominaContext";
 import {
   agruparFechasConsecutivas,
@@ -24,6 +28,7 @@ import {
   obtenerDiferenciaDias,
   toDateValue,
 } from "@/helpers/helpers";
+import { DiaLaboral, TipoRecargo } from "@/types";
 
 // Estilos mejorados para ambas páginas
 const styles = StyleSheet.create({
@@ -178,14 +183,16 @@ const styles = StyleSheet.create({
   },
 
   // Columnas para detalles de recargos - Ajustadas para mejor visualización
-  detailCol1: { // Fecha
+  detailCol1: {
+    // Fecha
     width: "11%",
     paddingVertical: 3,
     paddingHorizontal: 2,
     borderRightWidth: 1,
     fontSize: 8,
   },
-  detailCol2: { // Horario
+  detailCol2: {
+    // Horario
     width: "13%",
     paddingVertical: 3,
     paddingHorizontal: 2,
@@ -193,7 +200,8 @@ const styles = StyleSheet.create({
     fontSize: 7,
     textAlign: "center",
   },
-  detailCol3: { // Total Horas
+  detailCol3: {
+    // Total Horas
     width: "8%",
     paddingVertical: 3,
     paddingHorizontal: 2,
@@ -201,7 +209,8 @@ const styles = StyleSheet.create({
     fontSize: 8,
     textAlign: "center",
   },
-  detailCol4: { // Tipo día
+  detailCol4: {
+    // Tipo día
     width: "10%",
     paddingVertical: 3,
     paddingHorizontal: 2,
@@ -209,7 +218,8 @@ const styles = StyleSheet.create({
     fontSize: 7,
     textAlign: "center",
   },
-  detailCol5: { // HED
+  detailCol5: {
+    // HED
     width: "8%",
     paddingVertical: 3,
     paddingHorizontal: 2,
@@ -217,7 +227,8 @@ const styles = StyleSheet.create({
     fontSize: 8,
     textAlign: "center",
   },
-  detailCol6: { // HEN
+  detailCol6: {
+    // HEN
     width: "8%",
     paddingVertical: 3,
     paddingHorizontal: 2,
@@ -225,7 +236,8 @@ const styles = StyleSheet.create({
     fontSize: 8,
     textAlign: "center",
   },
-  detailCol7: { // HEFD
+  detailCol7: {
+    // HEFD
     width: "8%",
     paddingVertical: 3,
     paddingHorizontal: 2,
@@ -233,7 +245,8 @@ const styles = StyleSheet.create({
     fontSize: 8,
     textAlign: "center",
   },
-  detailCol8: { // HEFN
+  detailCol8: {
+    // HEFN
     width: "8%",
     paddingVertical: 3,
     paddingHorizontal: 2,
@@ -241,7 +254,8 @@ const styles = StyleSheet.create({
     fontSize: 8,
     textAlign: "center",
   },
-  detailCol9: { // RN
+  detailCol9: {
+    // RN
     width: "8%",
     paddingVertical: 3,
     paddingHorizontal: 2,
@@ -249,7 +263,8 @@ const styles = StyleSheet.create({
     fontSize: 8,
     textAlign: "center",
   },
-  detailCol10: { // RD
+  detailCol10: {
+    // RD
     width: "8%",
     paddingVertical: 3,
     paddingHorizontal: 2,
@@ -257,7 +272,8 @@ const styles = StyleSheet.create({
     fontSize: 8,
     textAlign: "center",
   },
-  detailCol11: { // Estado/Observaciones
+  detailCol11: {
+    // Estado/Observaciones
     width: "10%",
     paddingVertical: 3,
     paddingHorizontal: 2,
@@ -373,8 +389,8 @@ const styles = StyleSheet.create({
   tableCellCompact: {
     fontSize: 10,
     textAlign: "center",
-    padding: 1
-  }
+    padding: 1,
+  },
 });
 
 type LiquidacionPDFProps = {
@@ -385,45 +401,91 @@ type LiquidacionPDFProps = {
   firmas: any[];
 };
 
+type CampoTotal = 'hed' | 'rn' | 'hen' | 'hefd' | 'hefn';
+
+interface Totales {
+  total_dias: number;
+  total_horas: number;
+  total_hed: number;
+  total_rn: number;
+  total_hen: number;
+  total_rd: number;
+  total_hefd: number;
+  total_hefn: number;
+  valor_total: number;
+  total_dias_festivos: number;
+  total_dias_domingos: number;
+}
+
+interface GrupoRecargo {
+  vehiculo: Vehiculo;
+  mes: number;
+  año: number;
+  empresa: Empresa;
+  recargos: RecargoPlanilla[];
+  configuracion_salarial: ConfiguracionSalario;
+  valor_hora_base: number;
+  totales: Totales;
+  dias_laborales_unificados: DiaLaboral[];
+  tipos_recargos_consolidados: TipoRecargoConsolidado[];
+}
+
+interface TipoRecargoConsolidado extends TipoRecargo {
+  es_bono_festivo?: boolean;
+}
+
+type CampoHoras = 'hed' | 'rn' | 'hen' | 'rd' | 'hefd' | 'hefn' | 'total_horas';
+
 const safeValue = (value: any, defaultValue = "") => {
   return value !== undefined && value !== null ? value : defaultValue;
 };
 
-const calcularAlturaGrupo = (grupo) => {
+const calcularAlturaGrupo = (grupo: GrupoPaginas) => {
   const alturaBase = 120; // Header + empresa info
   const alturaDiasPorFila = 25; // Aproximado por fila de día laboral
   const alturaTablaRecargos = 60; // Header + totales de tabla de recargos
   const alturaRecargosPorFila = 22; // Por cada tipo de recargo
   const alturaFooter = 40; // Información adicional
 
-  const diasConRecargos = grupo.dias_laborales_unificados?.filter(dia => {
-    const tieneRecargos = (dia.hed || 0) > 0 || (dia.hen || 0) > 0 ||
-      (dia.hefd || 0) > 0 || (dia.hefn || 0) > 0 ||
-      (dia.rn || 0) > 0 || (dia.rd || 0) > 0;
-    return tieneRecargos || dia.es_domingo || dia.es_festivo;
-  }).length || 0;
+  const diasConRecargos =
+    grupo.dias_laborales_unificados?.filter((dia) => {
+      const tieneRecargos =
+        (dia.hed || 0) > 0 ||
+        (dia.hen || 0) > 0 ||
+        (dia.hefd || 0) > 0 ||
+        (dia.hefn || 0) > 0 ||
+        (dia.rn || 0) > 0 ||
+        (dia.rd || 0) > 0;
+
+      return tieneRecargos || dia.es_domingo || dia.es_festivo;
+    }).length || 0;
 
   const tiposRecargos = grupo.tipos_recargos_consolidados?.length || 0;
 
-  return alturaBase +
-    (diasConRecargos * alturaDiasPorFila) +
+  return (
+    alturaBase +
+    diasConRecargos * alturaDiasPorFila +
     alturaTablaRecargos +
-    (tiposRecargos * alturaRecargosPorFila) +
-    alturaFooter;
+    tiposRecargos * alturaRecargosPorFila +
+    alturaFooter
+  );
 };
 
 // Función para agrupar elementos por páginas
-const agruparEnPaginas = (recargosAgrupados) => {
-  const paginas = [];
-  let paginaActual = [];
+const agruparEnPaginas = (recargosAgrupados: GrupoRecargo[]): GrupoRecargo[][] => {
+  const paginas: GrupoRecargo[][] = [];
+  let paginaActual: GrupoRecargo[] = [];
   let alturaAcumulada = 80; // Margen para título
   const alturaMaximaPagina = 700; // Altura disponible en página A4
 
-  recargosAgrupados.forEach((grupo, index) => {
+  recargosAgrupados.forEach((grupo) => {
     const alturaGrupo = calcularAlturaGrupo(grupo);
 
     // Si agregar este grupo excede la altura de página
-    if (alturaAcumulada + alturaGrupo > alturaMaximaPagina && paginaActual.length > 0) {
+    if (
+      alturaAcumulada + alturaGrupo > alturaMaximaPagina &&
+      paginaActual.length > 0
+    ) {
       // Cerrar página actual y comenzar nueva
       paginas.push(paginaActual);
       paginaActual = [grupo];
@@ -443,16 +505,33 @@ const agruparEnPaginas = (recargosAgrupados) => {
   return paginas;
 };
 
+type GrupoPaginas = GrupoRecargo;
+
+// Actualizar el tipo PaginasRecargos para ser más específico
+type PaginasRecargos = {
+  grupos: GrupoRecargo[];
+  numeroPagina: number;
+  totalPaginas: number;
+};
+
+
 // Componente de página de recargos
-const PaginaRecargos = ({ grupos, numeroPagina, totalPaginas }) => (
+const PaginaRecargos = ({
+  grupos,
+  numeroPagina,
+  totalPaginas,
+}: PaginasRecargos) => (
   <Page size="A4" style={styles.page} wrap={false}>
     {/* Título con número de página */}
     <Text style={[styles.subHeaderCenter, { marginBottom: 15 }]}>
-      HORAS EXTRAS Y RECARGOS {totalPaginas > 1 && `(${numeroPagina}/${totalPaginas})`}
+      HORAS EXTRAS Y RECARGOS{" "}
+      {totalPaginas > 1 && `(${numeroPagina}/${totalPaginas})`}
     </Text>
 
-    {grupos.map((grupo, index) => {
-      const valorHoraBase = grupo.configuracion_salarial.salario_basico / grupo.configuracion_salarial.horas_mensuales_base;
+    {grupos.map((grupo, index: number) => {
+      const valorHoraBase =
+        grupo.configuracion_salarial.salario_basico /
+        grupo.configuracion_salarial.horas_mensuales_base;
 
       return (
         <View
@@ -460,200 +539,486 @@ const PaginaRecargos = ({ grupos, numeroPagina, totalPaginas }) => (
           style={{
             border: "1px solid #ddd",
             marginBottom: 15,
-            breakInside: "avoid", // Evita que se corte el grupo
           }}
           wrap={false} // No permitir wrap dentro del grupo
         >
           {/* Header del vehículo */}
-          <View style={{ backgroundColor: "#2E8B57", padding: 8, flexDirection: "row", justifyContent: "space-between" }}>
+          <View
+            style={{
+              backgroundColor: "#2E8B57",
+              padding: 8,
+              flexDirection: "row",
+              justifyContent: "space-between",
+            }}
+          >
             <Text style={{ color: "white", fontWeight: "bold", fontSize: 10 }}>
               VEHÍCULO: {grupo.vehiculo.placa}
             </Text>
-            <Text style={{ color: "white", fontSize: 10, textTransform: "uppercase", fontWeight: "bold", textAlign: "center" }}>
-              MES: {new Date(grupo.año, grupo.mes - 1).toLocaleString("es-ES", {
+            <Text
+              style={{
+                color: "white",
+                fontSize: 10,
+                textTransform: "uppercase",
+                fontWeight: "bold",
+                textAlign: "center",
+              }}
+            >
+              MES:{" "}
+              {new Date(grupo.año, grupo.mes - 1).toLocaleString("es-ES", {
                 month: "long",
               })}
             </Text>
           </View>
 
           {/* Empresa info compacta */}
-          <View style={{ backgroundColor: "#f9f9f9", padding: 5, fontSize: 10 }}>
+          <View
+            style={{ backgroundColor: "#f9f9f9", padding: 5, fontSize: 10 }}
+          >
             <Text style={{ fontWeight: "semibold" }}>
-              EMPRESA: <Text style={{ fontWeight: "normal" }}>{grupo.empresa.nombre} - NIT: {grupo.empresa.nit}</Text>
+              EMPRESA:{" "}
+              <Text style={{ fontWeight: "normal" }}>
+                {grupo.empresa.nombre} - NIT: {grupo.empresa.nit}
+              </Text>
             </Text>
             {grupo.recargos.length > 1 && (
-              <Text style={{ fontWeight: "semibold", color: "#2E8B57", marginTop: 2 }}>
+              <Text
+                style={{
+                  fontWeight: "semibold",
+                  color: "#2E8B57",
+                  marginTop: 2,
+                }}
+              >
                 CONSOLIDADO DE {grupo.recargos.length} REGISTROS
               </Text>
             )}
             <Text style={{ fontSize: 9, color: "#666", marginTop: 2 }}>
               Valor/Hora Base: ${Math.round(valorHoraBase).toLocaleString()}
-              {grupo.configuracion_salarial?.empresa && ` (${grupo.empresa.nombre})`}
+              {grupo.configuracion_salarial?.empresa &&
+                ` (${grupo.empresa.nombre})`}
             </Text>
           </View>
 
           {/* Tabla de días laborales */}
           <View style={styles.tableNoBorder}>
             {/* Header de tabla */}
-            <View style={{ flexDirection: "row", backgroundColor: "#2E8B5730", padding: 4 }}>
-              <Text style={[styles.tableHeaderCell, { flex: 1, textAlign: 'center' }]}>FECHA</Text>
-              <Text style={[styles.tableHeaderCell, { flex: 1, textAlign: 'center' }]}>HORARIO</Text>
-              <Text style={[styles.tableHeaderCell, { flex: 1, textAlign: 'center' }]}>HORAS</Text>
-              <Text style={[styles.tableHeaderCell, { flex: 1, textAlign: 'center' }]}>HED</Text>
-              <Text style={[styles.tableHeaderCell, { flex: 1, textAlign: 'center' }]}>RN</Text>
-              <Text style={[styles.tableHeaderCell, { flex: 1, textAlign: 'center' }]}>HEN</Text>
-              <Text style={[styles.tableHeaderCell, { flex: 1, textAlign: 'center' }]}>RD</Text>
-              <Text style={[styles.tableHeaderCell, { flex: 1, textAlign: 'center' }]}>HEFD</Text>
-              <Text style={[styles.tableHeaderCell, { flex: 1, textAlign: 'center' }]}>HEFN</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                backgroundColor: "#2E8B5730",
+                padding: 4,
+              }}
+            >
+              <Text
+                style={[
+                  styles.tableHeaderCell,
+                  { flex: 1, textAlign: "center" },
+                ]}
+              >
+                FECHA
+              </Text>
+              <Text
+                style={[
+                  styles.tableHeaderCell,
+                  { flex: 1, textAlign: "center" },
+                ]}
+              >
+                HORARIO
+              </Text>
+              <Text
+                style={[
+                  styles.tableHeaderCell,
+                  { flex: 1, textAlign: "center" },
+                ]}
+              >
+                HORAS
+              </Text>
+              <Text
+                style={[
+                  styles.tableHeaderCell,
+                  { flex: 1, textAlign: "center" },
+                ]}
+              >
+                HED
+              </Text>
+              <Text
+                style={[
+                  styles.tableHeaderCell,
+                  { flex: 1, textAlign: "center" },
+                ]}
+              >
+                RN
+              </Text>
+              <Text
+                style={[
+                  styles.tableHeaderCell,
+                  { flex: 1, textAlign: "center" },
+                ]}
+              >
+                HEN
+              </Text>
+              <Text
+                style={[
+                  styles.tableHeaderCell,
+                  { flex: 1, textAlign: "center" },
+                ]}
+              >
+                RD
+              </Text>
+              <Text
+                style={[
+                  styles.tableHeaderCell,
+                  { flex: 1, textAlign: "center" },
+                ]}
+              >
+                HEFD
+              </Text>
+              <Text
+                style={[
+                  styles.tableHeaderCell,
+                  { flex: 1, textAlign: "center" },
+                ]}
+              >
+                HEFN
+              </Text>
             </View>
 
             {/* Filas con datos unificados */}
-            {grupo.dias_laborales_unificados?.filter(dia => {
-              const tieneRecargos = (dia.hed || 0) > 0 || (dia.hen || 0) > 0 ||
-                (dia.hefd || 0) > 0 || (dia.hefn || 0) > 0 ||
-                (dia.rn || 0) > 0 || (dia.rd || 0) > 0;
-              return tieneRecargos || dia.es_domingo || dia.es_festivo;
-            }).map((dia, diaIndex) => (
-              <View key={`${dia.id}-${index}-${diaIndex}`} style={{ flexDirection: "row", padding: 3, borderBottom: "1px solid #eee" }}>
-                <Text style={[styles.tableCellCompact, { flex: 1, textAlign: 'center' }]}>
-                  {dia.dia}
-                </Text>
-                <Text style={[styles.tableCellCompact, { flex: 1, textAlign: 'center' }]}>
-                  {formatearHora(dia.hora_inicio)}-{formatearHora(dia.hora_fin)}
-                </Text>
-                <Text style={[styles.tableCellCompact, { flex: 1, textAlign: 'center' }]}>
-                  {dia.total_horas}
-                </Text>
-                <Text style={[styles.tableCellCompact, { flex: 1, textAlign: 'center' }]}>
-                  {(dia.hed || 0) > 0 ? `${dia.hed}` : '-'}
-                </Text>
-                <Text style={[styles.tableCellCompact, { flex: 1, textAlign: 'center' }]}>
-                  {(dia.rn || 0) > 0 ? `${dia.rn}` : '-'}
-                </Text>
-                <Text style={[styles.tableCellCompact, { flex: 1, textAlign: 'center' }]}>
-                  {(dia.hen || 0) > 0 ? `${dia.hen}` : '-'}
-                </Text>
-                <Text style={[styles.tableCellCompact, { flex: 1, textAlign: 'center' }]}>
-                  {(dia.rd || 0) > 0 ? `${dia.rd}` : '-'}
-                </Text>
-                <Text style={[styles.tableCellCompact, { flex: 1, textAlign: 'center' }]}>
-                  {(dia.hefd || 0) > 0 ? `${dia.hefd}` : '-'}
-                </Text>
-                <Text style={[styles.tableCellCompact, { flex: 1, textAlign: 'center' }]}>
-                  {(dia.hefn || 0) > 0 ? `${dia.hefn}` : '-'}
-                </Text>
-              </View>
-            ))}
+            {grupo.dias_laborales_unificados
+              ?.filter((dia: DiaLaboral) => {
+                const tieneRecargos =
+                  (dia.hed || 0) > 0 ||
+                  (dia.hen || 0) > 0 ||
+                  (dia.hefd || 0) > 0 ||
+                  (dia.hefn || 0) > 0 ||
+                  (dia.rn || 0) > 0 ||
+                  (dia.rd || 0) > 0;
+
+                return tieneRecargos || dia.es_domingo || dia.es_festivo;
+              })
+              .map((dia: DiaLaboral, diaIndex: number) => (
+                <View
+                  key={`${dia.id}-${index}-${diaIndex}`}
+                  style={{
+                    flexDirection: "row",
+                    padding: 3,
+                    borderBottom: "1px solid #eee",
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.tableCellCompact,
+                      { flex: 1, textAlign: "center" },
+                    ]}
+                  >
+                    {dia.dia}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.tableCellCompact,
+                      { flex: 1, textAlign: "center" },
+                    ]}
+                  >
+                    {formatearHora(dia.hora_inicio)}-
+                    {formatearHora(dia.hora_fin)}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.tableCellCompact,
+                      { flex: 1, textAlign: "center" },
+                    ]}
+                  >
+                    {dia.total_horas}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.tableCellCompact,
+                      { flex: 1, textAlign: "center" },
+                    ]}
+                  >
+                    {(dia.hed || 0) !== 0 ? `${dia.hed}` : "-"}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.tableCellCompact,
+                      { flex: 1, textAlign: "center" },
+                    ]}
+                  >
+                    {(dia.rn || 0) !== 0 ? `${dia.rn}` : "-"}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.tableCellCompact,
+                      { flex: 1, textAlign: "center" },
+                    ]}
+                  >
+                    {(dia.hen || 0) !== 0 ? `${dia.hen}` : "-"}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.tableCellCompact,
+                      { flex: 1, textAlign: "center" },
+                    ]}
+                  >
+                    {(dia.rd || 0) !== 0 ? `${dia.rd}` : "-"}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.tableCellCompact,
+                      { flex: 1, textAlign: "center" },
+                    ]}
+                  >
+                    {(dia.hefd || 0) !== 0 ? `${dia.hefd}` : "-"}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.tableCellCompact,
+                      { flex: 1, textAlign: "center" },
+                    ]}
+                  >
+                    {(dia.hefn || 0) !== 0 ? `${dia.hefn}` : "-"}
+                  </Text>
+                </View>
+              ))}
           </View>
 
           {/* Totales de días */}
           <View style={{ backgroundColor: "#2E8B5715", padding: 4 }}>
-            <Text style={{ fontWeight: "bold", fontSize: 11, color: "#2E8B57", textAlign: "center" }}>
+            <Text
+              style={{
+                fontWeight: "bold",
+                fontSize: 11,
+                color: "#2E8B57",
+                textAlign: "center",
+              }}
+            >
               TOTALES CONSOLIDADOS
             </Text>
           </View>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", padding: 4 }}>
-            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>{grupo.totales.total_dias}</Text>
-            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>-</Text>
-            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>{grupo.totales.total_horas}</Text>
-            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>{grupo.totales.total_hed}</Text>
-            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>{grupo.totales.total_rn}</Text>
-            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>{grupo.totales.total_hen}</Text>
-            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>{grupo.totales.total_rd}</Text>
-            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>{grupo.totales.total_hefd}</Text>
-            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>{grupo.totales.total_hefn}</Text>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              padding: 4,
+            }}
+          >
+            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>
+              {grupo.totales.total_dias}
+            </Text>
+            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>
+              -
+            </Text>
+            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>
+              {grupo.totales.total_horas}
+            </Text>
+            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>
+              {grupo.totales.total_hed}
+            </Text>
+            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>
+              {grupo.totales.total_rn}
+            </Text>
+            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>
+              {grupo.totales.total_hen}
+            </Text>
+            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>
+              {grupo.totales.total_rd}
+            </Text>
+            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>
+              {grupo.totales.total_hefd}
+            </Text>
+            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>
+              {grupo.totales.total_hefn}
+            </Text>
           </View>
 
           {/* Tabla de tipos de recargos */}
           {grupo.tipos_recargos_consolidados.length > 0 && (
             <View style={{ marginTop: 8, borderTop: "1px solid #ddd" }}>
               {/* Header */}
-              <View style={{ flexDirection: "row", backgroundColor: "#2E8B5715", padding: 6 }}>
-                <View style={{ width: "35%", paddingHorizontal: 3 }}>
-                  <Text style={{ color: "#2E8B57", fontSize: 9, fontWeight: "bold", textTransform: "uppercase" }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  backgroundColor: "#2E8B5715",
+                  padding: 6,
+                }}
+              >
+                <View style={{ width: "40%", paddingHorizontal: 3 }}>
+                  <Text
+                    style={{
+                      color: "#2E8B57",
+                      fontSize: 9,
+                      fontWeight: "bold",
+                      textTransform: "uppercase",
+                    }}
+                  >
                     TIPO RECARGO
                   </Text>
                 </View>
                 <View style={{ width: "10%", paddingHorizontal: 3 }}>
-                  <Text style={{ color: "#2E8B57", fontSize: 9, fontWeight: "bold", textAlign: "center" }}>
+                  <Text
+                    style={{
+                      color: "#2E8B57",
+                      fontSize: 9,
+                      fontWeight: "bold",
+                      textAlign: "center",
+                    }}
+                  >
                     %
                   </Text>
                 </View>
-                <View style={{ width: "15%", paddingHorizontal: 3 }}>
-                  <Text style={{ color: "#2E8B57", fontSize: 9, fontWeight: "bold", textAlign: "center" }}>
+                <View style={{ width: "10%", paddingHorizontal: 3 }}>
+                  <Text
+                    style={{
+                      color: "#2E8B57",
+                      fontSize: 9,
+                      fontWeight: "bold",
+                      textAlign: "center",
+                    }}
+                  >
                     V/BASE
                   </Text>
                 </View>
                 <View style={{ width: "15%", paddingHorizontal: 3 }}>
-                  <Text style={{ color: "#2E8B57", fontSize: 9, fontWeight: "bold", textAlign: "center" }}>
+                  <Text
+                    style={{
+                      color: "#2E8B57",
+                      fontSize: 9,
+                      fontWeight: "bold",
+                      textAlign: "center",
+                    }}
+                  >
                     V/+ %
                   </Text>
                 </View>
                 <View style={{ width: "15%", paddingHorizontal: 3 }}>
-                  <Text style={{ color: "#2E8B57", fontSize: 9, fontWeight: "bold", textAlign: "center" }}>
+                  <Text
+                    style={{
+                      color: "#2E8B57",
+                      fontSize: 9,
+                      fontWeight: "bold",
+                      textAlign: "center",
+                    }}
+                  >
                     CANTIDAD
                   </Text>
                 </View>
                 <View style={{ width: "10%", paddingHorizontal: 3 }}>
-                  <Text style={{ color: "#2E8B57", fontSize: 9, fontWeight: "bold", textAlign: "center" }}>
+                  <Text
+                    style={{
+                      color: "#2E8B57",
+                      fontSize: 9,
+                      fontWeight: "bold",
+                      textAlign: "center",
+                    }}
+                  >
                     TOTAL
                   </Text>
                 </View>
               </View>
 
               {/* Filas de recargos */}
-              {grupo.tipos_recargos_consolidados.map((tipo, tipoIndex) => {
-                return (
-                  <View key={tipo.codigo} style={{
-                    flexDirection: "row",
-                    padding: 4,
-                    borderBottom: tipoIndex !== grupo.tipos_recargos_consolidados.length - 1 ? "1px solid #eee" : "none",
-                    fontSize: 8,
-                  }}>
-                    <View style={{ width: "35%", paddingHorizontal: 3 }}>
-                      <Text style={{ fontSize: 8 }}>
-                        {tipo.nombre.toUpperCase()}
-                        {tipo.codigo !== "BONO_FESTIVO" && (
-                          <Text style={{ color: "#007AFF" }}> - {tipo.codigo}</Text>
-                        )}
-                      </Text>
+              {grupo.tipos_recargos_consolidados.map(
+                (tipo: TipoRecargo, tipoIndex: number) => {
+                  return (
+                    <View
+                      key={tipo.codigo}
+                      style={{
+                        flexDirection: "row",
+                        padding: 4,
+                        borderBottom:
+                          tipoIndex !==
+                            grupo.tipos_recargos_consolidados.length - 1
+                            ? "1px solid #eee"
+                            : "none",
+                        fontSize: 8,
+                      }}
+                    >
+                      <View style={{ width: "40%", paddingHorizontal: 3 }}>
+                        <Text style={{ fontSize: 8 }}>
+                          {tipo.nombre.toUpperCase()}
+                          {tipo.codigo !== "BONO_FESTIVO" && (
+                            <Text style={{ color: "#007AFF" }}>
+                              {" "}
+                              - {tipo.codigo}
+                            </Text>
+                          )}
+                        </Text>
+                      </View>
+                      <View style={{ width: "10%", paddingHorizontal: 3 }}>
+                        <Text style={{ textAlign: "center", fontSize: 8 }}>
+                          {tipo.porcentaje}%
+                        </Text>
+                      </View>
+                      <View style={{ width: "10%", paddingHorizontal: 3 }}>
+                        <Text
+                          style={{
+                            textAlign: "center",
+                            fontSize: 8,
+                            color: "#666",
+                          }}
+                        >
+                          ${Math.round(tipo.valor_hora_base).toLocaleString()}
+                        </Text>
+                      </View>
+                      <View style={{ width: "15%", paddingHorizontal: 3 }}>
+                        <Text
+                          style={{
+                            textAlign: "center",
+                            fontSize: 8,
+                            fontWeight: "bold",
+                            color: "#2E8B57",
+                          }}
+                        >
+                          $
+                          {Math.round(
+                            tipo.valor_hora_con_recargo,
+                          ).toLocaleString()}
+                        </Text>
+                      </View>
+                      <View style={{ width: "15%", paddingHorizontal: 3 }}>
+                        <Text style={{ textAlign: "center", fontSize: 8 }}>
+                          {tipo.horas}
+                        </Text>
+                      </View>
+                      <View style={{ width: "10%", paddingHorizontal: 3 }}>
+                        <Text
+                          style={{
+                            textAlign: "center",
+                            fontSize: 8,
+                            fontWeight: "bold",
+                          }}
+                        >
+                          ${Math.round(tipo.valor_calculado).toLocaleString()}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={{ width: "10%", paddingHorizontal: 3 }}>
-                      <Text style={{ textAlign: "center", fontSize: 8 }}>
-                        {tipo.porcentaje}%
-                      </Text>
-                    </View>
-                    <View style={{ width: "15%", paddingHorizontal: 3 }}>
-                      <Text style={{ textAlign: "center", fontSize: 8, color: "#666" }}>
-                        ${Math.round(tipo.valor_hora_base).toLocaleString()}
-                      </Text>
-                    </View>
-                    <View style={{ width: "15%", paddingHorizontal: 3 }}>
-                      <Text style={{ textAlign: "center", fontSize: 8, fontWeight: "bold", color: "#2E8B57" }}>
-                        ${Math.round(tipo.valor_hora_con_recargo).toLocaleString()}
-                      </Text>
-                    </View>
-                    <View style={{ width: "15%", paddingHorizontal: 3 }}>
-                      <Text style={{ textAlign: "center", fontSize: 8 }}>
-                        {tipo.horas}
-                      </Text>
-                    </View>
-                    <View style={{ width: "10%", paddingHorizontal: 3 }}>
-                      <Text style={{ textAlign: "center", fontSize: 8, fontWeight: "bold" }}>
-                        ${Math.round(tipo.valor_calculado).toLocaleString()}
-                      </Text>
-                    </View>
-                  </View>
-                );
-              })}
+                  );
+                },
+              )}
 
               {/* Total */}
-              <View style={{ flexDirection: "row", padding: 4, backgroundColor: "#2E8B57" }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  padding: 4,
+                  backgroundColor: "#2E8B57",
+                }}
+              >
                 <View style={{ width: "90%", paddingHorizontal: 3 }}>
-                  <Text style={{ color: "white", fontSize: 9, fontWeight: "bold" }}>TOTALES</Text>
+                  <Text
+                    style={{ color: "white", fontSize: 9, fontWeight: "bold" }}
+                  >
+                    TOTALES
+                  </Text>
                 </View>
                 <View style={{ width: "10%", paddingHorizontal: 3 }}>
-                  <Text style={{ color: "white", fontSize: 8, textAlign: "center", fontWeight: "bold" }}>
+                  <Text
+                    style={{
+                      color: "white",
+                      fontSize: 8,
+                      textAlign: "center",
+                      fontWeight: "bold",
+                    }}
+                  >
                     ${Math.round(grupo.totales.valor_total).toLocaleString()}
                   </Text>
                 </View>
@@ -673,56 +1038,52 @@ const PaginaRecargos = ({ grupos, numeroPagina, totalPaginas }) => (
   </Page>
 );
 
-const agruparRecargos = (recargos, configuraciones_salario) => {
-  console.log('\n=== INICIANDO AGRUPACIÓN DE RECARGOS ===');
-  console.log('Total de recargos a procesar:', recargos.length);
-
+const agruparRecargos = (
+  recargos: RecargoPlanilla[],
+  configuraciones_salario: ConfiguracionSalario[],
+) => {
   const grupos = {};
 
   // Función auxiliar para crear clave única
-  const crearClave = (recargo) =>
+  const crearClave = (recargo: RecargoPlanilla) =>
     `${recargo.vehiculo.placa}-${recargo.mes}-${recargo.año}-${recargo.empresa.nit}`;
 
   // Función auxiliar para obtener configuración salarial
-  const obtenerConfiguracion = (empresaId) => {
+  const obtenerConfiguracion = (empresaId: string) => {
     if (!configuraciones_salario) {
       console.warn("No hay configuraciones de salario disponibles");
+
       return null;
     }
 
     // Buscar configuración específica de la empresa
-    const configEmpresa = configuraciones_salario.find(config =>
-      config.empresa_id === empresaId && config.activo === true
+    const configEmpresa = configuraciones_salario.find(
+      (config: ConfiguracionSalario) =>
+        config.empresa_id === empresaId && config.activo === true,
     );
 
     if (configEmpresa) {
-      console.log(`Configuración específica encontrada para empresa ${empresaId}`);
       return configEmpresa;
     }
 
     // Buscar configuración base del sistema
-    const configBase = configuraciones_salario.find(config =>
-      config.empresa_id === null && config.activo === true
+    const configBase = configuraciones_salario.find(
+      (config: ConfiguracionSalario) =>
+        config.empresa_id === null && config.activo === true,
     );
 
     if (configBase) {
-      console.log(`Usando configuración base del sistema para empresa ${empresaId}`);
       return configBase;
     }
 
-    console.warn(`No se encontró configuración para empresa ${empresaId}`);
     return null;
   };
 
   // Función auxiliar para inicializar grupo
-  const inicializarGrupo = (recargo) => {
-    console.log(`\n--- INICIALIZANDO GRUPO ---`);
-    console.log(`Clave: ${crearClave(recargo)}`);
-    console.log(`Empresa: ${recargo.empresa.nombre}`);
-    console.log(`Vehículo: ${recargo.vehiculo.placa}`);
-    console.log(`Período: ${recargo.mes}/${recargo.año}`);
-
+  const inicializarGrupo = (recargo: RecargoPlanilla) => {
     const configuracion = obtenerConfiguracion(recargo.empresa.id);
+
+    if (!configuracion) return;
 
     const grupo = {
       vehiculo: recargo.vehiculo,
@@ -731,7 +1092,8 @@ const agruparRecargos = (recargos, configuraciones_salario) => {
       empresa: recargo.empresa,
       recargos: [],
       configuracion_salarial: configuracion,
-      valor_hora_base: configuracion?.salario_basico / configuracion?.horas_mensuales_base || 0,
+      valor_hora_base:
+        configuracion.salario_basico / configuracion.horas_mensuales_base || 0,
       totales: {
         total_dias: 0,
         total_horas: 0,
@@ -743,184 +1105,149 @@ const agruparRecargos = (recargos, configuraciones_salario) => {
         total_hefn: 0,
         valor_total: 0,
         total_dias_festivos: 0,
-        total_dias_domingos: 0
+        total_dias_domingos: 0,
       },
       dias_laborales_unificados: [],
-      tipos_recargos_consolidados: []
+      tipos_recargos_consolidados: [],
     };
-
-    if (configuracion) {
-      console.log('--- CONFIGURACIÓN SALARIAL ENCONTRADA ---');
-      console.log('Salario básico:', configuracion.salario_basico);
-      console.log('Valor hora trabajador:', configuracion.salario_basico / configuracion.horas_mensuales_base);
-      console.log('Paga días festivos:', configuracion.paga_dias_festivos);
-    }
 
     return grupo;
   };
 
   // Función auxiliar para procesar día laboral
-  const procesarDiaLaboral = (grupo, dia, recargoIndex) => {
-    console.log(`\n  --- PROCESANDO DÍA LABORAL (Recargo ${recargoIndex + 1}) ---`);
-    console.log(`  Fecha: ${dia.dia}`);
-    console.log(`  Es festivo: ${dia.es_festivo}`);
-    console.log(`  Es domingo: ${dia.es_domingo}`);
-    console.log(`  Total horas: ${dia.total_horas}`);
-
+  const procesarDiaLaboral = (grupo: GrupoRecargo, dia: DiaLaboral) => {
     // Contar días especiales
     if (dia.es_festivo) {
       grupo.totales.total_dias_festivos++;
-      console.log(`  ✓ Día festivo contado. Total festivos: ${grupo.totales.total_dias_festivos}`);
     }
     if (dia.es_domingo) {
       grupo.totales.total_dias_domingos++;
-      console.log(`  ✓ Día domingo contado. Total domingos: ${grupo.totales.total_dias_domingos}`);
     }
 
     // Buscar si ya existe un día con la misma fecha
-    const diaExistente = grupo.dias_laborales_unificados.find(d => d.dia === dia.dia);
+    const diaExistente = grupo.dias_laborales_unificados.find(
+      (d) => d.dia === dia.dia,
+    );
 
     if (diaExistente) {
-      console.log(`  >> Unificando con día existente`);
       // Sumar horas al día existente
-      const camposHoras = ['hed', 'rn', 'hen', 'rd', 'hefd', 'hefn', 'total_horas'];
-      camposHoras.forEach(campo => {
+      const camposHoras: CampoHoras[] = [
+        "hed",
+        "rn",
+        "hen",
+        "rd",
+        "hefd",
+        "hefn",
+        "total_horas",
+      ];
+
+      camposHoras.forEach((campo) => {
         const valorAnterior = diaExistente[campo] || 0;
         const valorNuevo = dia[campo] || 0;
         diaExistente[campo] = valorAnterior + valorNuevo;
-        if (valorNuevo > 0) {
-          console.log(`    ${campo}: ${valorAnterior} + ${valorNuevo} = ${diaExistente[campo]}`);
-        }
       });
     } else {
-      console.log(`  >> Agregando nuevo día`);
       // Agregar nuevo día con valores por defecto
-      const nuevoDia = {
+      const nuevoDia: DiaLaboral = {
         ...dia,
         hed: dia.hed || 0,
         rn: dia.rn || 0,
         hen: dia.hen || 0,
         rd: dia.rd || 0,
         hefd: dia.hefd || 0,
-        hefn: dia.hefn || 0
+        hefn: dia.hefn || 0,
       };
+
       grupo.dias_laborales_unificados.push(nuevoDia);
-
-      // Mostrar horas del nuevo día
-      const camposConHoras = Object.entries(nuevoDia)
-        .filter(([key, value]) => ['hed', 'rn', 'hen', 'rd', 'hefd', 'hefn'].includes(key) && value > 0)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join(', ');
-
-      if (camposConHoras) {
-        console.log(`    Horas: ${camposConHoras}`);
-      }
     }
   };
 
   // Función auxiliar para calcular valor por hora con recargo
-  const calcularValorRecargo = (valorBase, porcentaje, horas, esAdicional, esValorFijo = false, valorFijo = 0) => {
-    console.log(`    --- CALCULANDO VALOR RECARGO ---`);
-    console.log(`    Valor base por hora: ${valorBase}`);
-    console.log(`    Horas: ${horas}`);
-    console.log(`    Porcentaje: ${porcentaje}%`);
-    console.log(`    Es adicional: ${esAdicional}`);
-    console.log(`    Es valor fijo: ${esValorFijo}`);
-
+  const calcularValorRecargo = (
+    valorBase: number,
+    porcentaje: number,
+    horas: number,
+    esAdicional: boolean,
+    esValorFijo = false,
+    valorFijo = 0,
+  ) => {
     if (esValorFijo && valorFijo > 0) {
-      console.log(`    >>> MODO VALOR FIJO <<<`);
-      console.log(`    Valor fijo configurado: ${valorFijo}`);
       const valorFijoRedondeado = Number(valorFijo);
-      console.log(`    Valor fijo redondeado: ${valorFijoRedondeado}`);
+
       return valorFijoRedondeado;
     }
-
-    console.log(`    >>> MODO PORCENTAJE <<<`);
 
     let valorHoraConRecargo;
     let valorTotal;
 
     if (esAdicional) {
-      console.log(`    -- Calculando como ADICIONAL --`);
       // MODO ADICIONAL: valor_hora * (1 + porcentaje/100)
       valorHoraConRecargo = valorBase * (1 + porcentaje / 100);
-      console.log(`    Valor hora con recargo (antes de redondeo): ${valorHoraConRecargo}`);
 
       // Redondear el valor por hora
       valorHoraConRecargo = Number(valorHoraConRecargo);
-      console.log(`    Valor hora con recargo (redondeado): ${valorHoraConRecargo}`);
-
       valorTotal = valorHoraConRecargo * horas;
-      console.log(`    Valor total: ${valorHoraConRecargo} * ${horas} = ${valorTotal}`);
     } else {
-      console.log(`    -- Calculando como MULTIPLICATIVO --`);
       // MODO MULTIPLICATIVO: valor_hora * (porcentaje/100)
       valorHoraConRecargo = valorBase * (porcentaje / 100);
-      console.log(`    Valor hora con recargo (antes de redondeo): ${valorHoraConRecargo}`);
 
       // Redondear el valor por hora
       valorHoraConRecargo = Number(valorHoraConRecargo);
-      console.log(`    Valor hora con recargo (redondeado): ${valorHoraConRecargo}`);
 
       valorTotal = valorHoraConRecargo * horas;
-      console.log(`    Valor total: ${valorHoraConRecargo} * ${horas} = ${valorTotal}`);
     }
 
     // Redondear también el valor total
     valorTotal = Number(valorTotal);
-    console.log(`    ✓ Resultado final (redondeado): ${valorTotal}`);
+
     return { valorTotal, valorHoraConRecargo };
   };
 
   // Función auxiliar para consolidar tipos de recargos
-  const consolidarTipoRecargo = (grupo, tipo, diaIndex) => {
-    console.log(`\n    >> CONSOLIDANDO TIPO DE RECARGO: ${tipo.codigo} - ${tipo.nombre}`);
-    console.log(`       Día: ${diaIndex + 1}`);
-    console.log(`       Porcentaje: ${tipo.porcentaje}%`);
-    console.log(`       Horas: ${tipo.horas}`);
-    console.log(`       Es adicional: ${tipo.adicional}`);
-
+  const consolidarTipoRecargo = (grupo: GrupoRecargo, tipo: TipoRecargo) => {
     const configSalarial = grupo.configuracion_salarial;
     const pagaDiasFestivos = configSalarial?.paga_dias_festivos || false;
 
     // Excluir recargos dominicales si la configuración paga días festivos
-    if (pagaDiasFestivos && tipo.codigo === 'RD') {
-      console.log(`       ⚠️ EXCLUIDO: La configuración paga días festivos, saltando RD`);
+    if (pagaDiasFestivos && tipo.codigo === "RD") {
       return; // Saltar este tipo de recargo
     }
 
-    const tipoExistente = grupo.tipos_recargos_consolidados.find(t => t.codigo === tipo.codigo);
+    const tipoExistente = grupo.tipos_recargos_consolidados.find(
+      (t: TipoRecargoConsolidado) => t.codigo === tipo.codigo,
+    );
+
     const valorHoraBase = grupo.valor_hora_base;
-    const porcentaje = parseFloat(tipo.porcentaje) || 0;
-    const horas = parseFloat(tipo.horas) || 0;
+    const porcentaje = tipo.porcentaje || 0;
+    const horas = tipo.horas || 0;
     const esAdicional = tipo.adicional || false;
 
-    if (horas <= 0) {
-      console.log(`       ⚠️ Sin horas válidas para ${tipo.codigo}. Saltando...`);
-      return;
-    }
-
-    const resultado = calcularValorRecargo(valorHoraBase, porcentaje, horas, esAdicional);
+    const resultado = calcularValorRecargo(
+      valorHoraBase,
+      porcentaje,
+      horas,
+      esAdicional,
+    );
 
     if (tipoExistente) {
-      console.log(`       >> ACTUALIZANDO TIPO EXISTENTE`);
-      console.log(`       Horas anteriores: ${tipoExistente.horas}`);
-
       // Sumar horas y recalcular total
       tipoExistente.horas += horas;
-      console.log(`       Horas nuevas: ${tipoExistente.horas}`);
 
       // Recalcular el valor total con las nuevas horas
-      const nuevoResultado = calcularValorRecargo(valorHoraBase, porcentaje, tipoExistente.horas, esAdicional);
+      const nuevoResultado = calcularValorRecargo(
+        valorHoraBase,
+        porcentaje,
+        tipoExistente.horas,
+        esAdicional,
+      );
+
       tipoExistente.valor_calculado = nuevoResultado.valorTotal;
       tipoExistente.valor_hora_con_recargo = nuevoResultado.valorHoraConRecargo;
-      tipoExistente.es_adicional = esAdicional;
-
-      console.log(`       ✓ Valor recalculado: ${tipoExistente.valor_calculado}`);
+      tipoExistente.adicional = esAdicional;
     } else {
-      console.log(`       >> CREANDO NUEVO TIPO DE RECARGO`);
       // Crear nuevo tipo de recargo
-      const nuevoTipo = {
+      const nuevoTipo: TipoRecargoConsolidado = {
+        ...tipo, // Spread todas las propiedades del tipo original
         codigo: tipo.codigo,
         nombre: tipo.nombre,
         porcentaje: porcentaje,
@@ -928,126 +1255,120 @@ const agruparRecargos = (recargos, configuraciones_salario) => {
         valor_calculado: resultado.valorTotal,
         valor_hora_base: valorHoraBase,
         valor_hora_con_recargo: resultado.valorHoraConRecargo,
-        es_adicional: esAdicional
+        adicional: esAdicional,
       };
 
       grupo.tipos_recargos_consolidados.push(nuevoTipo);
-      console.log(`       ✓ Tipo agregado: ${nuevoTipo.valor_calculado}`);
     }
   };
 
   // Función auxiliar para agregar bono festivo
-  const agregarBonoFestivo = (grupo) => {
+  const agregarBonoFestivo = (grupo: GrupoRecargo) => {
     const configSalarial = grupo.configuracion_salarial;
-    const totalDiasEspeciales = grupo.totales.total_dias_festivos + grupo.totales.total_dias_domingos;
+    const totalDiasEspeciales =
+      grupo.totales.total_dias_festivos + grupo.totales.total_dias_domingos;
 
     if (!configSalarial?.paga_dias_festivos || totalDiasEspeciales === 0) {
       return;
     }
 
-    console.log(`\n--- AGREGANDO BONO FESTIVO ---`);
-    console.log(`Total días festivos: ${grupo.totales.total_dias_festivos}`);
-    console.log(`Total días domingos: ${grupo.totales.total_dias_domingos}`);
-    console.log(`Total días especiales: ${totalDiasEspeciales}`);
-
-    const salarioBasico = parseFloat(configSalarial.salario_basico) || 0;
-    const porcentajeFestivos = parseFloat(configSalarial.porcentaje_festivos) || 0;
-
-    console.log(`Salario básico: ${salarioBasico}`);
-    console.log(`Porcentaje festivos: ${porcentajeFestivos}%`);
+    const salarioBasico = parseFloat(configSalarial.salario_basico.toString()) || 0;
+    const porcentajeFestivos =
+      parseFloat(configSalarial.porcentaje_festivos?.toString() || '0') || 0;
 
     const valorDiarioBase = salarioBasico / 30;
-    console.log(`Valor diario base (salario/30): ${valorDiarioBase}`);
 
     // FÓRMULA: valorDiarioBase * (porcentaje/100)
-    const valorDiarioConRecargoTemp = valorDiarioBase * (porcentajeFestivos / 100);
-    console.log(`Valor diario con recargo (antes de redondeo): ${valorDiarioConRecargoTemp}`);
+    const valorDiarioConRecargoTemp =
+      valorDiarioBase * (porcentajeFestivos / 100);
 
     // Redondear el valor diario con recargo
     const valorDiarioConRecargo = Number(valorDiarioConRecargoTemp);
-    console.log(`Valor diario con recargo (redondeado): ${valorDiarioConRecargo}`);
 
     const valorTotalDiasFestivos = totalDiasEspeciales * valorDiarioConRecargo;
-    console.log(`Valor total: ${totalDiasEspeciales} * ${valorDiarioConRecargo} = ${valorTotalDiasFestivos}`);
 
-    grupo.tipos_recargos_consolidados.push({
-      codigo: 'BONO_FESTIVO',
-      nombre: 'Bono Días Festivos/Dominicales',
+    const bonoFestivo: TipoRecargoConsolidado = {
+      id: `bono_festivo_${grupo.empresa.nit}_${grupo.mes}_${grupo.año}`,
+      codigo: "BONO_FESTIVO",
+      nombre: "Bono Días Festivos/Dominicales",
+      descripcion: "Bono por días festivos y dominicales trabajados",
+      subcategoria: "bonos",
       porcentaje: porcentajeFestivos,
+      adicional: false,
+      es_valor_fijo: false,
+      valor_fijo: null,
+      aplica_festivos: true,
+      aplica_domingos: true,
+      aplica_nocturno: null,
+      aplica_diurno: null,
+      orden_calculo: 999,
+      es_hora_extra: false,
+      requiere_horas_extras: false,
+      limite_horas_diarias: null,
+      activo: true,
+      vigencia_desde: new Date().toISOString(),
+      vigencia_hasta: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       horas: totalDiasEspeciales,
-      valor_calculado: valorTotalDiasFestivos,
       valor_hora_base: valorDiarioBase,
       valor_hora_con_recargo: valorDiarioConRecargo,
-      es_adicional: false,
-      es_bono_festivo: true
-    });
+      valor_calculado: valorTotalDiasFestivos,
+      es_bono_festivo: true,
+    };
 
-    console.log(`✓ Bono festivo agregado: ${valorTotalDiasFestivos}`);
+    grupo.tipos_recargos_consolidados.push(bonoFestivo);
   };
 
   // Función auxiliar para calcular totales finales
-  const calcularTotalesFinales = (grupo) => {
-    console.log(`\n--- CALCULANDO TOTALES FINALES ---`);
-    console.log(`Grupo: ${grupo.empresa.nombre} - ${grupo.vehiculo.placa}`);
-
+  const calcularTotalesFinales = (grupo: GrupoRecargo) => {
     const configSalarial = grupo.configuracion_salarial;
     const pagaDiasFestivos = configSalarial?.paga_dias_festivos || false;
 
     // Calcular totales de horas por tipo
-    const campos = ['hed', 'rn', 'hen', 'hefd', 'hefn'];
-    campos.forEach(campo => {
-      const total = grupo.dias_laborales_unificados.reduce((sum, dia) => sum + (dia[campo] || 0), 0);
-      grupo.totales[`total_${campo}`] = total;
-      if (total > 0) {
-        console.log(`Total ${campo}: ${total} horas`);
-      }
+    const campos: CampoTotal[] = ["hed", "rn", "hen", "hefd", "hefn"];
+
+    campos.forEach((campo) => {
+      const total = grupo.dias_laborales_unificados.reduce(
+        (sum: number, dia: DiaLaboral) => sum + (dia[campo] || 0),
+        0,
+      );
+
+      // Usar key assertion para acceso dinámico a propiedades
+      (grupo.totales as any)[`total_${campo}`] = total;
     });
 
     // Solo sumar RD si NO se pagan días festivos
-    grupo.totales.total_rd = pagaDiasFestivos ? 0 :
-      grupo.dias_laborales_unificados.reduce((sum, dia) => sum + (dia.rd || 0), 0);
-
-    if (grupo.totales.total_rd > 0) {
-      console.log(`Total rd: ${grupo.totales.total_rd} horas`);
-    } else if (pagaDiasFestivos) {
-      console.log(`Total rd: 0 horas (excluido por configuración de días festivos)`);
-    }
+    grupo.totales.total_rd = pagaDiasFestivos
+      ? 0
+      : grupo.dias_laborales_unificados.reduce(
+        (sum: number, dia: DiaLaboral) => sum + (dia.rd || 0),
+        0,
+      );
 
     // Agregar bono festivo si aplica
     agregarBonoFestivo(grupo);
 
     // Calcular valor total
-    const valorAnterior = grupo.totales.valor_total;
-    grupo.totales.valor_total = grupo.tipos_recargos_consolidados
-      .reduce((sum, tipo) => sum + tipo.valor_calculado, 0);
-
-    console.log(`\n--- RESUMEN DE RECARGOS ---`);
-    grupo.tipos_recargos_consolidados.forEach((tipo, index) => {
-      console.log(`${index + 1}. ${tipo.codigo}: ${tipo.horas}h × $${tipo.valor_hora_con_recargo.toFixed(2)} = $${tipo.valor_calculado.toFixed(2)}`);
-    });
-
-    console.log(`\n=== VALOR TOTAL DEL GRUPO: $${grupo.totales.valor_total.toFixed(2)} ===`);
+    grupo.totales.valor_total = grupo.tipos_recargos_consolidados.reduce(
+      (sum: number, tipo: TipoRecargoConsolidado) => sum + tipo.valor_calculado,
+      0,
+    );
 
     // Ordenar resultados
-    grupo.dias_laborales_unificados.sort((a, b) => new Date(a.dia) - new Date(b.dia));
+    grupo.dias_laborales_unificados.sort(
+      (a, b) => new Date(a.dia).getTime() - new Date(b.dia).getTime(),
+    );
+
     grupo.tipos_recargos_consolidados.sort((a, b) => {
       if (a.es_bono_festivo) return 1;
       if (b.es_bono_festivo) return -1;
+
       return a.porcentaje - b.porcentaje;
     });
   };
-
-  // PROCESO PRINCIPAL
-  console.log('\n--- INICIANDO PROCESAMIENTO ---');
-
-  recargos.forEach((recargo, recargoIndex) => {
-    console.log(`\n=== PROCESANDO RECARGO ${recargoIndex + 1}/${recargos.length} ===`);
-    console.log(`ID: ${recargo.id}`);
-    console.log(`Empresa: ${recargo.empresa.nombre}`);
-    console.log(`Vehículo: ${recargo.vehiculo.placa}`);
-    console.log(`Total días: ${recargo.total_dias}`);
-    console.log(`Total horas: ${recargo.total_horas}`);
-
+  
+  recargos.forEach((recargo: RecargoPlanilla, recargoIndex: number) => {
     const clave = crearClave(recargo);
 
     // Crear grupo si no existe
@@ -1064,36 +1385,25 @@ const agruparRecargos = (recargos, configuraciones_salario) => {
 
     // Procesar días laborales
     if (recargo.dias_laborales && recargo.dias_laborales.length > 0) {
-      console.log(`\n--- PROCESANDO ${recargo.dias_laborales.length} DÍAS LABORALES ---`);
-
-      recargo.dias_laborales.forEach((dia, diaIndex) => {
-        procesarDiaLaboral(grupos[clave], dia, recargoIndex);
+      recargo.dias_laborales.forEach((dia: DiaLaboral) => {
+        procesarDiaLaboral(grupos[clave], dia);
 
         // Procesar tipos de recargos del día
         if (dia.tipos_recargos && dia.tipos_recargos.length > 0) {
-          console.log(`\n  --- PROCESANDO ${dia.tipos_recargos.length} TIPOS DE RECARGOS DEL DÍA ---`);
-          dia.tipos_recargos.forEach(tipo => {
-            consolidarTipoRecargo(grupos[clave], tipo, diaIndex);
+          dia.tipos_recargos.forEach((tipo) => {
+            consolidarTipoRecargo(grupos[clave], tipo);
           });
         }
       });
-    } else {
-      console.log(`⚠️ Sin días laborales para procesar`);
     }
   });
 
-  console.log('\n=== CALCULANDO TOTALES FINALES PARA TODOS LOS GRUPOS ===');
-
   // Calcular totales finales para cada grupo
   Object.values(grupos).forEach((grupo, index) => {
-    console.log(`\n--- GRUPO ${index + 1}/${Object.keys(grupos).length} ---`);
     calcularTotalesFinales(grupo);
   });
 
   const resultado = Object.values(grupos);
-  console.log(`\n=== AGRUPACIÓN COMPLETADA ===`);
-  console.log(`Total de grupos generados: ${resultado.length}`);
-  console.log(`==============================\n`);
 
   return resultado;
 };
@@ -1120,7 +1430,13 @@ export const LiquidacionPDF = ({
       {/* PÁGINA 1: DESPRENDIBLE DE NÓMINA */}
       <Page size="A4" style={styles.page}>
         {/* Header */}
-        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 20,
+          }}
+        >
           <View style={{ gap: 2 }}>
             <Text style={styles.header}>
               TRANSPORTES Y SERVICIOS ESMERALDA S.A.S ZOMAC
@@ -1148,16 +1464,21 @@ export const LiquidacionPDF = ({
         {/* Datos del empleado */}
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.flex]}>
-            <View><Text style={styles.labelText}>Nombre</Text></View>
+            <View>
+              <Text style={styles.labelText}>Nombre</Text>
+            </View>
             <View>
               <Text style={styles.valueText}>
-                {safeValue(item.conductor?.nombre)} {safeValue(item.conductor?.apellido)}
+                {safeValue(item.conductor?.nombre)}{" "}
+                {safeValue(item.conductor?.apellido)}
               </Text>
             </View>
           </View>
 
           <View style={[styles.tableRow, styles.flex]}>
-            <View><Text style={styles.labelText}>C.C.</Text></View>
+            <View>
+              <Text style={styles.labelText}>C.C.</Text>
+            </View>
             <View>
               <Text style={styles.valueText}>
                 {safeValue(item.conductor?.numero_identificacion)}
@@ -1166,7 +1487,9 @@ export const LiquidacionPDF = ({
           </View>
 
           <View style={[styles.tableRow, styles.flex]}>
-            <View><Text style={styles.labelText}>Días laborados</Text></View>
+            <View>
+              <Text style={styles.labelText}>Días laborados</Text>
+            </View>
             <View>
               <Text style={styles.valueText}>
                 {safeValue(item.dias_laborados, "0")}
@@ -1175,7 +1498,9 @@ export const LiquidacionPDF = ({
           </View>
 
           <View style={[styles.tableRow, styles.flex]}>
-            <View><Text style={styles.labelText}>Salario devengado</Text></View>
+            <View>
+              <Text style={styles.labelText}>Salario devengado</Text>
+            </View>
             <View>
               <Text style={styles.blueValue}>
                 {formatToCOP(safeValue(item.salario_devengado, "0"))}
@@ -1184,7 +1509,9 @@ export const LiquidacionPDF = ({
           </View>
 
           <View style={[styles.tableRow, styles.flex]}>
-            <View><Text style={styles.labelText}>Auxilio de transporte</Text></View>
+            <View>
+              <Text style={styles.labelText}>Auxilio de transporte</Text>
+            </View>
             <View>
               <Text style={styles.grayValue}>
                 {formatToCOP(safeValue(item.auxilio_transporte, "0"))}
@@ -1194,13 +1521,22 @@ export const LiquidacionPDF = ({
 
           {safeValue(item.valor_incapacidad, "0") > 0 && (
             <View style={[styles.tableRow, styles.flex]}>
-              <View><Text style={styles.labelText}>Remuneración por incapacidad</Text></View>
+              <View>
+                <Text style={styles.labelText}>
+                  Remuneración por incapacidad
+                </Text>
+              </View>
               <View>
                 <Text style={[styles.valueText, { marginLeft: -55 }]}>
-                  {item.periodo_start_incapacidad && item.periodo_end_incapacidad
+                  {item.periodo_start_incapacidad &&
+                    item.periodo_end_incapacidad
                     ? `${obtenerDiferenciaDias({
-                      start: toDateValue(parseDate(item.periodo_start_incapacidad)),
-                      end: toDateValue(parseDate(item.periodo_end_incapacidad)),
+                      start: toDateValue(
+                        parseDate(item.periodo_start_incapacidad),
+                      ),
+                      end: toDateValue(
+                        parseDate(item.periodo_end_incapacidad),
+                      ),
                     })} días`
                     : "-"}
                 </Text>
@@ -1214,7 +1550,9 @@ export const LiquidacionPDF = ({
           )}
 
           <View style={[styles.tableRowLast, styles.flex]}>
-            <View><Text style={styles.labelText}>Ajuste villanueva</Text></View>
+            <View>
+              <Text style={styles.labelText}>Ajuste villanueva</Text>
+            </View>
             <View>
               <Text style={styles.valueText}>
                 {safeValue(item.dias_laborados_villanueva, "0")} días
@@ -1230,23 +1568,43 @@ export const LiquidacionPDF = ({
 
         {/* Periodo */}
         <Text style={[styles.subHeaderCenter, { marginVertical: 12 }]}>
-          ADICIONALES {formatDate(item.periodo_start)} - {formatDate(item.periodo_end)}
+          ADICIONALES {formatDate(item.periodo_start)} -{" "}
+          {formatDate(item.periodo_end)}
         </Text>
 
         {/* Tabla de Conceptos (misma lógica original) */}
         <View style={styles.table}>
           <View style={styles.tableHeader}>
             <View style={styles.tableColHeader1}>
-              <Text style={[styles.labelText, { color: "#2E8B57", fontSize: 10 }]}>CONCEPTO</Text>
+              <Text
+                style={[styles.labelText, { color: "#2E8B57", fontSize: 10 }]}
+              >
+                CONCEPTO
+              </Text>
             </View>
             <View style={styles.tableColHeader2}>
-              <Text style={[styles.labelText, { color: "#2E8B57", fontSize: 10 }]}>OBSERVACIÓN</Text>
+              <Text
+                style={[styles.labelText, { color: "#2E8B57", fontSize: 10 }]}
+              >
+                OBSERVACIÓN
+              </Text>
             </View>
             <View style={styles.tableColHeader3}>
-              <Text style={[styles.labelText, { color: "#2E8B57", fontSize: 10, textAlign: "center" }]}>CANTIDAD</Text>
+              <Text
+                style={[
+                  styles.labelText,
+                  { color: "#2E8B57", fontSize: 10, textAlign: "center" },
+                ]}
+              >
+                CANTIDAD
+              </Text>
             </View>
             <View style={styles.tableColHeader4}>
-              <Text style={[styles.labelText, { color: "#2E8B57", fontSize: 10 }]}>VALOR</Text>
+              <Text
+                style={[styles.labelText, { color: "#2E8B57", fontSize: 10 }]}
+              >
+                VALOR
+              </Text>
             </View>
           </View>
 
@@ -1271,6 +1629,7 @@ export const LiquidacionPDF = ({
                       totalValue: totalQuantity * bonificacion.value,
                     };
                   }
+
                   return acc;
                 },
                 {},
@@ -1289,7 +1648,9 @@ export const LiquidacionPDF = ({
                     <Text style={styles.valueText}>{bono.quantity}</Text>
                   </View>
                   <View style={styles.tableCol4}>
-                    <Text style={styles.valueText}>{formatToCOP(bono.totalValue)}</Text>
+                    <Text style={styles.valueText}>
+                      {formatToCOP(bono.totalValue)}
+                    </Text>
                   </View>
                 </View>
               ))
@@ -1301,13 +1662,19 @@ export const LiquidacionPDF = ({
               <Text style={styles.valueText}>Recargos</Text>
             </View>
             <View style={styles.tableCol2}>
-              <Text style={[styles.valueText, { fontSize: 10 }]}>Ver recargos detallados más adelante</Text>
+              <Text style={[styles.valueText, { fontSize: 10 }]}>
+                Ver recargos detallados más adelante
+              </Text>
             </View>
             <View style={styles.tableCol3}>
-              <Text style={styles.valueText}>{recargosActualizados?.length}</Text>
+              <Text style={styles.valueText}>
+                {recargosActualizados?.length}
+              </Text>
             </View>
             <View style={styles.tableCol4}>
-              <Text style={styles.valueText}>{formatToCOP(item.total_recargos - totalRecargosParex)}</Text>
+              <Text style={styles.valueText}>
+                {formatToCOP(item.total_recargos - totalRecargosParex)}
+              </Text>
             </View>
           </View>
 
@@ -1324,7 +1691,9 @@ export const LiquidacionPDF = ({
                 <Text style={styles.valueText}>{recargosParex.length}</Text>
               </View>
               <View style={styles.tableCol4}>
-                <Text style={styles.valueText}>{formatToCOP(totalRecargosParex)}</Text>
+                <Text style={styles.valueText}>
+                  {formatToCOP(totalRecargosParex)}
+                </Text>
               </View>
             </View>
           )}
@@ -1340,15 +1709,19 @@ export const LiquidacionPDF = ({
                   {(() => {
                     try {
                       const todasLasFechas: string[] = [];
+
                       item.pernotes.forEach((pernote) => {
                         if (pernote.fechas && pernote.fechas.length > 0) {
                           todasLasFechas.push(...pernote.fechas);
                         }
                       });
                       const rangos = agruparFechasConsecutivas(todasLasFechas);
+
                       return rangos.join(", ");
                     } catch (error: any) {
-                      return error.message || "Error al recolectar fechas pernotes";
+                      return (
+                        error.message || "Error al recolectar fechas pernotes"
+                      );
                     }
                   })()}
                 </Text>
@@ -1388,7 +1761,9 @@ export const LiquidacionPDF = ({
         <Text style={styles.sectionHeader}>DEDUCCIONES</Text>
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.flex]}>
-            <View><Text style={styles.labelText}>Salud</Text></View>
+            <View>
+              <Text style={styles.labelText}>Salud</Text>
+            </View>
             <View>
               <Text style={styles.redValue}>
                 {formatToCOP(safeValue(item.salud, "0"))}
@@ -1396,12 +1771,16 @@ export const LiquidacionPDF = ({
             </View>
           </View>
 
-          <View style={
-            item.anticipos && item.anticipos.length == 0
-              ? [styles.tableRowLast, styles.flex]
-              : [styles.tableRow, styles.flex]
-          }>
-            <View><Text style={styles.labelText}>Pensión</Text></View>
+          <View
+            style={
+              item.anticipos && item.anticipos.length == 0
+                ? [styles.tableRowLast, styles.flex]
+                : [styles.tableRow, styles.flex]
+            }
+          >
+            <View>
+              <Text style={styles.labelText}>Pensión</Text>
+            </View>
             <View>
               <Text style={styles.redValue}>
                 {formatToCOP(safeValue(item.pension, "0"))}
@@ -1411,7 +1790,9 @@ export const LiquidacionPDF = ({
 
           {item.anticipos && item?.anticipos.length > 0 && (
             <View style={[styles.tableRowLast, styles.flex]}>
-              <View><Text style={styles.labelText}>Anticipos</Text></View>
+              <View>
+                <Text style={styles.labelText}>Anticipos</Text>
+              </View>
               <View>
                 <Text style={styles.redValue}>
                   {formatToCOP(safeValue(item.total_anticipos, "0"))}
@@ -1425,7 +1806,9 @@ export const LiquidacionPDF = ({
         <View style={[styles.table]}>
           {safeValue(item.total_vacaciones, "0") > 0 && (
             <View style={[styles.tableRow, styles.flex]}>
-              <View><Text style={styles.labelText}>Vacaciones</Text></View>
+              <View>
+                <Text style={styles.labelText}>Vacaciones</Text>
+              </View>
               <View>
                 <Text style={styles.valueText}>
                   {item.periodo_start_vacaciones && item.periodo_end_vacaciones
@@ -1433,7 +1816,8 @@ export const LiquidacionPDF = ({
                       start: parseDate(item.periodo_start_vacaciones),
                       end: parseDate(item.periodo_end_vacaciones),
                     })
-                    : 0} días
+                    : 0}{" "}
+                  días
                 </Text>
               </View>
               <View>
@@ -1446,7 +1830,9 @@ export const LiquidacionPDF = ({
 
           {safeValue(item.interes_cesantias, "0") > 0 && (
             <View style={[styles.tableRow, styles.flex]}>
-              <View><Text style={styles.labelText}>Interes cesantias</Text></View>
+              <View>
+                <Text style={styles.labelText}>Interes cesantias</Text>
+              </View>
               <View>
                 <Text style={styles.blueValue}>
                   {formatToCOP(safeValue(item.interes_cesantias, "0"))}
@@ -1456,7 +1842,9 @@ export const LiquidacionPDF = ({
           )}
 
           <View style={[styles.tableRowLast, styles.flex]}>
-            <View><Text style={[styles.labelText]}>Salario total</Text></View>
+            <View>
+              <Text style={[styles.labelText]}>Salario total</Text>
+            </View>
             <View>
               <Text style={styles.greenValue}>
                 {formatToCOP(safeValue(item.sueldo_total, "0"))}
@@ -1468,12 +1856,14 @@ export const LiquidacionPDF = ({
         {/* Footer Página 1 */}
         <View style={styles.footer}>
           {firmas[0]?.presignedUrl && (
-            <View style={{
-              width: 220,
-              height: 110,
-              alignItems: "center",
-              justifyContent: "center",
-            }}>
+            <View
+              style={{
+                width: 220,
+                height: 110,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <Image
                 source={firmas[0].presignedUrl}
                 style={{
@@ -1482,27 +1872,32 @@ export const LiquidacionPDF = ({
                   objectFit: "contain",
                 }}
               />
-              <View style={{
-                width: "80%",
-                height: 1,
-                backgroundColor: "#BDBDBD",
-                marginBottom: 2,
-                alignSelf: "center",
-              }} />
-              <Text style={{
-                fontSize: 10,
-                color: "#2E8B57",
-                textAlign: "center",
-                fontWeight: "bold",
-                marginTop: 4,
-                marginBottom: 7,
-              }}>
+              <View
+                style={{
+                  width: "80%",
+                  height: 1,
+                  backgroundColor: "#BDBDBD",
+                  marginBottom: 2,
+                  alignSelf: "center",
+                }}
+              />
+              <Text
+                style={{
+                  fontSize: 10,
+                  color: "#2E8B57",
+                  textAlign: "center",
+                  fontWeight: "bold",
+                  marginTop: 4,
+                  marginBottom: 7,
+                }}
+              >
                 Firma de recibido
               </Text>
             </View>
           )}
           <Text style={{ fontSize: 9, color: "#9E9E9E" }}>
-            Documento generado el {new Date().toLocaleDateString()} - Página 1 de 2
+            Documento generado el {new Date().toLocaleDateString()} - Página 1
+            de 2
           </Text>
         </View>
       </Page>
@@ -1510,7 +1905,10 @@ export const LiquidacionPDF = ({
       {(() => {
         if (!item.recargos_planilla?.recargos) return null;
 
-        const recargosAgrupados = agruparRecargos(item.recargos_planilla.recargos, item.configuraciones_salario);
+        const recargosAgrupados = agruparRecargos(
+          item.recargos_planilla.recargos,
+          item.configuraciones_salario,
+        );
         const paginasAgrupadas = agruparEnPaginas(recargosAgrupados);
 
         return paginasAgrupadas.map((gruposPagina, indicePagina) => (
@@ -1522,7 +1920,7 @@ export const LiquidacionPDF = ({
           />
         ));
       })()}
-    </Document >
+    </Document>
   );
 };
 

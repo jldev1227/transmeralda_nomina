@@ -15,6 +15,7 @@ import { useAuth } from "./AuthContext";
 import { useNotificaciones } from "@/hooks/useNotificaciones";
 import { apiClient } from "@/config/apiClient";
 import socketService from "@/services/socketServices";
+import { DiaLaboral } from "@/types";
 
 // Rutas donde NO se deben hacer peticiones de nómina
 const NOMINA_EXCLUDED_ROUTES = [
@@ -124,6 +125,80 @@ export interface Mantenimiento {
   vehiculo_id: string;
 }
 
+export interface RecargoDetallado {
+  id: string;
+  planilla: string | null;
+  conductor: Conductor;
+  vehiculo: Vehiculo;
+  empresa: Empresa;
+  total_horas: number;
+  total_dias: number;
+  total_hed: number;
+  total_hen: number;
+  total_hefd: number;
+  total_hefn: number;
+  total_rn: number;
+  total_rd: number;
+  dias_laborales: DiaLaboral[];
+}
+
+export interface RecargoResponse {
+  success: boolean;
+  data: {
+    mes: number;
+    año: number;
+    total_recargos: number;
+    recargos: RecargoDetallado;
+  };
+  message: string;
+}
+
+export interface RecargoPlanilla {
+  mes: number;
+  año: number;
+  conductor: Conductor;
+  vehiculo: Vehiculo;
+  empresa: Empresa;
+  total_recargos: number;
+  recargos: RecargoDetallado[];
+}
+
+export interface RecargoDetallado {
+  id: string;
+  numero_planilla: number;
+  conductor: Conductor;
+  vehiculo: Vehiculo;
+  empresa: Empresa;
+  total_horas: number;
+  total_dias: number;
+  total_hed: number;
+  total_hen: number;
+  total_hefd: number;
+  total_hefn: number;
+  total_rn: number;
+  total_rd: number;
+  dias_laborales: DiaLaboral[];
+}
+
+export interface ConfiguracionSalario {
+  id: string;
+  empresa_id: string | null;
+  salario_basico: number; // Viene como number del backend
+  valor_hora_trabajador: number; // Viene como number del backend
+  horas_mensuales_base: number;
+  porcentaje_festivos: number;
+  vigencia_desde: string;
+  vigencia_hasta: string | null;
+  activo: boolean;
+  paga_dias_festivos: boolean;
+  observaciones: string | null;
+  creado_por_id: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  empresa: Empresa | null;
+}
+
 export interface Liquidacion {
   id: string;
   conductor_id: string;
@@ -168,6 +243,7 @@ export interface Liquidacion {
   actualizado_por_id?: string;
   creado_por_id?: string;
   liquidado_por_id?: string;
+  recargos_planilla: RecargoPlanilla;
   creadoPor: {
     id: string;
     nombre: string;
