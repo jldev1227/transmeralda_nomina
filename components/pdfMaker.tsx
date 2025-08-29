@@ -18,6 +18,7 @@ import {
   ConfiguracionSalario,
   Empresa,
   Vehiculo,
+  RecargoDetallado,
 } from "@/context/NominaContext";
 import {
   agruparFechasConsecutivas,
@@ -401,7 +402,7 @@ type LiquidacionPDFProps = {
   firmas: any[];
 };
 
-type CampoTotal = 'hed' | 'rn' | 'hen' | 'hefd' | 'hefn';
+type CampoTotal = "hed" | "rn" | "hen" | "hefd" | "hefn";
 
 interface Totales {
   total_dias: number;
@@ -434,7 +435,7 @@ interface TipoRecargoConsolidado extends TipoRecargo {
   es_bono_festivo?: boolean;
 }
 
-type CampoHoras = 'hed' | 'rn' | 'hen' | 'rd' | 'hefd' | 'hefn' | 'total_horas';
+type CampoHoras = "hed" | "rn" | "hen" | "rd" | "hefd" | "hefn" | "total_horas";
 
 const safeValue = (value: any, defaultValue = "") => {
   return value !== undefined && value !== null ? value : defaultValue;
@@ -472,7 +473,9 @@ const calcularAlturaGrupo = (grupo: GrupoPaginas) => {
 };
 
 // Función para agrupar elementos por páginas
-const agruparEnPaginas = (recargosAgrupados: GrupoRecargo[]): GrupoRecargo[][] => {
+const agruparEnPaginas = (
+  recargosAgrupados: GrupoRecargo[],
+): GrupoRecargo[][] => {
   const paginas: GrupoRecargo[][] = [];
   let paginaActual: GrupoRecargo[] = [];
   let alturaAcumulada = 80; // Margen para título
@@ -513,7 +516,6 @@ type PaginasRecargos = {
   numeroPagina: number;
   totalPaginas: number;
 };
-
 
 // Componente de página de recargos
 const PaginaRecargos = ({
@@ -926,7 +928,7 @@ const PaginaRecargos = ({
                         padding: 4,
                         borderBottom:
                           tipoIndex !==
-                            grupo.tipos_recargos_consolidados.length - 1
+                          grupo.tipos_recargos_consolidados.length - 1
                             ? "1px solid #eee"
                             : "none",
                         fontSize: 8,
@@ -1039,10 +1041,10 @@ const PaginaRecargos = ({
 );
 
 const agruparRecargos = (
-  recargos: RecargoPlanilla[],
+  recargo: RecargoPlanilla,
   configuraciones_salario: ConfiguracionSalario[],
-) => {
-  const grupos = {};
+): GrupoRecargo[] => {
+  const grupos: any = {};
 
   // Función auxiliar para crear clave única
   const crearClave = (recargo: RecargoPlanilla) =>
@@ -1144,6 +1146,7 @@ const agruparRecargos = (
       camposHoras.forEach((campo) => {
         const valorAnterior = diaExistente[campo] || 0;
         const valorNuevo = dia[campo] || 0;
+
         diaExistente[campo] = valorAnterior + valorNuevo;
       });
     } else {
@@ -1162,6 +1165,17 @@ const agruparRecargos = (
     }
   };
 
+  interface ValorRecargo {
+    valorTotal: number;
+    valorHoraConRecargo: number;
+  }
+
+  // Función auxiliar para calcular valor por hora con recargo
+  interface ValorRecargo {
+    valorTotal: number;
+    valorHoraConRecargo: number;
+  }
+
   // Función auxiliar para calcular valor por hora con recargo
   const calcularValorRecargo = (
     valorBase: number,
@@ -1170,11 +1184,15 @@ const agruparRecargos = (
     esAdicional: boolean,
     esValorFijo = false,
     valorFijo = 0,
-  ) => {
+  ): ValorRecargo => {
     if (esValorFijo && valorFijo > 0) {
       const valorFijoRedondeado = Number(valorFijo);
+      const valorHoraConRecargo = valorFijoRedondeado / horas; // Calcular valor por hora
 
-      return valorFijoRedondeado;
+      return {
+        valorTotal: valorFijoRedondeado,
+        valorHoraConRecargo: Number(valorHoraConRecargo),
+      };
     }
 
     let valorHoraConRecargo;
@@ -1193,7 +1211,6 @@ const agruparRecargos = (
 
       // Redondear el valor por hora
       valorHoraConRecargo = Number(valorHoraConRecargo);
-
       valorTotal = valorHoraConRecargo * horas;
     }
 
@@ -1203,7 +1220,6 @@ const agruparRecargos = (
     return { valorTotal, valorHoraConRecargo };
   };
 
-  // Función auxiliar para consolidar tipos de recargos
   const consolidarTipoRecargo = (grupo: GrupoRecargo, tipo: TipoRecargo) => {
     const configSalarial = grupo.configuracion_salarial;
     const pagaDiasFestivos = configSalarial?.paga_dias_festivos || false;
@@ -1272,9 +1288,10 @@ const agruparRecargos = (
       return;
     }
 
-    const salarioBasico = parseFloat(configSalarial.salario_basico.toString()) || 0;
+    const salarioBasico =
+      parseFloat(configSalarial.salario_basico.toString()) || 0;
     const porcentajeFestivos =
-      parseFloat(configSalarial.porcentaje_festivos?.toString() || '0') || 0;
+      parseFloat(configSalarial.porcentaje_festivos?.toString() || "0") || 0;
 
     const valorDiarioBase = salarioBasico / 30;
 
@@ -1342,9 +1359,9 @@ const agruparRecargos = (
     grupo.totales.total_rd = pagaDiasFestivos
       ? 0
       : grupo.dias_laborales_unificados.reduce(
-        (sum: number, dia: DiaLaboral) => sum + (dia.rd || 0),
-        0,
-      );
+          (sum: number, dia: DiaLaboral) => sum + (dia.rd || 0),
+          0,
+        );
 
     // Agregar bono festivo si aplica
     agregarBonoFestivo(grupo);
@@ -1367,8 +1384,8 @@ const agruparRecargos = (
       return a.porcentaje - b.porcentaje;
     });
   };
-  
-  recargos.forEach((recargo: RecargoPlanilla, recargoIndex: number) => {
+
+  recargo.recargos.forEach((detalles: RecargoDetallado) => {
     const clave = crearClave(recargo);
 
     // Crear grupo si no existe
@@ -1376,16 +1393,16 @@ const agruparRecargos = (
       grupos[clave] = inicializarGrupo(recargo);
     }
 
-    // Agregar recargo al grupo
-    grupos[clave].recargos.push(recargo);
+    // Agregar detalles al grupo
+    grupos[clave].recargos.push(detalles);
 
     // Acumular totales básicos
-    grupos[clave].totales.total_dias += recargo.total_dias || 0;
-    grupos[clave].totales.total_horas += recargo.total_horas || 0;
+    grupos[clave].totales.total_dias += detalles.total_dias || 0;
+    grupos[clave].totales.total_horas += detalles.total_horas || 0;
 
     // Procesar días laborales
-    if (recargo.dias_laborales && recargo.dias_laborales.length > 0) {
-      recargo.dias_laborales.forEach((dia: DiaLaboral) => {
+    if (detalles.dias_laborales && detalles.dias_laborales.length > 0) {
+      detalles.dias_laborales.forEach((dia: DiaLaboral) => {
         procesarDiaLaboral(grupos[clave], dia);
 
         // Procesar tipos de recargos del día
@@ -1399,13 +1416,13 @@ const agruparRecargos = (
   });
 
   // Calcular totales finales para cada grupo
-  Object.values(grupos).forEach((grupo, index) => {
+  Object.values(grupos).forEach((grupo: any, index) => {
     calcularTotalesFinales(grupo);
   });
 
   const resultado = Object.values(grupos);
 
-  return resultado;
+  return resultado as GrupoRecargo[];
 };
 
 export const LiquidacionPDF = ({
@@ -1529,15 +1546,15 @@ export const LiquidacionPDF = ({
               <View>
                 <Text style={[styles.valueText, { marginLeft: -55 }]}>
                   {item.periodo_start_incapacidad &&
-                    item.periodo_end_incapacidad
+                  item.periodo_end_incapacidad
                     ? `${obtenerDiferenciaDias({
-                      start: toDateValue(
-                        parseDate(item.periodo_start_incapacidad),
-                      ),
-                      end: toDateValue(
-                        parseDate(item.periodo_end_incapacidad),
-                      ),
-                    })} días`
+                        start: toDateValue(
+                          parseDate(item.periodo_start_incapacidad),
+                        ),
+                        end: toDateValue(
+                          parseDate(item.periodo_end_incapacidad),
+                        ),
+                      })} días`
                     : "-"}
                 </Text>
               </View>
@@ -1611,49 +1628,49 @@ export const LiquidacionPDF = ({
           {/* Bonificaciones */}
           {item.bonificaciones && item.bonificaciones.length > 0
             ? Object.values(
-              item.bonificaciones.reduce(
-                (acc: BonificacionesAcc, bonificacion: Bonificacion) => {
-                  const totalQuantity = bonificacion.values.reduce(
-                    (sum: number, val: any) => sum + (val.quantity || 0),
-                    0,
-                  );
+                item.bonificaciones.reduce(
+                  (acc: BonificacionesAcc, bonificacion: Bonificacion) => {
+                    const totalQuantity = bonificacion.values.reduce(
+                      (sum: number, val: any) => sum + (val.quantity || 0),
+                      0,
+                    );
 
-                  if (acc[bonificacion.name]) {
-                    acc[bonificacion.name].quantity += totalQuantity;
-                    acc[bonificacion.name].totalValue +=
-                      totalQuantity * bonificacion.value;
-                  } else {
-                    acc[bonificacion.name] = {
-                      name: bonificacion.name,
-                      quantity: totalQuantity,
-                      totalValue: totalQuantity * bonificacion.value,
-                    };
-                  }
+                    if (acc[bonificacion.name]) {
+                      acc[bonificacion.name].quantity += totalQuantity;
+                      acc[bonificacion.name].totalValue +=
+                        totalQuantity * bonificacion.value;
+                    } else {
+                      acc[bonificacion.name] = {
+                        name: bonificacion.name,
+                        quantity: totalQuantity,
+                        totalValue: totalQuantity * bonificacion.value,
+                      };
+                    }
 
-                  return acc;
-                },
-                {},
-              ),
-            )
-              .filter((bono: any) => bono.quantity > 0)
-              .map((bono: any) => (
-                <View key={bono.name} style={styles.tableRow}>
-                  <View style={styles.tableCol1}>
-                    <Text style={styles.valueText}>{bono.name || ""}</Text>
+                    return acc;
+                  },
+                  {},
+                ),
+              )
+                .filter((bono: any) => bono.quantity > 0)
+                .map((bono: any) => (
+                  <View key={bono.name} style={styles.tableRow}>
+                    <View style={styles.tableCol1}>
+                      <Text style={styles.valueText}>{bono.name || ""}</Text>
+                    </View>
+                    <View style={styles.tableCol2}>
+                      <Text style={styles.valueText} />
+                    </View>
+                    <View style={styles.tableCol3}>
+                      <Text style={styles.valueText}>{bono.quantity}</Text>
+                    </View>
+                    <View style={styles.tableCol4}>
+                      <Text style={styles.valueText}>
+                        {formatToCOP(bono.totalValue)}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={styles.tableCol2}>
-                    <Text style={styles.valueText} />
-                  </View>
-                  <View style={styles.tableCol3}>
-                    <Text style={styles.valueText}>{bono.quantity}</Text>
-                  </View>
-                  <View style={styles.tableCol4}>
-                    <Text style={styles.valueText}>
-                      {formatToCOP(bono.totalValue)}
-                    </Text>
-                  </View>
-                </View>
-              ))
+                ))
             : null}
 
           {/* Recargos */}
@@ -1813,9 +1830,9 @@ export const LiquidacionPDF = ({
                 <Text style={styles.valueText}>
                   {item.periodo_start_vacaciones && item.periodo_end_vacaciones
                     ? obtenerDiferenciaDias({
-                      start: parseDate(item.periodo_start_vacaciones),
-                      end: parseDate(item.periodo_end_vacaciones),
-                    })
+                        start: parseDate(item.periodo_start_vacaciones),
+                        end: parseDate(item.periodo_end_vacaciones),
+                      })
                     : 0}{" "}
                   días
                 </Text>
@@ -1906,7 +1923,7 @@ export const LiquidacionPDF = ({
         if (!item.recargos_planilla?.recargos) return null;
 
         const recargosAgrupados = agruparRecargos(
-          item.recargos_planilla.recargos,
+          item.recargos_planilla,
           item.configuraciones_salario,
         );
         const paginasAgrupadas = agruparEnPaginas(recargosAgrupados);

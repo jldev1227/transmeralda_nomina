@@ -161,6 +161,9 @@ export interface RecargoPlanilla {
   empresa: Empresa;
   total_recargos: number;
   recargos: RecargoDetallado[];
+  total_dias: number;
+  total_horas: number;
+  dias_laborales: DiaLaboral[];
 }
 
 export interface RecargoDetallado {
@@ -244,6 +247,7 @@ export interface Liquidacion {
   creado_por_id?: string;
   liquidado_por_id?: string;
   recargos_planilla: RecargoPlanilla;
+  configuraciones_salario: ConfiguracionSalario[];
   creadoPor: {
     id: string;
     nombre: string;
