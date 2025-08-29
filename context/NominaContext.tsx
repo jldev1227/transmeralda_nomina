@@ -154,11 +154,6 @@ export interface RecargoResponse {
 }
 
 export interface RecargoPlanilla {
-  mes: number;
-  año: number;
-  conductor: Conductor;
-  vehiculo: Vehiculo;
-  empresa: Empresa;
   total_recargos: number;
   recargos: RecargoDetallado[];
   total_dias: number;
@@ -172,6 +167,8 @@ export interface RecargoDetallado {
   conductor: Conductor;
   vehiculo: Vehiculo;
   empresa: Empresa;
+  mes: number;
+  año: number;
   total_horas: number;
   total_dias: number;
   total_hed: number;

@@ -1047,7 +1047,7 @@ const agruparRecargos = (
   const grupos: any = {};
 
   // Función auxiliar para crear clave única
-  const crearClave = (recargo: RecargoPlanilla) =>
+  const crearClave = (recargo: RecargoDetallado) =>
     `${recargo.vehiculo.placa}-${recargo.mes}-${recargo.año}-${recargo.empresa.nit}`;
 
   // Función auxiliar para obtener configuración salarial
@@ -1082,7 +1082,7 @@ const agruparRecargos = (
   };
 
   // Función auxiliar para inicializar grupo
-  const inicializarGrupo = (recargo: RecargoPlanilla) => {
+  const inicializarGrupo = (recargo: RecargoDetallado) => {
     const configuracion = obtenerConfiguracion(recargo.empresa.id);
 
     if (!configuracion) return;
@@ -1386,11 +1386,11 @@ const agruparRecargos = (
   };
 
   recargo.recargos.forEach((detalles: RecargoDetallado) => {
-    const clave = crearClave(recargo);
+    const clave = crearClave(detalles);
 
     // Crear grupo si no existe
     if (!grupos[clave]) {
-      grupos[clave] = inicializarGrupo(recargo);
+      grupos[clave] = inicializarGrupo(detalles);
     }
 
     // Agregar detalles al grupo
