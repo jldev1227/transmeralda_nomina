@@ -450,15 +450,7 @@ const calcularAlturaGrupo = (grupo: GrupoPaginas) => {
 
   const diasConRecargos =
     grupo.dias_laborales_unificados?.filter((dia) => {
-      const tieneRecargos =
-        (dia.hed || 0) > 0 ||
-        (dia.hen || 0) > 0 ||
-        (dia.hefd || 0) > 0 ||
-        (dia.hefn || 0) > 0 ||
-        (dia.rn || 0) > 0 ||
-        (dia.rd || 0) > 0;
-
-      return tieneRecargos || dia.es_domingo || dia.es_festivo;
+      return dia;
     }).length || 0;
 
   const tiposRecargos = grupo.tipos_recargos_consolidados?.length || 0;
@@ -711,15 +703,7 @@ const PaginaRecargos = ({
             {/* Filas con datos unificados */}
             {grupo.dias_laborales_unificados
               ?.filter((dia: DiaLaboral) => {
-                const tieneRecargos =
-                  (dia.hed || 0) > 0 ||
-                  (dia.hen || 0) > 0 ||
-                  (dia.hefd || 0) > 0 ||
-                  (dia.hefn || 0) > 0 ||
-                  (dia.rn || 0) > 0 ||
-                  (dia.rd || 0) > 0;
-
-                return tieneRecargos || dia.es_domingo || dia.es_festivo;
+                return dia;
               })
               .map((dia: DiaLaboral, diaIndex: number) => (
                 <View
@@ -1030,19 +1014,19 @@ const PaginaRecargos = ({
                   backgroundColor: "#2E8B57",
                 }}
               >
-                <View style={{ width: "90%", paddingHorizontal: 3 }}>
+                <View style={{ width: "85%", paddingHorizontal: 3 }}>
                   <Text
                     style={{ color: "white", fontSize: 10, fontWeight: "bold" }}
                   >
                     SUBTOTAL
                   </Text>
                 </View>
-                <View style={{ width: "10%", paddingHorizontal: 3 }}>
+                <View style={{ width: "15%", paddingHorizontal: 3 }}>
                   <Text
                     style={{
                       color: "white",
                       fontSize: 10,
-                      textAlign: "center",
+                      textAlign: "right",
                       fontWeight: "bold",
                     }}
                   >
@@ -1846,7 +1830,7 @@ export const LiquidacionPDF = ({
                 <Text style={styles.valueText}>Recargos PAREX</Text>
               </View>
               <View style={styles.tableCol2}>
-                <Text style={styles.valueText}>
+                <Text style={[styles.valueText, { fontSize: 10 }]}>
                   Ver recargos detallados más adelante
                 </Text>
               </View>
