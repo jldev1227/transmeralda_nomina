@@ -1151,19 +1151,19 @@ const PaginaRecargos = ({
                   backgroundColor: "#2E8B57",
                 }}
               >
-                <View style={{ width: "90%", paddingHorizontal: 3 }}>
+                <View style={{ width: "85%", paddingHorizontal: 3 }}>
                   <Text
                     style={{ color: "white", fontSize: 10, fontWeight: "bold" }}
                   >
                     TOTAL
                   </Text>
                 </View>
-                <View style={{ width: "10%", paddingHorizontal: 3 }}>
+                <View style={{ width: "15%", paddingHorizontal: 3 }}>
                   <Text
                     style={{
                       color: "white",
                       fontSize: 10,
-                      textAlign: "center",
+                      textAlign: "right",
                       fontWeight: "bold",
                     }}
                   >
