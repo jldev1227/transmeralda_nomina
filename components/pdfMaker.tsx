@@ -1835,7 +1835,7 @@ export const LiquidacionPDF = ({
                 </Text>
               </View>
               <View style={styles.tableCol3}>
-                <Text style={styles.valueText}>{recargosParex.length}</Text>
+                <Text style={styles.valueText}> </Text>
               </View>
               <View style={styles.tableCol4}>
                 <Text style={styles.valueText}>
