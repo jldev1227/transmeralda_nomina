@@ -187,6 +187,9 @@ export interface ConfiguracionSalario {
   valor_hora_trabajador: number; // Viene como number del backend
   horas_mensuales_base: number;
   porcentaje_festivos: number;
+  seguridad_social: number;
+  prestaciones_sociales: number;
+  administracion: number;
   vigencia_desde: string;
   vigencia_hasta: string | null;
   activo: boolean;

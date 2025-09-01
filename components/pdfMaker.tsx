@@ -526,14 +526,38 @@ const PaginaRecargos = ({
   <Page size="A4" style={styles.page} wrap={false}>
     {/* Título con número de página */}
     <Text style={[styles.subHeaderCenter, { marginBottom: 15 }]}>
-      HORAS EXTRAS Y RECARGOS{" "}
-      {totalPaginas > 1 && `(${numeroPagina}/${totalPaginas})`}
+      {totalPaginas > 1 && numeroPagina === 2 && "HORAS EXTRAS Y RECARGOS"}
     </Text>
 
     {grupos.map((grupo, index: number) => {
       const valorHoraBase =
         grupo.configuracion_salarial.salario_basico /
         grupo.configuracion_salarial.horas_mensuales_base;
+
+      const valorSeguridadSocial = Math.round(
+        (grupo.configuracion_salarial?.seguridad_social *
+          grupo.totales.valor_total) /
+          100,
+      );
+      const valorPrestacionesSociales = Math.round(
+        (grupo.configuracion_salarial?.prestaciones_sociales *
+          grupo.totales.valor_total) /
+          100,
+      );
+      const valorAdministracion = Math.round(
+        (grupo.configuracion_salarial?.administracion *
+          (grupo.totales.valor_total +
+            valorSeguridadSocial +
+            valorPrestacionesSociales)) /
+          100,
+      );
+
+      const total = Math.round(
+        valorSeguridadSocial +
+          valorPrestacionesSociales +
+          valorAdministracion +
+          grupo.totales.valor_total,
+      );
 
       return (
         <View
@@ -593,7 +617,7 @@ const PaginaRecargos = ({
                 CONSOLIDADO DE {grupo.recargos.length} REGISTROS
               </Text>
             )}
-            <Text style={{ fontSize: 9, color: "#666", marginTop: 2 }}>
+            <Text style={{ fontSize: 10, color: "#666", marginTop: 2 }}>
               Valor/Hora Base: ${Math.round(valorHoraBase).toLocaleString()}
               {grupo.configuracion_salarial?.empresa &&
                 ` (${grupo.empresa.nombre})`}
@@ -616,7 +640,7 @@ const PaginaRecargos = ({
                   { flex: 1, textAlign: "center" },
                 ]}
               >
-                FECHA
+                DÍA
               </Text>
               <Text
                 style={[
@@ -796,6 +820,7 @@ const PaginaRecargos = ({
               TOTALES CONSOLIDADOS
             </Text>
           </View>
+
           <View
             style={{
               flexDirection: "row",
@@ -834,7 +859,7 @@ const PaginaRecargos = ({
 
           {/* Tabla de tipos de recargos */}
           {grupo.tipos_recargos_consolidados.length > 0 && (
-            <View style={{ marginTop: 8, borderTop: "1px solid #ddd" }}>
+            <View style={{ borderTop: "1px solid #ddd" }}>
               {/* Header */}
               <View
                 style={{
@@ -843,11 +868,11 @@ const PaginaRecargos = ({
                   padding: 6,
                 }}
               >
-                <View style={{ width: "40%", paddingHorizontal: 3 }}>
+                <View style={{ width: "45%", paddingHorizontal: 3 }}>
                   <Text
                     style={{
                       color: "#2E8B57",
-                      fontSize: 9,
+                      fontSize: 10,
                       fontWeight: "bold",
                       textTransform: "uppercase",
                     }}
@@ -859,7 +884,7 @@ const PaginaRecargos = ({
                   <Text
                     style={{
                       color: "#2E8B57",
-                      fontSize: 9,
+                      fontSize: 10,
                       fontWeight: "bold",
                       textAlign: "center",
                     }}
@@ -871,7 +896,7 @@ const PaginaRecargos = ({
                   <Text
                     style={{
                       color: "#2E8B57",
-                      fontSize: 9,
+                      fontSize: 10,
                       fontWeight: "bold",
                       textAlign: "center",
                     }}
@@ -879,11 +904,11 @@ const PaginaRecargos = ({
                     V/BASE
                   </Text>
                 </View>
-                <View style={{ width: "15%", paddingHorizontal: 3 }}>
+                <View style={{ width: "10%", paddingHorizontal: 3 }}>
                   <Text
                     style={{
                       color: "#2E8B57",
-                      fontSize: 9,
+                      fontSize: 10,
                       fontWeight: "bold",
                       textAlign: "center",
                     }}
@@ -895,7 +920,7 @@ const PaginaRecargos = ({
                   <Text
                     style={{
                       color: "#2E8B57",
-                      fontSize: 9,
+                      fontSize: 10,
                       fontWeight: "bold",
                       textAlign: "center",
                     }}
@@ -907,7 +932,7 @@ const PaginaRecargos = ({
                   <Text
                     style={{
                       color: "#2E8B57",
-                      fontSize: 9,
+                      fontSize: 10,
                       fontWeight: "bold",
                       textAlign: "center",
                     }}
@@ -931,11 +956,11 @@ const PaginaRecargos = ({
                           grupo.tipos_recargos_consolidados.length - 1
                             ? "1px solid #eee"
                             : "none",
-                        fontSize: 8,
+                        fontSize: 10,
                       }}
                     >
-                      <View style={{ width: "40%", paddingHorizontal: 3 }}>
-                        <Text style={{ fontSize: 8 }}>
+                      <View style={{ width: "45%", paddingHorizontal: 3 }}>
+                        <Text style={{ fontSize: 10 }}>
                           {tipo.nombre.toUpperCase()}
                           {tipo.codigo !== "BONO_FESTIVO" && (
                             <Text style={{ color: "#007AFF" }}>
@@ -946,7 +971,7 @@ const PaginaRecargos = ({
                         </Text>
                       </View>
                       <View style={{ width: "10%", paddingHorizontal: 3 }}>
-                        <Text style={{ textAlign: "center", fontSize: 8 }}>
+                        <Text style={{ textAlign: "center", fontSize: 10 }}>
                           {tipo.porcentaje}%
                         </Text>
                       </View>
@@ -954,18 +979,18 @@ const PaginaRecargos = ({
                         <Text
                           style={{
                             textAlign: "center",
-                            fontSize: 8,
+                            fontSize: 10,
                             color: "#666",
                           }}
                         >
                           ${Math.round(tipo.valor_hora_base).toLocaleString()}
                         </Text>
                       </View>
-                      <View style={{ width: "15%", paddingHorizontal: 3 }}>
+                      <View style={{ width: "10%", paddingHorizontal: 3 }}>
                         <Text
                           style={{
                             textAlign: "center",
-                            fontSize: 8,
+                            fontSize: 10,
                             fontWeight: "bold",
                             color: "#2E8B57",
                           }}
@@ -977,7 +1002,7 @@ const PaginaRecargos = ({
                         </Text>
                       </View>
                       <View style={{ width: "15%", paddingHorizontal: 3 }}>
-                        <Text style={{ textAlign: "center", fontSize: 8 }}>
+                        <Text style={{ textAlign: "center", fontSize: 10 }}>
                           {tipo.horas}
                         </Text>
                       </View>
@@ -985,7 +1010,7 @@ const PaginaRecargos = ({
                         <Text
                           style={{
                             textAlign: "center",
-                            fontSize: 8,
+                            fontSize: 10,
                             fontWeight: "bold",
                           }}
                         >
@@ -997,7 +1022,7 @@ const PaginaRecargos = ({
                 },
               )}
 
-              {/* Total */}
+              {/* SUBTOTAL */}
               <View
                 style={{
                   flexDirection: "row",
@@ -1007,21 +1032,142 @@ const PaginaRecargos = ({
               >
                 <View style={{ width: "90%", paddingHorizontal: 3 }}>
                   <Text
-                    style={{ color: "white", fontSize: 9, fontWeight: "bold" }}
+                    style={{ color: "white", fontSize: 10, fontWeight: "bold" }}
                   >
-                    TOTALES
+                    SUBTOTAL
                   </Text>
                 </View>
                 <View style={{ width: "10%", paddingHorizontal: 3 }}>
                   <Text
                     style={{
                       color: "white",
-                      fontSize: 8,
+                      fontSize: 10,
                       textAlign: "center",
                       fontWeight: "bold",
                     }}
                   >
                     ${Math.round(grupo.totales.valor_total).toLocaleString()}
+                  </Text>
+                </View>
+              </View>
+
+              <View
+                style={{
+                  fontSize: 10,
+                  flexDirection: "row",
+                  padding: 4,
+                  borderBottom: "1px solid #eee",
+                }}
+              >
+                <Text style={{ width: "45%", paddingHorizontal: 3 }}>
+                  SEGURIDAD SOCIAL
+                </Text>
+                <Text
+                  style={{
+                    width: "10%",
+                    paddingHorizontal: 3,
+                    textAlign: "center",
+                  }}
+                >
+                  {grupo.configuracion_salarial?.seguridad_social}%
+                </Text>
+                <Text
+                  style={{
+                    width: "45%",
+                    paddingHorizontal: 3,
+                    textAlign: "right",
+                  }}
+                >
+                  ${valorSeguridadSocial.toLocaleString()}
+                </Text>
+              </View>
+
+              <View
+                style={{
+                  fontSize: 10,
+                  flexDirection: "row",
+                  padding: 4,
+                  borderBottom: "1px solid #eee",
+                }}
+              >
+                <Text style={{ width: "45%", paddingHorizontal: 3 }}>
+                  PRESTACIONES SOCIALES
+                </Text>
+                <Text
+                  style={{
+                    width: "10%",
+                    paddingHorizontal: 3,
+                    textAlign: "center",
+                  }}
+                >
+                  {grupo.configuracion_salarial?.prestaciones_sociales}%
+                </Text>
+                <Text
+                  style={{
+                    width: "45%",
+                    paddingHorizontal: 3,
+                    textAlign: "right",
+                  }}
+                >
+                  ${valorPrestacionesSociales.toLocaleString()}
+                </Text>
+              </View>
+
+              <View
+                style={{
+                  fontSize: 10,
+                  flexDirection: "row",
+                  padding: 4,
+                }}
+              >
+                <Text style={{ width: "45%", paddingHorizontal: 3 }}>
+                  ADMINISTRACIÓN
+                </Text>
+                <Text
+                  style={{
+                    width: "10%",
+                    paddingHorizontal: 3,
+                    textAlign: "center",
+                  }}
+                >
+                  {grupo.configuracion_salarial?.administracion}%
+                </Text>
+                <Text
+                  style={{
+                    width: "45%",
+                    paddingHorizontal: 3,
+                    textAlign: "right",
+                  }}
+                >
+                  ${valorAdministracion.toLocaleString()}
+                </Text>
+              </View>
+
+              {/* TOTAL */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  padding: 4,
+                  backgroundColor: "#2E8B57",
+                }}
+              >
+                <View style={{ width: "90%", paddingHorizontal: 3 }}>
+                  <Text
+                    style={{ color: "white", fontSize: 10, fontWeight: "bold" }}
+                  >
+                    TOTAL
+                  </Text>
+                </View>
+                <View style={{ width: "10%", paddingHorizontal: 3 }}>
+                  <Text
+                    style={{
+                      color: "white",
+                      fontSize: 10,
+                      textAlign: "center",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    ${total.toLocaleString()}
                   </Text>
                 </View>
               </View>
@@ -1684,9 +1830,7 @@ export const LiquidacionPDF = ({
               </Text>
             </View>
             <View style={styles.tableCol3}>
-              <Text style={styles.valueText}>
-                {recargosActualizados?.length}
-              </Text>
+              <Text style={styles.valueText}> </Text>
             </View>
             <View style={styles.tableCol4}>
               <Text style={styles.valueText}>
@@ -1702,7 +1846,9 @@ export const LiquidacionPDF = ({
                 <Text style={styles.valueText}>Recargos PAREX</Text>
               </View>
               <View style={styles.tableCol2}>
-                <Text style={styles.valueText}>Ver detalle en página 2</Text>
+                <Text style={styles.valueText}>
+                  Ver recargos detallados más adelante
+                </Text>
               </View>
               <View style={styles.tableCol3}>
                 <Text style={styles.valueText}>{recargosParex.length}</Text>
