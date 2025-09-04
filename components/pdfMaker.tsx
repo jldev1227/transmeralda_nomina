@@ -398,8 +398,8 @@ type LiquidacionPDFProps = {
   item: Liquidacion | null;
   totalRecargosParex: number;
   recargosParex: Recargo[];
-  recargosActualizados: Recargo[];
   firmas: any[];
+  isAdmin: boolean;
 };
 
 type CampoTotal = "hed" | "rn" | "hen" | "hefd" | "hefn";
@@ -507,6 +507,7 @@ type PaginasRecargos = {
   grupos: GrupoRecargo[];
   numeroPagina: number;
   totalPaginas: number;
+  isAdmin: boolean;
 };
 
 // Componente de página de recargos
@@ -514,6 +515,7 @@ const PaginaRecargos = ({
   grupos,
   numeroPagina,
   totalPaginas,
+  isAdmin,
 }: PaginasRecargos) => (
   <Page size="A4" style={styles.page} wrap={false}>
     {/* Título con número de página */}
@@ -1018,7 +1020,7 @@ const PaginaRecargos = ({
                   <Text
                     style={{ color: "white", fontSize: 10, fontWeight: "bold" }}
                   >
-                    SUBTOTAL
+                    {isAdmin ? "SUBTOTAL" : "TOTAL"}
                   </Text>
                 </View>
                 <View style={{ width: "15%", paddingHorizontal: 3 }}>
@@ -1035,126 +1037,134 @@ const PaginaRecargos = ({
                 </View>
               </View>
 
-              <View
-                style={{
-                  fontSize: 10,
-                  flexDirection: "row",
-                  padding: 4,
-                  borderBottom: "1px solid #eee",
-                }}
-              >
-                <Text style={{ width: "45%", paddingHorizontal: 3 }}>
-                  SEGURIDAD SOCIAL
-                </Text>
-                <Text
-                  style={{
-                    width: "10%",
-                    paddingHorizontal: 3,
-                    textAlign: "center",
-                  }}
-                >
-                  {grupo.configuracion_salarial?.seguridad_social}%
-                </Text>
-                <Text
-                  style={{
-                    width: "45%",
-                    paddingHorizontal: 3,
-                    textAlign: "right",
-                  }}
-                >
-                  ${valorSeguridadSocial.toLocaleString()}
-                </Text>
-              </View>
-
-              <View
-                style={{
-                  fontSize: 10,
-                  flexDirection: "row",
-                  padding: 4,
-                  borderBottom: "1px solid #eee",
-                }}
-              >
-                <Text style={{ width: "45%", paddingHorizontal: 3 }}>
-                  PRESTACIONES SOCIALES
-                </Text>
-                <Text
-                  style={{
-                    width: "10%",
-                    paddingHorizontal: 3,
-                    textAlign: "center",
-                  }}
-                >
-                  {grupo.configuracion_salarial?.prestaciones_sociales}%
-                </Text>
-                <Text
-                  style={{
-                    width: "45%",
-                    paddingHorizontal: 3,
-                    textAlign: "right",
-                  }}
-                >
-                  ${valorPrestacionesSociales.toLocaleString()}
-                </Text>
-              </View>
-
-              <View
-                style={{
-                  fontSize: 10,
-                  flexDirection: "row",
-                  padding: 4,
-                }}
-              >
-                <Text style={{ width: "45%", paddingHorizontal: 3 }}>
-                  ADMINISTRACIÓN
-                </Text>
-                <Text
-                  style={{
-                    width: "10%",
-                    paddingHorizontal: 3,
-                    textAlign: "center",
-                  }}
-                >
-                  {grupo.configuracion_salarial?.administracion}%
-                </Text>
-                <Text
-                  style={{
-                    width: "45%",
-                    paddingHorizontal: 3,
-                    textAlign: "right",
-                  }}
-                >
-                  ${valorAdministracion.toLocaleString()}
-                </Text>
-              </View>
-
-              {/* TOTAL */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  padding: 4,
-                  backgroundColor: "#2E8B57",
-                }}
-              >
-                <View style={{ width: "85%", paddingHorizontal: 3 }}>
-                  <Text
-                    style={{ color: "white", fontSize: 10, fontWeight: "bold" }}
-                  >
-                    TOTAL
-                  </Text>
-                </View>
-                <View style={{ width: "15%", paddingHorizontal: 3 }}>
-                  <Text
+              {isAdmin && (
+                <View>
+                  <View
                     style={{
-                      color: "white",
                       fontSize: 10,
-                      textAlign: "right",
-                      fontWeight: "bold",
+                      flexDirection: "row",
+                      padding: 4,
+                      borderBottom: "1px solid #eee",
                     }}
                   >
-                    ${total.toLocaleString()}
-                  </Text>
+                    <Text style={{ width: "45%", paddingHorizontal: 3 }}>
+                      SEGURIDAD SOCIAL
+                    </Text>
+                    <Text
+                      style={{
+                        width: "10%",
+                        paddingHorizontal: 3,
+                        textAlign: "center",
+                      }}
+                    >
+                      {grupo.configuracion_salarial?.seguridad_social}%
+                    </Text>
+                    <Text
+                      style={{
+                        width: "45%",
+                        paddingHorizontal: 3,
+                        textAlign: "right",
+                      }}
+                    >
+                      ${valorSeguridadSocial.toLocaleString()}
+                    </Text>
+                  </View>
+
+                  <View
+                    style={{
+                      fontSize: 10,
+                      flexDirection: "row",
+                      padding: 4,
+                      borderBottom: "1px solid #eee",
+                    }}
+                  >
+                    <Text style={{ width: "45%", paddingHorizontal: 3 }}>
+                      PRESTACIONES SOCIALES
+                    </Text>
+                    <Text
+                      style={{
+                        width: "10%",
+                        paddingHorizontal: 3,
+                        textAlign: "center",
+                      }}
+                    >
+                      {grupo.configuracion_salarial?.prestaciones_sociales}%
+                    </Text>
+                    <Text
+                      style={{
+                        width: "45%",
+                        paddingHorizontal: 3,
+                        textAlign: "right",
+                      }}
+                    >
+                      ${valorPrestacionesSociales.toLocaleString()}
+                    </Text>
+                  </View>
+
+                  <View
+                    style={{
+                      fontSize: 10,
+                      flexDirection: "row",
+                      padding: 4,
+                    }}
+                  >
+                    <Text style={{ width: "45%", paddingHorizontal: 3 }}>
+                      ADMINISTRACIÓN
+                    </Text>
+                    <Text
+                      style={{
+                        width: "10%",
+                        paddingHorizontal: 3,
+                        textAlign: "center",
+                      }}
+                    >
+                      {grupo.configuracion_salarial?.administracion}%
+                    </Text>
+                    <Text
+                      style={{
+                        width: "45%",
+                        paddingHorizontal: 3,
+                        textAlign: "right",
+                      }}
+                    >
+                      ${valorAdministracion.toLocaleString()}
+                    </Text>
+                  </View>
+
+                  {/* TOTAL */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      padding: 4,
+                      backgroundColor: "#2E8B57",
+                    }}
+                  >
+                    <View style={{ width: "85%", paddingHorizontal: 3 }}>
+                      <Text
+                        style={{
+                          color: "white",
+                          fontSize: 10,
+                          fontWeight: "bold",
+                        }}
+                      >
+                        TOTAL
+                      </Text>
+                    </View>
+                    <View style={{ width: "15%", paddingHorizontal: 3 }}>
+                      <Text
+                        style={{
+                          color: "white",
+                          fontSize: 10,
+                          textAlign: "right",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        ${total.toLocaleString()}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-              </View>
+              )}
             </View>
           )}
         </View>
@@ -1559,8 +1569,8 @@ export const LiquidacionPDF = ({
   item,
   totalRecargosParex,
   recargosParex,
-  recargosActualizados,
   firmas,
+  isAdmin,
 }: LiquidacionPDFProps) => {
   if (!item) {
     return (
@@ -2043,8 +2053,7 @@ export const LiquidacionPDF = ({
             </View>
           )}
           <Text style={{ fontSize: 9, color: "#9E9E9E" }}>
-            Documento generado el {new Date().toLocaleDateString()} - Página 1
-            de 2
+            Documento generado el {new Date().toLocaleDateString()}
           </Text>
         </View>
       </Page>
@@ -2062,6 +2071,7 @@ export const LiquidacionPDF = ({
           <PaginaRecargos
             key={`pagina-recargos-${indicePagina}`}
             grupos={gruposPagina}
+            isAdmin={isAdmin}
             numeroPagina={indicePagina + 2} // Asumiendo que es la segunda página del documento
             totalPaginas={paginasAgrupadas.length + 1} // +1 por la página principal
           />
@@ -2075,6 +2085,7 @@ export const LiquidacionPDF = ({
 const handleGeneratePDF = async (
   item: Liquidacion | null,
   firmas: any[],
+  isAdmin: boolean,
 ): Promise<void> => {
   try {
     if (!item) {
@@ -2094,19 +2105,12 @@ const handleGeneratePDF = async (
       0,
     );
 
-    // Obtener recargos que no son de PAREX
-    const recargosActualizados =
-      item?.recargos?.filter(
-        (recargo) =>
-          recargo.empresa_id !== "cfb258a6-448c-4469-aa71-8eeafa4530ef",
-      ) || [];
-
     // Generar el PDF con los datos filtrados
     const blob = await pdf(
       <LiquidacionPDF
         firmas={firmas}
+        isAdmin={isAdmin}
         item={item}
-        recargosActualizados={recargosActualizados}
         recargosParex={recargosParex}
         totalRecargosParex={Number(totalRecargosParex)}
       />,

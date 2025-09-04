@@ -2156,7 +2156,7 @@ const LiquidacionDetalleModal: React.FC = () => {
               isLoading={firmasLoading}
               onPress={() => {
                 if (!isButtonDisabled) {
-                  handleGeneratePDF(liquidacionActual, firmas);
+                  handleGeneratePDF(liquidacionActual, firmas, true);
                 }
               }}
             >
