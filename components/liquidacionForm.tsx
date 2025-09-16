@@ -167,6 +167,8 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
   const [anticipoDate, setAnticipoDate] = useState("");
   const [isInvalidValorAnticipo, setIsInvalidValorAnticipo] = useState(false);
   const [isInvalidDateAnticipo, setIsInvalidDateAnticipo] = useState(false);
+  const [noDescontarSalud, setNoDescontarSalud] = useState(false);
+  const [noDescontarPension, setNoDescontarPension] = useState(false);
 
   const isMobile = useMediaQuery({ maxWidth: 1024 });
 
@@ -416,6 +418,8 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     setIsCheckedAjuste((initialData?.ajuste_salarial ?? 0) > 0);
     setIsAjustePorDia(!!initialData?.ajuste_salarial_por_dia);
     setIsAjusteParex((initialData?.ajuste_parex ?? 0) > 0);
+    setNoDescontarSalud((initialData?.salud ?? 0) === 0);
+    setNoDescontarPension((initialData?.pension ?? 0) === 0);
     setIsCesantias(
       (initialData?.cesantias ?? 0) > 0 ||
         (initialData?.interes_cesantias ?? 0) > 0,
@@ -1019,14 +1023,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
           0,
       ) / 100;
 
-    // Calcular base para los cálculos
-    const baseCalculo = salarioDevengado + valorIncapacidad;
-
-    // Calcular Salud con 50% del ajuste PAREX
-    const salud = baseCalculo * porcentajeSalud + ajusteParexPorConcepto;
-
-    // Calcular Pensión con 50% del ajuste PAREX
-    const pension = baseCalculo * porcentajePension + ajusteParexPorConcepto;
     // Calcular vacaciones
     let totalVacaciones = 0;
 
@@ -1040,12 +1036,51 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
           : diasVacaciones);
     }
 
+    // Calcular base para los cálculos
+    const baseCalculo = salarioDevengado + valorIncapacidad;
+
+    const salud = noDescontarSalud
+      ? 0
+      : baseCalculo * porcentajeSalud + ajusteParexPorConcepto;
+
+    const pension = noDescontarPension
+      ? 0
+      : baseCalculo * porcentajePension + ajusteParexPorConcepto;
+
+    const saludVacaciones = noDescontarSalud
+      ? 0
+      : totalVacaciones * porcentajeSalud + ajusteParexPorConcepto;
+
+    const pensionVacaciones = noDescontarPension
+      ? 0
+      : totalVacaciones * porcentajePension + ajusteParexPorConcepto;
+
     // Calcular anticipos
     const totalAnticipos =
       anticipos?.reduce(
         (total: number, anticipo: any) => total + (anticipo.valor || 0),
         0,
       ) || 0;
+
+    const totalDeducciones =
+      salud +
+      pension +
+      totalAnticipos +
+      saludVacaciones +
+      pensionVacaciones -
+      ajusteParexPorConcepto * (salud > 0 && pension > 0 ? 2 : 1);
+
+    // Calcular sueldo total
+    const sueldoBruto =
+      salarioDevengado +
+      auxilioTransporte +
+      totalBonificaciones +
+      totalPernotes +
+      totalRecargos +
+      totalVacaciones +
+      bonificacionVillanueva +
+      valorIncapacidad +
+      interesCesantias;
 
     // Calcular sueldo total
     const sueldoTotal =
@@ -1058,9 +1093,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       bonificacionVillanueva +
       valorIncapacidad +
       interesCesantias -
-      totalAnticipos -
-      salud -
-      pension;
+      totalDeducciones;
 
     return {
       auxilioTransporte,
@@ -1073,7 +1106,11 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       totalAnticipos,
       salud,
       pension,
+      saludVacaciones,
+      pensionVacaciones,
+      totalDeducciones,
       sueldoTotal,
+      sueldoBruto,
     };
   }, [
     conductores,
@@ -1087,6 +1124,8 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     periodoIncapacidad,
     bonificacionVillanueva,
     valorIncapacidad,
+    noDescontarSalud,
+    noDescontarPension,
     initialData,
     interesCesantias,
     anticipos,
@@ -2379,65 +2418,8 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
         {/* PASO 3: Resumen */}
         {currentStep === 3 && (
           <div className="space-y-6">
-            <Card className="shadow-sm border">
-              <div className="p-5">
-                <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
-                  <User className="h-5 w-5 mr-2 text-emerald-600" />
-                  Información General
-                </h3>
-
-                {conductorSelected && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <div className="text-sm text-gray-500 mb-1">
-                        Conductor
-                      </div>
-                      <div className="text-base font-medium">
-                        {
-                          conductores?.find(
-                            (c) => c.id === conductorSelected.value,
-                          )?.nombre
-                        }{" "}
-                        {
-                          conductores?.find(
-                            (c) => c.id === conductorSelected.value,
-                          )?.apellido
-                        }
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        C.C:{" "}
-                        {
-                          conductores?.find(
-                            (c) => c.id === conductorSelected.value,
-                          )?.numero_identificacion
-                        }
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="text-sm text-gray-500 mb-1">
-                        Período de liquidación
-                      </div>
-                      <div className="text-base font-medium">
-                        {dateSelected?.start && dateSelected?.end
-                          ? `${formatDate(dateSelected.start.toString())} - ${formatDate(dateSelected.end.toString())}`
-                          : "No seleccionado"}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        Días laborados: {diasLaborados}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        Días incapacidad:{" "}
-                        {obtenerDiferenciaDias(periodoIncapacidad) || 0}{" "}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="shadow-sm border">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <Card className="lg:col-span-1 shadow-sm border">
                 <div className="p-5">
                   <h3 className="text-base font-medium text-gray-800 mb-4 flex items-center border-b pb-2">
                     <DollarSign className="h-5 w-5 mr-2 text-emerald-600" />
@@ -2546,7 +2528,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                 </div>
               </Card>
 
-              <Card className="shadow-sm border">
+              <Card className="lg:col-span-2 shadow-sm border">
                 <div className="p-5">
                   <h3 className="text-base font-medium text-gray-800 mb-4 flex items-center border-b pb-2">
                     <AlertCircle className="h-5 w-5 mr-2 text-red-600" />
@@ -2554,77 +2536,218 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                   </h3>
 
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center py-1 border-b border-gray-100">
-                      <span className="text-sm text-gray-700">
-                        Salud (
-                        {configuracion?.find(
-                          (config) => config.nombre === "Salud",
-                        )?.valor || 0}
-                        %)
-                      </span>
-                      <span className="font-medium text-red-500">
-                        -{formatToCOP(totales.salud)}
-                      </span>
-                    </div>
+                    <div
+                      className={`grid ${periodoVacaciones ? "md:grid-cols-2 place-items-center" : ""} gap-4`}
+                    >
+                      <div className="w-full bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <h4 className="text-gray-800 font-semibold mb-3 flex items-center gap-2">
+                          Deducciones sobre Salario
+                        </h4>
 
-                    <div className="flex justify-between items-center py-1 border-b border-gray-100">
-                      <span className="text-sm text-gray-700">
-                        Pensión (
-                        {configuracion?.find(
-                          (config) => config.nombre === "Pensión",
-                        )?.valor || 0}
-                        %)
-                      </span>
-                      <span className="font-medium text-red-500">
-                        -{formatToCOP(totales.pension)}
-                      </span>
+                        <div className="space-y-2">
+                          {/* Salud sobre Salario */}
+                          <div className="flex justify-between items-center py-2 px-3 bg-white rounded border border-gray-100">
+                            <div className="flex items-center gap-3">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                              <div>
+                                <span className="text-sm font-medium text-gray-700">
+                                  Salud
+                                </span>
+                                <span className="text-xs text-gray-500 ml-1">
+                                  (
+                                  {configuracion?.find(
+                                    (config) => config.nombre === "Salud",
+                                  )?.valor || 0}
+                                  %)
+                                </span>
+                              </div>
+                            </div>
+                            <span className="font-semibold text-red-500">
+                              {formatToCOP(totales.salud)}
+                            </span>
+                          </div>
+
+                          {/* Pensión sobre Salario */}
+                          <div className="flex justify-between items-center py-2 px-3 bg-white rounded border border-gray-100">
+                            <div className="flex items-center gap-3">
+                              <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                              <div>
+                                <span className="text-sm font-medium text-gray-700">
+                                  Pensión
+                                </span>
+                                <span className="text-xs text-gray-500 ml-1">
+                                  (
+                                  {configuracion?.find(
+                                    (config) => config.nombre === "Pensión",
+                                  )?.valor || 0}
+                                  %)
+                                </span>
+                              </div>
+                            </div>
+                            <span className="font-semibold text-red-500">
+                              {formatToCOP(totales.pension)}
+                            </span>
+                          </div>
+
+                          {/* Subtotal Vacaciones */}
+                          <div className="pt-3 border-t border-gray-200">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium text-gray-800">
+                                Subtotal deducciones salario:
+                              </span>
+                              <span className="font-bold text-red-500">
+                                {formatToCOP(totales.pension + totales.salud)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Deducciones sobre Vacaciones */}
+                      {periodoVacaciones && (
+                        <div className="w-full bg-orange-50 rounded-lg p-4 border border-orange-200">
+                          <h4 className="text-orange-800 font-semibold mb-3 flex items-center gap-2">
+                            Deducciones sobre Vacaciones
+                          </h4>
+
+                          <div className="space-y-2">
+                            {/* Salud sobre Vacaciones */}
+                            <div className="flex justify-between items-center py-2 px-3 bg-white rounded border border-orange-100">
+                              <div className="flex items-center gap-3">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                                <div>
+                                  <span className="text-sm font-medium text-orange-700">
+                                    Salud
+                                  </span>
+                                  <span className="text-xs text-orange-600 ml-1">
+                                    (
+                                    {configuracion?.find(
+                                      (config) => config.nombre === "Salud",
+                                    )?.valor || 0}
+                                    %)
+                                  </span>
+                                </div>
+                              </div>
+                              <span className="font-semibold text-orange-700 text-sm">
+                                {formatToCOP(totales.saludVacaciones)}
+                              </span>
+                            </div>
+
+                            {/* Pensión sobre Vacaciones */}
+                            <div className="flex justify-between items-center py-2 px-3 bg-white rounded border border-orange-100">
+                              <div className="flex items-center gap-3">
+                                <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                                <div>
+                                  <span className="text-sm font-medium text-orange-700">
+                                    Pensión
+                                  </span>
+                                  <span className="text-xs text-orange-600 ml-1">
+                                    (
+                                    {configuracion?.find(
+                                      (config) => config.nombre === "Pensión",
+                                    )?.valor || 0}
+                                    %)
+                                  </span>
+                                </div>
+                              </div>
+                              <span className="font-semibold text-orange-700 text-sm">
+                                {formatToCOP(totales.pensionVacaciones)}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Subtotal Vacaciones */}
+                          <div className="mt-3 pt-3 border-t border-orange-200">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium text-orange-800">
+                                Subtotal deducciones vacaciones:
+                              </span>
+                              <span className="font-bold text-orange-800">
+                                -
+                                {formatToCOP(
+                                  totales.saludVacaciones +
+                                    totales.pensionVacaciones,
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {totales.totalAnticipos > 0 && (
-                      <div className="flex justify-between items-center py-1 border-b border-gray-100">
-                        <span className="text-sm text-gray-700">Anticipos</span>
-                        <span className="font-medium text-red-500">
-                          -{formatToCOP(totales.totalAnticipos)}
+                      <div className="flex justify-between items-center py-3 px-4 bg-red-50 rounded-lg border border-red-200">
+                        <span className="text-sm font-medium text-red-700">
+                          Anticipos
+                        </span>
+                        <span className="font-semibold text-red-600">
+                          {formatToCOP(totales.totalAnticipos)}
                         </span>
                       </div>
                     )}
 
-                    <div className="pt-4 mt-2 border-t border-gray-200">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">Total a pagar</span>
-                        <span className="text-lg font-semibold text-emerald-600">
+                    {/* Total Final a Pagar */}
+                    <div className="pt-4 mt-2 border border-gray-300 bg-emerald-50 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-semibold text-emerald-800">
+                          Total Bruto:
+                        </span>
+                        <span className="font-semibold text-emerald-800">
+                          {formatToCOP(totales.sueldoBruto)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="font-semibold text-red-600">
+                          Total Deducciones:
+                        </span>
+                        <span className="font-semibold text-red-600">
+                          {formatToCOP(totales.totalDeducciones)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center pt-2 border-t border-emerald-200">
+                        <span className="text-lg font-bold text-emerald-800">
+                          Total Neto a Pagar:
+                        </span>
+                        <span className="text-xl font-bold text-emerald-800">
                           {formatToCOP(totales.sueldoTotal)}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between mt-4 pt-3 bg-gray-50 p-3 rounded-lg">
-                      <span className="text-sm font-medium">Estado</span>
-                      <Badge
-                        className="px-3 py-1"
-                        color={
-                          totales.salud > 0 && totales.pension > 0
-                            ? "success"
-                            : "warning"
-                        }
-                        variant="flat"
-                      >
-                        {totales.salud > 0 && totales.pension > 0
-                          ? "Liquidado"
-                          : "Pendiente"}
-                      </Badge>
-                    </div>
-
-                    <div>
+                    <div className="flex flex-wrap sm:flex-row sm:justify-between gap-4 mt-4">
                       <Checkbox
                         className="mb-2"
-                        color="success"
+                        color="primary"
                         isSelected={isAjusteParex}
                         size="md"
                         onChange={(e) => setIsAjusteParex(e.target.checked)}
                       >
                         <span className="text-sm font-medium">
                           Realizar ajuste de Parex
+                        </span>
+                      </Checkbox>
+                      <Checkbox
+                        className="mb-2"
+                        color="primary"
+                        isSelected={noDescontarSalud}
+                        size="md"
+                        onChange={(e) => setNoDescontarSalud(e.target.checked)}
+                      >
+                        <span className="text-sm font-medium">
+                          No descontar salud
+                        </span>
+                      </Checkbox>
+                      <Checkbox
+                        className="mb-2"
+                        color="primary"
+                        isSelected={noDescontarPension}
+                        size="md"
+                        onChange={(e) =>
+                          setNoDescontarPension(e.target.checked)
+                        }
+                      >
+                        <span className="text-sm font-medium">
+                          No descontar pensión
                         </span>
                       </Checkbox>
                     </div>
@@ -2757,22 +2880,17 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                           >
                             <div className="flex items-center justify-between mb-3">
                               <h4 className="font-medium text-gray-900">
-                                Pernotes de{" "}
                                 <span className="text-emerald-600">
                                   {detalle.vehiculo.label}
                                 </span>
                               </h4>
-                              <Badge
-                                className="px-2 py-1 text-xs"
-                                color="success"
-                                variant="flat"
-                              >
+                              <p>
                                 {detalle.pernotes.reduce(
                                   (total, p) => total + (p.cantidad || 0),
                                   0,
                                 )}{" "}
                                 pernotes
-                              </Badge>
+                              </p>
                             </div>
 
                             <div className="overflow-x-auto">

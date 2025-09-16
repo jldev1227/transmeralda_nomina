@@ -9,10 +9,10 @@ import React, {
 } from "react";
 import { usePathname } from "next/navigation";
 import toast from "react-hot-toast";
+import { addToast } from "@heroui/toast";
 
 import { useAuth } from "./AuthContext";
 
-import { useNotificaciones } from "@/hooks/useNotificaciones";
 import { apiClient } from "@/config/apiClient";
 import socketService from "@/services/socketServices";
 import { DiaLaboral } from "@/types";
@@ -51,6 +51,7 @@ export interface Configuracion {
   valor: string;
   tipo: string;
   activo: string;
+  updatedAt: string;
 }
 
 export interface Empresa {
@@ -390,7 +391,6 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
     useState<Liquidacion | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { notificarCRUD } = useNotificaciones();
   const { user } = useAuth();
 
   // Estados para Socket.IO
@@ -692,7 +692,11 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
           // No actualizamos manualmente el estado porque el socket se encargará de notificar
           // cuando se cree la liquidación a todos los clientes conectados
           setShowCrearModal(false);
-          notificarCRUD("crear", "Liquidación", true);
+          addToast({
+            title: "Liquidación creada",
+            description: "La liquidación se ha creado exitosamente.",
+            color: "success",
+          });
 
           return response.data.data;
         } else {
@@ -709,14 +713,18 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         setError(mensajeError);
 
         // Notificar error
-        notificarCRUD("crear", "Liquidación", false, mensajeError);
+        addToast({
+          title: "Error al crear la liquidación",
+          description: mensajeError,
+          color: "danger",
+        });
 
         return null;
       } finally {
         setLoading(false);
       }
     },
-    [notificarCRUD, shouldSkipNominaRequests, pathname],
+    [shouldSkipNominaRequests, pathname],
   );
 
   // Editar una liquidación existente (solo si no está en ruta excluida)
@@ -744,7 +752,11 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
           setShowEditarModal(false);
 
           // Notificar éxito
-          notificarCRUD("editar", "Liquidación", true);
+          addToast({
+            title: "Liquidación actualizada",
+            description: "La liquidación se ha actualizado exitosamente.",
+            color: "primary",
+          });
 
           return response.data.data;
         } else {
@@ -761,14 +773,18 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         setError(mensajeError);
 
         // Notificar error
-        notificarCRUD("editar", "Liquidación", false, mensajeError);
+        addToast({
+          title: "Error al editar la liquidación",
+          description: mensajeError,
+          color: "danger",
+        });
 
         return null;
       } finally {
         setLoading(false);
       }
     },
-    [notificarCRUD, shouldSkipNominaRequests, pathname],
+    [shouldSkipNominaRequests, pathname],
   );
 
   const eliminarLiquidacion = useCallback(
@@ -789,7 +805,11 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
           // cuando se elimine la liquidación a todos los clientes conectados
 
           // Notificar éxito
-          notificarCRUD("eliminar", "Liquidación", true);
+          addToast({
+            title: "Liquidación eliminada",
+            description: "La liquidación se ha eliminado exitosamente.",
+            color: "danger",
+          });
 
           return true;
         } else {
@@ -806,14 +826,18 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         setError(mensajeError);
 
         // Notificar error
-        notificarCRUD("eliminar", "Liquidación", false, mensajeError);
+        addToast({
+          title: "Error al eliminar la liquidación",
+          description: mensajeError,
+          color: "danger",
+        });
 
         return false;
       } finally {
         setLoading(false);
       }
     },
-    [notificarCRUD, shouldSkipNominaRequests, pathname],
+    [shouldSkipNominaRequests, pathname],
   );
 
   const confirmarEliminarLiquidacion = useCallback(

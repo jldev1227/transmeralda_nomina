@@ -29,6 +29,28 @@ export const formatCurrency = (value: number): string => {
 };
 
 /**
+ * Función para formatear porcentajes
+ * @param value - Valor a formatear
+ * @returns String con formato de moneda
+ */
+export const formatPercentage = (value: number): string => {
+  if (!value || value === 0) return "";
+
+  return `${value}%`;
+};
+
+/**
+ * Función para formatear números con separadores de mileso
+ * @param value - Valor a formatear
+ * @returns String con formato de moneda
+ */
+export const formatNumber = (value: number): string => {
+  if (!value || value === 0) return "";
+
+  return new Intl.NumberFormat("es-CO").format(value);
+};
+
+/**
  * Formatea una fecha al formato DD/MM/YYYY
  * @param date - Objeto de fecha (DateValue o Date)
  * @returns String con la fecha formateada

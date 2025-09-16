@@ -16,11 +16,11 @@ import { Textarea } from "@heroui/input";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
 import { isAxiosError } from "axios";
+import { addToast } from "@heroui/toast";
 
 import socketService from "@/services/socketServices";
 import { EmailData, useNomina } from "@/context/NominaContext";
 import { apiClient } from "@/config/apiClient";
-import { useNotificaciones } from "@/hooks/useNotificaciones";
 
 // Interfaz para la información del usuario almacenada en la cookie
 interface UserInfo {
@@ -45,7 +45,6 @@ interface EmailSenderProps {
 
 const EmailSender = ({ selectedIds }: EmailSenderProps) => {
   const { liquidaciones, generatePDFS } = useNomina();
-  const { notificarCRUD } = useNotificaciones();
   const [isOpen, setIsOpen] = useState(false);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
@@ -160,7 +159,11 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
             clearInterval(intervalId);
 
             if (jobData.status === "completed") {
-              notificarCRUD("enviar", "correos", true);
+              addToast({
+                title: "Envío completado",
+                description: "Los correos se han enviado exitosamente.",
+                color: "success",
+              });
 
               // Cerrar modal después de un tiempo
               setTimeout(() => {
@@ -207,7 +210,7 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
         clearInterval(intervalId);
       }
     };
-  }, [jobId, status, selectedIds.length, notificarCRUD]);
+  }, [jobId, status, selectedIds.length]);
 
   // Manejadores de eventos socket
   const handleJobProgress = (data: { jobId: string; progress: number }) => {
@@ -232,7 +235,11 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
         message: "¡Envío completado!",
       });
 
-      notificarCRUD("enviar", "correos", true);
+      addToast({
+        title: "Envío completado",
+        description: "Los correos se han enviado exitosamente.",
+        color: "success",
+      });
       // Cerrar modal después de un tiempo
       setTimeout(() => {
         setSending(false);
@@ -364,7 +371,11 @@ Transportes y Servicios Esmeralda S.A.S ZOMAC`);
         setJobId(jobId);
       } else {
         // Handle the null case
-        notificarCRUD("generar", "pdf", false);
+        addToast({
+          title: "Error al iniciar el envío",
+          description: "No se pudo iniciar el proceso de envío.",
+          color: "danger",
+        });
         // You might want to stop execution or take other actions here
       }
     } catch (error: any) {

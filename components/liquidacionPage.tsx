@@ -31,7 +31,6 @@ const LiquidacionPage = ({ mode = "create" }) => {
     obtenerLiquidacionPorId,
     crearLiquidacion,
     editarLiquidacion,
-    obtenerLiquidaciones,
     loading: nominaLoading,
   } = useNomina();
 
@@ -75,7 +74,6 @@ const LiquidacionPage = ({ mode = "create" }) => {
         await crearLiquidacion(liquidacionData);
       }
 
-      await obtenerLiquidaciones();
       router.push("/conductores");
     } catch (error: any) {
       toast.error(

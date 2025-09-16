@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Users, Briefcase, FileText, PieChart, Settings } from "lucide-react";
+import { Users, PieChart, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Card {
@@ -26,32 +26,10 @@ const NominaDashboard = () => {
     {
       id: 1,
       title: "Nómina de Conductores",
-      description:
-        "Gestión de pagos y registros para el personal de conducción",
+      description: "Gestión de registros de nómina, bonos y recargos",
       icon: <Users size={40} />,
       path: "/conductores",
       available: true,
-      hasSubmenu: false,
-      submenu: [],
-    },
-    {
-      id: 2,
-      title: "Nómina Administrativa",
-      description:
-        "Gestión de pagos y registros para el personal administrativo",
-      icon: <Briefcase size={40} />,
-      path: "/administrativo",
-      available: false,
-      hasSubmenu: false,
-      submenu: [],
-    },
-    {
-      id: 3,
-      title: "Reportes",
-      description: "Generación de informes y estadísticas de nómina",
-      icon: <FileText size={40} />,
-      path: "/reportes",
-      available: false,
       hasSubmenu: false,
       submenu: [],
     },
@@ -60,21 +38,10 @@ const NominaDashboard = () => {
       title: "Análisis",
       description: "Visualización y análisis de datos de nómina",
       icon: <PieChart size={40} />,
-      path: "/analisis",
+      path: "/conductores/analisis",
       available: true,
-      hasSubmenu: true,
-      submenu: [
-        {
-          title: "Análisis de Conductores",
-          path: "/conductores/analisis",
-          available: true,
-        },
-        {
-          title: "Análisis Administrativo",
-          path: "/administrativo/analisis",
-          available: false,
-        },
-      ],
+      hasSubmenu: false,
+      submenu: [],
     },
     {
       id: 5,
@@ -82,7 +49,7 @@ const NominaDashboard = () => {
       description: "Ajustes y preferencias del sistema de nómina",
       icon: <Settings size={40} />,
       path: "/configuracion",
-      available: false,
+      available: true,
       hasSubmenu: false,
       submenu: [],
     },
@@ -126,7 +93,7 @@ const NominaDashboard = () => {
       <header className="bg-emerald-600 py-6 shadow-md">
         <div className="container mx-auto px-4">
           <h1 className="text-3xl font-bold text-white">
-            Sistema de Gestión de Nómina
+            Sistema de Gestión de Nómina para Bonos y Recargo
           </h1>
           <p className="text-emerald-100 mt-2">
             Administración centralizada de nóminas de personal
@@ -154,6 +121,7 @@ const NominaDashboard = () => {
               <button
                 key={card.id}
                 className={`
+                  flex flex-col justify-between w-full
                   bg-gray-50 text-start rounded-lg shadow-md overflow-hidden 
                   transition-all duration-300 transform hover:scale-105
                   ${card.available ? "cursor-pointer" : "opacity-75 cursor-not-allowed"}
@@ -201,7 +169,7 @@ const NominaDashboard = () => {
 
                 {/* Footer de la card */}
                 {card.available && !card.hasSubmenu && (
-                  <div className="px-6 py-3 bg-gray-100 border-t border-gray-200">
+                  <div className="mt-auto px-6 py-3 bg-gray-100 border-t border-gray-200">
                     <span className="text-emerald-600 font-medium flex items-center">
                       Acceder
                       <svg

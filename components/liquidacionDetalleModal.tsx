@@ -8,7 +8,6 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
-  Clock,
   User,
   DollarSign,
   CalendarClock,
@@ -230,10 +229,10 @@ const LiquidacionDetalleModal: React.FC = () => {
               Detalles
             </button>
             <button
-              className={`py-2 px-1 ${activeTab === "auditoria" ? "text-emerald-600 border-b-2 border-emerald-500 font-medium" : "text-gray-500 hover:text-gray-700"}`}
-              onClick={() => setActiveTab("auditoria")}
+              className={`py-2 px-1 ${activeTab === "procesamiento" ? "text-emerald-600 border-b-2 border-emerald-500 font-medium" : "text-gray-500 hover:text-gray-700"}`}
+              onClick={() => setActiveTab("procesamiento")}
             >
-              Auditoría
+              Procesamiento
             </button>
           </div>
         </div>
@@ -243,9 +242,6 @@ const LiquidacionDetalleModal: React.FC = () => {
           {activeTab === "general" && (
             <>
               <div className="mb-6 pb-6 border-b border-gray-200">
-                <h4 className="text-sm font-medium text-gray-500 mb-2">
-                  INFORMACIÓN GENERAL
-                </h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Conductor</p>
@@ -390,9 +386,6 @@ const LiquidacionDetalleModal: React.FC = () => {
           {activeTab === "conceptos" && (
             <>
               <div className="mb-6 pb-6 border-b border-gray-200">
-                <h4 className="text-sm font-medium text-gray-500 mb-2">
-                  MONTOS Y CONCEPTOS
-                </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <div className="space-y-2">
@@ -2031,13 +2024,9 @@ const LiquidacionDetalleModal: React.FC = () => {
           )}
 
           {/* Pestaña: Auditoría */}
-          {activeTab === "auditoria" && (
+          {activeTab === "procesamiento" && (
             <div className="space-y-6">
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="text-sm font-medium text-gray-700 mb-4 flex items-center">
-                  <Clock className="w-4 h-4 mr-2" /> INFORMACIÓN DE AUDITORÍA
-                </h4>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <div className="mb-3">
