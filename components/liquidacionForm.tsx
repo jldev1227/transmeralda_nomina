@@ -18,7 +18,11 @@ import {
   MinusCircle,
   Trash2,
 } from "lucide-react";
-import SelectReact, { CSSObjectWithLabel, MultiValue } from "react-select";
+import SelectReact, {
+  CSSObjectWithLabel,
+  MultiValue,
+  SingleValue,
+} from "react-select";
 import { DatePicker } from "@heroui/date-picker";
 import { Input } from "@heroui/input";
 import { Select, SelectItem } from "@heroui/select";
@@ -48,19 +52,9 @@ import {
   formatDate,
   obtenerMesesEntreFechas,
   obtenerDiferenciaDias,
-  dateToDateValue,
 } from "@/helpers/helpers";
-import { Liquidacion, useNomina } from "@/context/NominaContext";
-
-interface Pernote {
-  vehiculo_id?: string;
-  vehiculoId?: string;
-  empresa_id?: string;
-  cantidad: number;
-  fechas?: string[];
-  valor: number;
-  [key: string]: any;
-}
+import { Liquidacion, Pernote, useNomina } from "@/context/NominaContext";
+import CalendarPernote from "./ui/calendarPernote";
 
 interface Recargo {
   id?: string;
@@ -169,6 +163,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
   const [isInvalidDateAnticipo, setIsInvalidDateAnticipo] = useState(false);
   const [noDescontarSalud, setNoDescontarSalud] = useState(false);
   const [noDescontarPension, setNoDescontarPension] = useState(false);
+  const [descontarTransporte, setDescontarTransporte] = useState(false);
 
   const isMobile = useMediaQuery({ maxWidth: 1024 });
 
@@ -420,6 +415,11 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     setIsAjusteParex((initialData?.ajuste_parex ?? 0) > 0);
     setNoDescontarSalud((initialData?.salud ?? 0) === 0);
     setNoDescontarPension((initialData?.pension ?? 0) === 0);
+    setDescontarTransporte(
+      initialData?.dias_laborados !== undefined &&
+        initialData?.dias_laborados > 0 &&
+        initialData?.auxilio_transporte === 0,
+    );
     setIsCesantias(
       (initialData?.cesantias ?? 0) > 0 ||
         (initialData?.interes_cesantias ?? 0) > 0,
@@ -963,14 +963,15 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
 
     // Cálculos básicos
     const salarioDevengado = (salarioBase / 30) * diasLaborados;
-    const auxilioTransporte =
-      (Number(
-        configuracion?.find(
-          (config) => config.nombre === "Auxilio de transporte",
-        )?.valor || 0,
-      ) /
-        30) *
-      diasLaborados;
+    const auxilioTransporte = descontarTransporte
+      ? 0
+      : (Number(
+          configuracion?.find(
+            (config) => config.nombre === "Auxilio de transporte",
+          )?.valor || 0,
+        ) /
+          30) *
+        diasLaborados;
 
     // Calcular bonificaciones
     const totalBonificaciones = detallesVehiculos.reduce(
@@ -1126,6 +1127,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     valorIncapacidad,
     noDescontarSalud,
     noDescontarPension,
+    descontarTransporte,
     initialData,
     interesCesantias,
     anticipos,
@@ -1276,6 +1278,27 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     window.scrollTo(0, 0);
   };
 
+  const handleVehiculoChange = (
+    previousVehicleValue: string,
+    newValue: SingleValue<{ value: string; label: string }>,
+  ) => {
+    setDetallesVehiculos((prevDetalles) =>
+      prevDetalles.map((detalle) =>
+        detalle.vehiculo.value === previousVehicleValue
+          ? { ...detalle, vehiculo: newValue || { value: "", label: "" } }
+          : detalle,
+      ),
+    );
+
+    setVehiculosSelected((prevVehiculos) =>
+      prevVehiculos.map((vehiculo) =>
+        vehiculo.value === previousVehicleValue
+          ? newValue || { value: "", label: "" }
+          : vehiculo,
+      ),
+    );
+  };
+
   return (
     <>
       {/* Indicador de progreso */}
@@ -1369,7 +1392,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                     classNames={{
                       base: "w-full",
                     }}
-                    lang="es-ES"
                     value={dateSelected}
                     onChange={handleDateChange}
                   />
@@ -1553,7 +1575,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                               base: "max-w-md",
                             }}
                             label="Período de vacaciones"
-                            lang="es-ES"
                             value={periodoVacaciones}
                             onChange={handleDateVacacionesChange}
                           />
@@ -1594,7 +1615,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                               base: "max-w-md",
                             }}
                             label="Período de incapacidad"
-                            lang="es-ES"
                             value={periodoIncapacidad}
                             onChange={handleDateIncapacidadChange}
                           />
@@ -1705,13 +1725,19 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                         <div className="flex items-center justify-between mb-4">
                           <h4 className="font-medium text-gray-900">
                             Vehículo:{" "}
-                            <span className="text-emerald-600">
-                              {detalleVehiculo.vehiculo.label}
-                            </span>
+                            <SelectReact
+                              options={vehiculosOptions}
+                              styles={selectStyles}
+                              value={detalleVehiculo.vehiculo}
+                              onChange={(newValue) =>
+                                handleVehiculoChange(
+                                  detalleVehiculo.vehiculo.value,
+                                  newValue,
+                                )
+                              }
+                              className="w-48 ml-4 inline-block"
+                            />
                           </h4>
-                          <Badge color="success" variant="flat">
-                            {detalleVehiculo.vehiculo.label}
-                          </Badge>
                         </div>
 
                         <Divider className="my-3" />
@@ -1841,9 +1867,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                               {detalleVehiculo.vehiculo.label}
                             </span>
                           </h4>
-                          <Badge color="success" variant="flat">
-                            {detalleVehiculo.vehiculo.label}
-                          </Badge>
                         </div>
 
                         <Divider className="my-3" />
@@ -1854,18 +1877,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                             <h5 className="font-medium text-gray-800">
                               Pernotes
                             </h5>
-                            <Button
-                              className="h-8"
-                              color="success"
-                              size="sm"
-                              startContent={<Plus size={16} />}
-                              variant="flat"
-                              onPress={() =>
-                                handleAddPernote(detalleVehiculo.vehiculo.value)
-                              }
-                            >
-                              Añadir pernote
-                            </Button>
                           </div>
 
                           {detalleVehiculo.pernotes.length === 0 ? (
@@ -1888,152 +1899,22 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                               </Button>
                             </div>
                           ) : (
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                               {detalleVehiculo.pernotes.map(
                                 (pernote, pernoteIndex) => (
                                   <div
                                     key={pernoteIndex}
-                                    className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+                                    className="border border-gray-200 rounded-lg p-6 bg-white shadow-sm"
                                   >
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                                      <div className="md:col-span-2">
-                                        <SelectReact
-                                          isSearchable
-                                          options={empresasOptions}
-                                          placeholder="Selecciona una empresa"
-                                          styles={selectStyles}
-                                          value={
-                                            empresasOptions.find(
-                                              (option) =>
-                                                option.value ===
-                                                pernote.empresa_id,
-                                            ) || null
-                                          }
-                                          onChange={(selectedOption) =>
-                                            handlePernoteChange(
-                                              detalleVehiculo.vehiculo.value,
-                                              pernoteIndex,
-                                              "empresa_id",
-                                              selectedOption?.value || "",
-                                            )
-                                          }
-                                        />
+                                    {/* Header del pernote */}
+                                    <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-100">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                                          <span className="text-emerald-600 font-semibold text-sm">
+                                            {pernoteIndex + 1}
+                                          </span>
+                                        </div>
                                       </div>
-                                      <Input
-                                        label="Cantidad"
-                                        min={0}
-                                        placeholder="0"
-                                        size="sm"
-                                        type="number"
-                                        value={
-                                          pernote.cantidad
-                                            ? pernote.cantidad.toString()
-                                            : "0"
-                                        }
-                                        onChange={(e) => {
-                                          const newCantidad = +e.target.value;
-                                          let newFechas = [
-                                            ...(pernote.fechas || []),
-                                          ];
-
-                                          // Ajustar array de fechas según nueva cantidad
-                                          if (
-                                            newCantidad >
-                                            (pernote.fechas?.length || 0)
-                                          ) {
-                                            newFechas = [
-                                              ...newFechas,
-                                              ...Array(
-                                                newCantidad -
-                                                  (pernote.fechas?.length || 0),
-                                              ).fill(null),
-                                            ];
-                                          } else if (
-                                            newCantidad <
-                                            (pernote.fechas?.length || 0)
-                                          ) {
-                                            newFechas = newFechas.slice(
-                                              0,
-                                              newCantidad,
-                                            );
-                                          }
-
-                                          handlePernoteChange(
-                                            detalleVehiculo.vehiculo.value,
-                                            pernoteIndex,
-                                            "fechas",
-                                            newFechas,
-                                          );
-
-                                          handlePernoteChange(
-                                            detalleVehiculo.vehiculo.value,
-                                            pernoteIndex,
-                                            "cantidad",
-                                            newCantidad,
-                                          );
-                                        }}
-                                      />
-
-                                      {pernote.fechas?.map(
-                                        (fecha, dateIndex) => (
-                                          <div
-                                            key={`${pernoteIndex}-${dateIndex}`}
-                                            className="col-span-1 md:col-span-3"
-                                          >
-                                            <DatePicker
-                                              label={`Fecha ${dateIndex + 1}`}
-                                              value={
-                                                fecha
-                                                  ? (parseDate(
-                                                      fecha,
-                                                    ) as unknown as DateValueType)
-                                                  : null
-                                              }
-                                              onChange={(
-                                                value: DateValueType | null,
-                                              ) => {
-                                                if (value) {
-                                                  const jsDate = new Date(
-                                                    value.year,
-                                                    value.month - 1,
-                                                    value.day,
-                                                  );
-                                                  const newFecha =
-                                                    dateToDateValue(jsDate);
-                                                  const newFechas = [
-                                                    ...(pernote.fechas || []),
-                                                  ];
-
-                                                  newFechas[dateIndex] =
-                                                    newFecha;
-                                                  handlePernoteChange(
-                                                    detalleVehiculo.vehiculo
-                                                      .value,
-                                                    pernoteIndex,
-                                                    "fechas",
-                                                    newFechas,
-                                                  );
-                                                }
-                                              }}
-                                            />
-                                          </div>
-                                        ),
-                                      )}
-                                    </div>
-
-                                    <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-200">
-                                      <div className="text-sm">
-                                        <span className="text-gray-500">
-                                          Valor:
-                                        </span>
-                                        <span className="font-medium ml-1">
-                                          {formatToCOP(
-                                            pernote.cantidad *
-                                              (pernote.valor || 0),
-                                          )}
-                                        </span>
-                                      </div>
-
                                       <Button
                                         color="danger"
                                         size="sm"
@@ -2049,9 +1930,293 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                         Eliminar
                                       </Button>
                                     </div>
+
+                                    <div className="space-y-6">
+                                      {/* Sección principal en columnas responsive */}
+                                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                                        {/* Columna derecha - Información y resumen */}
+                                        <div className="space-y-6">
+                                          {/* Selección de empresa */}
+                                          <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                              Empresa
+                                            </label>
+                                            <SelectReact
+                                              isSearchable
+                                              options={empresasOptions}
+                                              placeholder="Selecciona una empresa"
+                                              styles={selectStyles}
+                                              value={
+                                                empresasOptions.find(
+                                                  (option) =>
+                                                    option.value ===
+                                                    pernote.empresa_id,
+                                                ) || null
+                                              }
+                                              onChange={(selectedOption) =>
+                                                handlePernoteChange(
+                                                  detalleVehiculo.vehiculo
+                                                    .value,
+                                                  pernoteIndex,
+                                                  "empresa_id",
+                                                  selectedOption?.value || "",
+                                                )
+                                              }
+                                            />
+                                          </div>
+
+                                          {/* Tarjeta de resumen financiero */}
+                                          <div className="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl p-6">
+                                            <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                              <svg
+                                                className="w-5 h-5 text-emerald-600 mr-2"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                              >
+                                                <path
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                  strokeWidth={2}
+                                                  d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                                />
+                                              </svg>
+                                              Resumen del Pernote
+                                            </h4>
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                              <div className="text-center sm:text-left">
+                                                <div className="text-sm text-gray-600 mb-1">
+                                                  Días seleccionados
+                                                </div>
+                                                <div className="text-3xl font-bold text-gray-800">
+                                                  {pernote.cantidad || 0}
+                                                </div>
+                                              </div>
+
+                                              <div className="text-center sm:text-left">
+                                                <div className="text-sm text-gray-600 mb-1">
+                                                  Valor por día
+                                                </div>
+                                                <div className="text-xl font-semibold text-gray-800">
+                                                  {formatToCOP(
+                                                    pernote.valor || 0,
+                                                  )}
+                                                </div>
+                                              </div>
+                                            </div>
+
+                                            {/* Total destacado */}
+                                            <div className="mt-6 pt-4 border-t border-blue-200">
+                                              <div className="flex items-center justify-between">
+                                                <span className="text-lg font-medium text-gray-700">
+                                                  Total a pagar:
+                                                </span>
+                                                <span className="text-2xl font-bold text-emerald-600">
+                                                  {formatToCOP(
+                                                    pernote.cantidad *
+                                                      (pernote.valor || 0),
+                                                  )}
+                                                </span>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          {/* Sección de fechas seleccionadas - Ancho completo */}
+                                          {pernote.fechas &&
+                                          pernote.fechas.length > 0 ? (
+                                            <div className="bg-white border border-gray-200 rounded-lg">
+                                              <div className="flex items-center space-x-3 p-3">
+                                                <svg
+                                                  className="w-5 h-5 text-gray-500"
+                                                  fill="none"
+                                                  stroke="currentColor"
+                                                  viewBox="0 0 24 24"
+                                                >
+                                                  <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                  />
+                                                </svg>
+                                                <span className="font-medium text-gray-700">
+                                                  Fechas seleccionadas (
+                                                  {pernote.fechas.length})
+                                                </span>
+                                              </div>
+
+                                              <div className="p-4 border-t border-gray-100 bg-gray-50">
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+                                                  {pernote.fechas
+                                                    .sort(
+                                                      (a, b) =>
+                                                        new Date(a).getTime() -
+                                                        new Date(b).getTime(),
+                                                    )
+                                                    .map((fecha, dateIndex) => {
+                                                      const date = new Date(
+                                                        fecha + "T00:00:00",
+                                                      );
+                                                      const day =
+                                                        date.getDate();
+                                                      const month =
+                                                        date.toLocaleDateString(
+                                                          "es-ES",
+                                                          {
+                                                            month: "short",
+                                                          },
+                                                        );
+                                                      const weekday =
+                                                        date.toLocaleDateString(
+                                                          "es-ES",
+                                                          {
+                                                            weekday: "short",
+                                                          },
+                                                        );
+                                                      const isWeekend =
+                                                        date.getDay() === 0 ||
+                                                        date.getDay() === 6;
+
+                                                      return (
+                                                        <div
+                                                          key={dateIndex}
+                                                          className={`
+                                                              relative group p-3 rounded-lg border transition-all duration-200 hover:shadow-md hover:-translate-y-0.5
+                                                              ${
+                                                                isWeekend
+                                                                  ? "bg-orange-50 border-orange-200 hover:bg-orange-100"
+                                                                  : "bg-emerald-50 border-emerald-200 hover:bg-emerald-100"
+                                                              }
+                                                            `}
+                                                        >
+                                                          {/* Indicador de fin de semana */}
+                                                          {isWeekend && (
+                                                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400 rounded-full"></div>
+                                                          )}
+
+                                                          <div className="text-center">
+                                                            {/* Mes */}
+                                                            <div
+                                                              className={`
+                                                                text-xs font-medium uppercase tracking-wide mb-1
+                                                                ${isWeekend ? "text-orange-600" : "text-emerald-600"}
+                                                              `}
+                                                            >
+                                                              {month}
+                                                            </div>
+
+                                                            {/* Día */}
+                                                            <div
+                                                              className={`
+                                                                text-lg font-bold mb-1
+                                                                ${isWeekend ? "text-orange-800" : "text-emerald-800"}
+                                                              `}
+                                                            >
+                                                              {day}
+                                                            </div>
+
+                                                            {/* Día de la semana */}
+                                                            <div
+                                                              className={`
+                                                                text-xs font-medium capitalize
+                                                                ${isWeekend ? "text-orange-700" : "text-emerald-700"}
+                                                              `}
+                                                            >
+                                                              {weekday}
+                                                            </div>
+                                                          </div>
+
+                                                          {/* Tooltip con fecha completa */}
+                                                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                                                            {date.toLocaleDateString(
+                                                              "es-ES",
+                                                              {
+                                                                weekday: "long",
+                                                                year: "numeric",
+                                                                month: "long",
+                                                                day: "numeric",
+                                                              },
+                                                            )}
+                                                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                                                          </div>
+                                                        </div>
+                                                      );
+                                                    })}
+                                                </div>
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <div className="text-center text-sm text-gray-400 italic">
+                                              No se han seleccionado fechas
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        <div className="space-y-6">
+                                          {/* Calendario */}
+                                          <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-3">
+                                              Seleccionar fechas
+                                            </label>
+                                            <CalendarPernote
+                                              pernotes={[pernote]}
+                                              dateSelected={dateSelected}
+                                              onDatesChange={(dates) => {
+                                                const fechasString = dates.map(
+                                                  (date) => {
+                                                    const year =
+                                                      date.getFullYear();
+                                                    const month = String(
+                                                      date.getMonth() + 1,
+                                                    ).padStart(2, "0");
+                                                    const day = String(
+                                                      date.getDate(),
+                                                    ).padStart(2, "0");
+                                                    return `${year}-${month}-${day}`;
+                                                  },
+                                                );
+
+                                                handlePernoteChange(
+                                                  detalleVehiculo.vehiculo
+                                                    .value,
+                                                  pernoteIndex,
+                                                  "fechas",
+                                                  fechasString,
+                                                );
+
+                                                handlePernoteChange(
+                                                  detalleVehiculo.vehiculo
+                                                    .value,
+                                                  pernoteIndex,
+                                                  "cantidad",
+                                                  fechasString.length,
+                                                );
+                                              }}
+                                            />
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
                                   </div>
                                 ),
                               )}
+
+                              {/* Botón para añadir más pernotes */}
+                              <div className="text-center pt-4">
+                                <Button
+                                  color="success"
+                                  size="md"
+                                  startContent={<Plus size={18} />}
+                                  variant="flat"
+                                  onPress={() =>
+                                    handleAddPernote(
+                                      detalleVehiculo.vehiculo.value,
+                                    )
+                                  }
+                                >
+                                  Añadir otro pernote
+                                </Button>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -2748,6 +2913,19 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                       >
                         <span className="text-sm font-medium">
                           No descontar pensión
+                        </span>
+                      </Checkbox>
+                      <Checkbox
+                        className="mb-2"
+                        color="primary"
+                        isSelected={descontarTransporte}
+                        size="md"
+                        onChange={(e) =>
+                          setDescontarTransporte(e.target.checked)
+                        }
+                      >
+                        <span className="text-sm font-medium">
+                          Descontar auxilio de transporte
                         </span>
                       </Checkbox>
                     </div>

@@ -82,17 +82,14 @@ export interface Bonificacion {
 }
 
 export interface Pernote {
-  id?: string;
-  liquidacionId?: string;
-  vehiculo_id: string;
+  vehiculo_id?: string;
+  vehiculoId?: string;
+  empresa_id?: string;
   cantidad: number;
+  fechas?: string[];
   valor: number;
-  fechas: string[];
-  vehiculo: Vehiculo;
-  empresa: Empresa;
-  empresa_id: string;
+  [key: string]: any;
 }
-
 export interface Recargo {
   id?: string;
   liquidacionId?: string;
@@ -576,6 +573,22 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
       // No actualizamos la liquidación aquí, ya que se actualizará con handleLiquidacionActualizada
     };
 
+    // Manejador para liquidación actualizada
+    const handleConfiguracionActualizada = (data: Configuracion) => {
+      logSocketEvent("configuracion_liquidacion_actualizada", data);
+
+      // Actualizar la configuración en el estado
+      setConfiguracion((prev) =>
+        prev.map((conf) => (conf.id === data.id ? data : conf)),
+      );
+
+      addToast({
+        title: "Configuración actualizada",
+        description: `La configuración "${data.nombre}" se ha actualizado exitosamente.`,
+        color: "primary",
+      });
+    };
+
     // Registrar los listeners
     socketService.on("liquidacion_creada", handleLiquidacionCreada);
     socketService.on("liquidacion_actualizada", handleLiquidacionActualizada);
@@ -584,6 +597,10 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
       "cambio_estado_liquidacion",
       handleCambioEstadoLiquidacion,
     );
+    socketService.on(
+      "configuracion_liquidacion_actualizada",
+      handleConfiguracionActualizada,
+    );
 
     // Limpiar al desmontar
     return () => {
@@ -591,6 +608,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
       socketService.off("liquidacion_actualizada");
       socketService.off("liquidacion_eliminada");
       socketService.off("cambio_estado_liquidacion");
+      socketService.off("configuracion_liquidacion_actualizada");
     };
   }, [
     user?.id,

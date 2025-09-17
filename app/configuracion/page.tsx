@@ -95,12 +95,6 @@ export default function ConfiguracionPage() {
 
           return newSet;
         });
-
-        addToast({
-          title: "Configuración actualizada",
-          description: "La configuración se ha actualizado exitosamente.",
-          color: "primary",
-        });
       } else {
         throw new Error(data.message || "Error al actualizar la configuración");
       }
