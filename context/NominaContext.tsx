@@ -82,11 +82,11 @@ export interface Bonificacion {
 }
 
 export interface Pernote {
-  vehiculo_id?: string;
+  vehiculo_id: string;
   vehiculoId?: string;
   empresa_id?: string;
   cantidad: number;
-  fechas?: string[];
+  fechas: string[];
   valor: number;
   [key: string]: any;
 }
