@@ -38,7 +38,7 @@ const NominaDashboard = () => {
       title: "Análisis",
       description: "Visualización y análisis de datos de nómina",
       icon: <PieChart size={40} />,
-      path: "/conductores/analisis",
+      path: "/analisis",
       available: true,
       hasSubmenu: false,
       submenu: [],

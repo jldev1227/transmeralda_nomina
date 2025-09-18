@@ -4,6 +4,7 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { useState, useEffect } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+
 import { Pernote } from "@/context/NominaContext";
 
 interface CalendarPernoteProps {
@@ -38,6 +39,7 @@ const CalendarPernote = ({
     if (dateSelected?.start) {
       return new Date(dateSelected.start.year, dateSelected.start.month - 1, 1);
     }
+
     return new Date();
   });
 
@@ -67,6 +69,7 @@ const CalendarPernote = ({
         if (pernote.fechas && Array.isArray(pernote.fechas)) {
           pernote.fechas.forEach((fechaStr) => {
             const fecha = new Date(fechaStr + "T00:00:00");
+
             allDates.push(fecha);
           });
         }
@@ -103,6 +106,7 @@ const CalendarPernote = ({
       );
 
       let newDates: Date[];
+
       if (dateExists) {
         newDates = selectedDates.filter(
           (date) => date.toDateString() !== value.toDateString(),
@@ -140,7 +144,7 @@ const CalendarPernote = ({
           </span>
         </div>
         {selectedDates.length > 0 && (
-          <button onClick={clearAll} className="clear-all-btn">
+          <button className="clear-all-btn" onClick={clearAll}>
             Limpiar todo
           </button>
         )}
@@ -151,9 +155,9 @@ const CalendarPernote = ({
         {/* Header con navegación */}
         <div className="month-header">
           <button
+            aria-label="Mes anterior"
             className="nav-btn"
             onClick={() => changeMonth("prev")}
-            aria-label="Mes anterior"
           >
             <ArrowLeft size={16} />
           </button>
@@ -161,9 +165,9 @@ const CalendarPernote = ({
             {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
           </h3>
           <button
+            aria-label="Mes siguiente"
             className="nav-btn"
             onClick={() => changeMonth("next")}
-            aria-label="Mes siguiente"
           >
             <ArrowRight size={16} />
           </button>
@@ -171,9 +175,15 @@ const CalendarPernote = ({
 
         {/* Calendario */}
         <Calendar
-          onChange={handleDateChange}
-          value={null}
           activeStartDate={currentMonth}
+          calendarType="gregory"
+          className="calendar"
+          formatShortWeekday={(locale, date) => weekdayNames[date.getDay()]}
+          locale="es-ES"
+          minDetail="month"
+          showFixedNumberOfWeeks={true}
+          showNavigation={false}
+          showNeighboringMonth={true}
           tileClassName={({ date, view }) => {
             if (view === "month") {
               // Verificar si el día pertenece al mes actual
@@ -196,6 +206,7 @@ const CalendarPernote = ({
                 return "selected-date";
               }
             }
+
             return null;
           }}
           tileDisabled={({ date, view }) => {
@@ -206,16 +217,11 @@ const CalendarPernote = ({
                 date.getFullYear() === currentMonth.getFullYear()
               );
             }
+
             return false;
           }}
-          className="calendar"
-          locale="es-ES"
-          showNavigation={false}
-          showNeighboringMonth={true}
-          showFixedNumberOfWeeks={true}
-          calendarType="gregory"
-          minDetail="month"
-          formatShortWeekday={(locale, date) => weekdayNames[date.getDay()]}
+          value={null}
+          onChange={handleDateChange}
         />
       </div>
 

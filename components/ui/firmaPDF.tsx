@@ -162,7 +162,6 @@ const PrimeraFirma = ({
         </View>
       ) : (
         <View style={styles.noFirmaContainer}>
-          <Text style={styles.noFirmaIcon}>📝</Text>
           <Text style={styles.noFirmaText}>
             No hay firma disponible para este documento
           </Text>

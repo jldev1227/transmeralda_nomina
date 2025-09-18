@@ -113,7 +113,10 @@ export function AuthGuard({ children }: AuthGuardProps) {
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-8">
         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
           <h2 className="text-xl font-bold text-red-600 mb-4">
-            🚨 Error de Autenticación
+            <span aria-label="alert-icon" role="img">
+              🚨
+            </span>{" "}
+            Error de Autenticación
           </h2>
           <p className="text-gray-700 mb-4">
             Llegaste a una ruta protegida sin autenticación. El middleware

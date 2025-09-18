@@ -169,11 +169,16 @@ const LiquidacionesDashboard: React.FC = () => {
           <div className="flex flex-col md:flex-col lg:flex-row gap-4 mb-4">
             {/* Búsqueda */}
             <div className="relative flex-2">
+              <label className="sr-only" htmlFor="busqueda-conductor">
+                Buscar por conductor o ID
+              </label>
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
+                <Search aria-hidden="true" className="h-5 w-5 text-gray-400" />
               </div>
               <input
+                aria-describedby="busqueda-ayuda"
                 className="block w-full h-12 pl-10 pr-3 py-2 border border-gray-200 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
+                id="busqueda-conductor"
                 placeholder="Buscar por conductor o ID..."
                 type="text"
                 value={filtros.busqueda}
@@ -181,15 +186,26 @@ const LiquidacionesDashboard: React.FC = () => {
                   setFiltros({ ...filtros, busqueda: e.target.value })
                 }
               />
+              <div className="sr-only" id="busqueda-ayuda">
+                Escribe el nombre del conductor o ID para filtrar los resultados
+              </div>
             </div>
 
             {/* Filtro de fecha */}
             <div className="relative flex-1">
+              <label className="sr-only" htmlFor="filtro-fecha">
+                Filtrar por mes y año
+              </label>
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Calendar className="h-5 w-5 text-gray-400" />
+                <Calendar
+                  aria-hidden="true"
+                  className="h-5 w-5 text-gray-400"
+                />
               </div>
               <input
+                aria-describedby="fecha-ayuda"
                 className="block w-full h-12 pl-10 pr-3 py-2 border border-gray-200 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
+                id="filtro-fecha"
                 type="month"
                 value={
                   filtros.periodoStart
@@ -214,15 +230,24 @@ const LiquidacionesDashboard: React.FC = () => {
                   }
                 }}
               />
+              <div className="sr-only" id="fecha-ayuda">
+                Selecciona un mes y año para filtrar las liquidaciones
+              </div>
             </div>
 
             {/* Filtro de estado */}
             <div className="relative flex-1">
+              <label className="sr-only" htmlFor="filtro-estado">
+                Filtrar por estado de liquidación
+              </label>
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Filter className="h-5 w-5 text-gray-400" />
+                <Filter aria-hidden="true" className="h-5 w-5 text-gray-400" />
               </div>
+              {/* eslint-disable-next-line jsx-a11y/no-onchange */}
               <select
+                aria-describedby="estado-ayuda"
                 className="block w-full h-12 pl-10 pr-3 py-2 border border-gray-200 rounded-md focus:ring-emerald-500 focus:border-emerald-500 appearance-none"
+                id="filtro-estado"
                 value={filtros.estado}
                 onChange={(e) =>
                   setFiltros({ ...filtros, estado: e.target.value })
@@ -233,13 +258,24 @@ const LiquidacionesDashboard: React.FC = () => {
                 <option value="Pendiente">Pendiente</option>
               </select>
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <ChevronDown className="h-4 w-4 text-gray-400" />
+                <ChevronDown
+                  aria-hidden="true"
+                  className="h-4 w-4 text-gray-400"
+                />
+              </div>
+              <div className="sr-only" id="estado-ayuda">
+                Selecciona un estado para filtrar las liquidaciones
               </div>
             </div>
 
             {/* Items per page */}
             <div className="flex-1">
+              <label className="sr-only" htmlFor="itemPerPage">
+                Elementos por página
+              </label>
+              {/* eslint-disable-next-line jsx-a11y/no-onchange */}
               <select
+                aria-describedby="items-ayuda"
                 className="block w-full h-12 py-2 px-3 border border-gray-200 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
                 id="itemPerPage"
                 value={itemsPerPage}
@@ -266,17 +302,25 @@ const LiquidacionesDashboard: React.FC = () => {
                 <option value="50">50 por página</option>
                 <option value={liquidaciones.length}>Todos</option>
               </select>
+              <div className="sr-only" id="items-ayuda">
+                Selecciona cuántos elementos mostrar por página
+              </div>
             </div>
 
             {/* Botón limpiar filtros */}
             <div className="flex-1">
               <button
-                className="w-full h-12 px-4 py-2 border border-gray-200 bg-gray-50 text-gray-600 rounded-md hover:bg-gray-100 transition flex items-center justify-center"
+                aria-describedby="limpiar-ayuda"
+                className="w-full h-12 px-4 py-2 border border-gray-200 bg-gray-50 text-gray-600 rounded-md hover:bg-gray-100 transition flex items-center justify-center focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                type="button"
                 onClick={resetearFiltros}
               >
-                <RefreshCw className="mr-2 w-4 h-4" />
+                <RefreshCw aria-hidden="true" className="mr-2 w-4 h-4" />
                 Limpiar filtros
               </button>
+              <div className="sr-only" id="limpiar-ayuda">
+                Restaurar todos los filtros a su estado inicial
+              </div>
             </div>
           </div>
         </div>

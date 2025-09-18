@@ -46,6 +46,8 @@ import { DateRangePicker } from "@heroui/date-picker";
 import toast from "react-hot-toast";
 import { useMediaQuery } from "react-responsive";
 
+import CalendarPernote from "./ui/calendarPernote";
+
 import {
   formatCurrency,
   formatToCOP,
@@ -54,7 +56,6 @@ import {
   obtenerDiferenciaDias,
 } from "@/helpers/helpers";
 import { Liquidacion, Pernote, useNomina } from "@/context/NominaContext";
-import CalendarPernote from "./ui/calendarPernote";
 
 interface Recargo {
   id?: string;
@@ -1726,6 +1727,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                           <h4 className="font-medium text-gray-900">
                             Vehículo:{" "}
                             <SelectReact
+                              className="w-48 ml-4 inline-block"
                               options={vehiculosOptions}
                               styles={selectStyles}
                               value={detalleVehiculo.vehiculo}
@@ -1735,7 +1737,6 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                   newValue,
                                 )
                               }
-                              className="w-48 ml-4 inline-block"
                             />
                           </h4>
                         </div>
@@ -1938,11 +1939,15 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                         <div className="space-y-6">
                                           {/* Selección de empresa */}
                                           <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            <label
+                                              className="block text-sm font-medium text-gray-700 mb-2"
+                                              htmlFor="empresaPernote"
+                                            >
                                               Empresa
                                             </label>
                                             <SelectReact
                                               isSearchable
+                                              id="empresaPernote"
                                               options={empresasOptions}
                                               placeholder="Selecciona una empresa"
                                               styles={selectStyles}
@@ -1975,10 +1980,10 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                                 viewBox="0 0 24 24"
                                               >
                                                 <path
+                                                  d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
                                                   strokeLinecap="round"
                                                   strokeLinejoin="round"
                                                   strokeWidth={2}
-                                                  d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
                                                 />
                                               </svg>
                                               Resumen del Pernote
@@ -2033,10 +2038,10 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                                   viewBox="0 0 24 24"
                                                 >
                                                   <path
+                                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                                                     strokeLinecap="round"
                                                     strokeLinejoin="round"
                                                     strokeWidth={2}
-                                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                                                   />
                                                 </svg>
                                                 <span className="font-medium text-gray-700">
@@ -2091,7 +2096,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                                         >
                                                           {/* Indicador de fin de semana */}
                                                           {isWeekend && (
-                                                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400 rounded-full"></div>
+                                                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400 rounded-full" />
                                                           )}
 
                                                           <div className="text-center">
@@ -2137,7 +2142,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                                                 day: "numeric",
                                                               },
                                                             )}
-                                                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                                                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
                                                           </div>
                                                         </div>
                                                       );
@@ -2155,12 +2160,15 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                         <div className="space-y-6">
                                           {/* Calendario */}
                                           <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-3">
+                                            <label
+                                              className="block text-sm font-medium text-gray-700 mb-3"
+                                              htmlFor="fechasPernotes"
+                                            >
                                               Seleccionar fechas
                                             </label>
                                             <CalendarPernote
-                                              pernotes={[pernote]}
                                               dateSelected={dateSelected}
+                                              pernotes={[pernote]}
                                               onDatesChange={(dates) => {
                                                 const fechasString = dates.map(
                                                   (date) => {
@@ -2172,6 +2180,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                                     const day = String(
                                                       date.getDate(),
                                                     ).padStart(2, "0");
+
                                                     return `${year}-${month}-${day}`;
                                                   },
                                                 );

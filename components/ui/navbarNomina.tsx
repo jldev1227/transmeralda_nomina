@@ -9,11 +9,11 @@ import {
   Menu,
   X,
   ChevronDown,
-  CircleUserRound,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { Avatar, AvatarIcon } from "@heroui/avatar";
 
 import { useAuth } from "@/context/AuthContext";
 
@@ -267,9 +267,12 @@ const NominaNavbar = () => {
               type="button"
             >
               <span className="mr-2">¡Hola {user?.nombre}!</span>
-              <CircleUserRound
-                className="group-hover:text-emerald-600 transition-colors"
-                size={28}
+              <Avatar
+                classNames={{
+                  base: "bg-gradient-to-br from-emerald-50 to-emerald-200",
+                  icon: "text-emerald-700",
+                }}
+                icon={<AvatarIcon />}
               />
             </Link>
           </nav>
@@ -297,7 +300,20 @@ const NominaNavbar = () => {
             <div>
               <div className="w-full flex items-center pl-3 pr-4 py-2 text-base font-medium rounded-md text-gray-700">
                 <span className="mr-2">
-                  <CircleUserRound size={24} />
+                  <svg
+                    className="size-6"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                 </span>
                 ¡Hola {user?.nombre}!
               </div>
