@@ -55,7 +55,7 @@ export default function LiquidacionesTable({
     const newAnimations: RowAnimationState = { ...rowAnimations };
 
     latestEvents.forEach((event) => {
-      if (event.eventName === "liquidacion_creada" && event.data.liquidacion) {
+      if (event.eventName === "liquidacion:creada" && event.data.liquidacion) {
         const liquidacionId = event.data.liquidacion.id;
 
         newAnimations[liquidacionId] = {
@@ -74,7 +74,7 @@ export default function LiquidacionesTable({
           }
         }, 100);
       } else if (
-        event.eventName === "liquidacion_actualizada" &&
+        event.eventName === "liquidacion:actualizada" &&
         event.data.liquidacion
       ) {
         const liquidacionId = event.data.liquidacion.id;

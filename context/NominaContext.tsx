@@ -501,7 +501,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
       liquidacion: Liquidacion;
       usuarioCreador: string;
     }) => {
-      logSocketEvent("liquidacion_creada", data);
+      logSocketEvent("liquidacion:creada", data);
 
       // Actualizar la lista de liquidaciones
       setLiquidaciones((prev) => {
@@ -516,6 +516,12 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
           return [data.liquidacion, ...prev];
         }
       });
+
+      addToast({
+        title: "Liquidación creada",
+        description: "La liquidación se ha creado exitosamente.",
+        color: "success",
+      });
     };
 
     // Manejador para liquidación actualizada
@@ -524,7 +530,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
       usuarioActualizador: string;
       cambios: any;
     }) => {
-      logSocketEvent("liquidacion_actualizada", data);
+      logSocketEvent("liquidacion:actualizada", data);
 
       // Actualizar la lista de liquidaciones
       setLiquidaciones((prev) =>
@@ -537,6 +543,12 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
       if (liquidacionActual && liquidacionActual.id === data.liquidacion.id) {
         setLiquidacionActual(data.liquidacion);
       }
+
+      addToast({
+        title: "Liquidación actualizada",
+        description: "La liquidación se ha actualizado exitosamente.",
+        color: "primary",
+      });
     };
 
     // Manejador para liquidación eliminada
@@ -544,7 +556,7 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
       liquidacionId: string;
       usuarioEliminador: string;
     }) => {
-      logSocketEvent("liquidacion_eliminada", data);
+      logSocketEvent("liquidacion:eliminada", data);
 
       // Eliminar la liquidación de la lista
       setLiquidaciones((prev) =>
@@ -558,6 +570,12 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
         // Cerrar modales si están abiertos
         cerrarModales();
       }
+
+      addToast({
+        title: "Liquidación creada",
+        description: "La liquidación se ha eliminado exitosamente.",
+        color: "danger",
+      });
     };
 
     // Manejador para cambio de estado
@@ -590,9 +608,9 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
     };
 
     // Registrar los listeners
-    socketService.on("liquidacion_creada", handleLiquidacionCreada);
-    socketService.on("liquidacion_actualizada", handleLiquidacionActualizada);
-    socketService.on("liquidacion_eliminada", handleLiquidacionEliminada);
+    socketService.on("liquidacion:creada", handleLiquidacionCreada);
+    socketService.on("liquidacion:actualizada", handleLiquidacionActualizada);
+    socketService.on("liquidacion:eliminada", handleLiquidacionEliminada);
     socketService.on(
       "cambio_estado_liquidacion",
       handleCambioEstadoLiquidacion,
@@ -604,9 +622,9 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
 
     // Limpiar al desmontar
     return () => {
-      socketService.off("liquidacion_creada");
-      socketService.off("liquidacion_actualizada");
-      socketService.off("liquidacion_eliminada");
+      socketService.off("liquidacion:creada");
+      socketService.off("liquidacion:actualizada");
+      socketService.off("liquidacion:eliminada");
       socketService.off("cambio_estado_liquidacion");
       socketService.off("configuracion_liquidacion_actualizada");
     };
@@ -710,11 +728,6 @@ export const NominaProvider: React.FC<NominaProviderProps> = ({ children }) => {
           // No actualizamos manualmente el estado porque el socket se encargará de notificar
           // cuando se cree la liquidación a todos los clientes conectados
           setShowCrearModal(false);
-          addToast({
-            title: "Liquidación creada",
-            description: "La liquidación se ha creado exitosamente.",
-            color: "success",
-          });
 
           return response.data.data;
         } else {
