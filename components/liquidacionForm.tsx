@@ -1176,8 +1176,8 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       dias_laborados_anual: diasLaboradosAnual,
       ajuste_salarial: bonificacionVillanueva,
       valor_incapacidad: valorIncapacidad,
-      salud: totales.salud,
-      pension: totales.pension,
+      salud: totales.salud + totales.saludVacaciones,
+      pension: totales.pension + totales.pensionVacaciones,
       cesantias,
       interes_cesantias: interesCesantias,
       estado:
