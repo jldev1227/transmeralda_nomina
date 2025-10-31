@@ -30,6 +30,7 @@ export interface DiaLaboral {
   es_especial: boolean;
   es_domingo: boolean;
   es_festivo: boolean;
+  disponibilidad: boolean;
   hed: number;
   hen: number;
   hefd: number;

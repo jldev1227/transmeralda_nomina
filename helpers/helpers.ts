@@ -294,11 +294,21 @@ export const agruparFechasConsecutivas = (fechas: string[]) => {
 };
 
 export const formatearHora = (hora: string) => {
-  if (!hora) return "";
+  if (!hora) return "-";
 
-  return hora
-    .replace(/\./g, ":") // Cambiar puntos por dos puntos
-    .replace(/:50/g, ":30"); // Cambiar :50 por :30
+  // Normalizar separadores: reemplaza puntos por dos puntos
+  const normalizada = hora.replace(/\./g, ":");
+
+  // Separar horas y minutos
+  const [hStr, mStr] = normalizada.split(":");
+  let horas = parseInt(hStr, 10);
+  let minutos = parseInt(mStr || "0", 10);
+
+  // 🔒 Asegurar dos dígitos en ambos valores
+  const hh = horas.toString().padStart(2, "0");
+  const mm = minutos.toString().padStart(2, "0");
+
+  return `${hh}:${mm}`;
 };
 
 export function toDateValue(date: any): DateValue {

@@ -43,6 +43,7 @@ export interface Conductor {
   numero_identificacion: string;
   salario_base: number;
   email: string;
+  sede_trabajo: string;
 }
 
 export interface Configuracion {
@@ -191,6 +192,7 @@ export interface ConfiguracionSalario {
   vigencia_desde: string;
   vigencia_hasta: string | null;
   activo: boolean;
+  sede: string | null;
   paga_dias_festivos: boolean;
   observaciones: string | null;
   creado_por_id: string | null;

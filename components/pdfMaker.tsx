@@ -703,17 +703,15 @@ const PaginaRecargos = ({
             </View>
 
             {/* Filas con datos unificados */}
-            {grupo.dias_laborales_unificados
-              ?.filter((dia: DiaLaboral) => {
-                return dia;
-              })
-              .map((dia: DiaLaboral, diaIndex: number) => (
+            {grupo.dias_laborales_unificados?.map(
+              (dia: DiaLaboral, diaIndex: number) => (
                 <View
                   key={`${dia.id}-${index}-${diaIndex}`}
                   style={{
                     flexDirection: "row",
                     padding: 3,
                     borderBottom: "1px solid #eee",
+                    backgroundColor: dia.disponibilidad ? "#FF000015" : "white",
                   }}
                 >
                   <Text
@@ -790,7 +788,8 @@ const PaginaRecargos = ({
                     {(dia.hefn || 0) !== 0 ? `${dia.hefn}` : "-"}
                   </Text>
                 </View>
-              ))}
+              ),
+            )}
           </View>
 
           {/* Totales de días */}
@@ -1191,39 +1190,62 @@ const agruparRecargos = (
     `${recargo.vehiculo.placa}-${recargo.mes}-${recargo.año}-${recargo.empresa.nit}`;
 
   // Función auxiliar para obtener configuración salarial
-  const obtenerConfiguracion = (empresaId: string) => {
+  const obtenerConfiguracion = (empresaId: string, sede?: string) => {
     if (!configuraciones_salario) {
       console.warn("No hay configuraciones de salario disponibles");
 
       return null;
     }
 
-    // Buscar configuración específica de la empresa
+    // PRIORIDAD 1: Buscar configuración específica de la empresa
     const configEmpresa = configuraciones_salario.find(
       (config: ConfiguracionSalario) =>
-        config.empresa_id === empresaId && config.activo === true,
+        config.empresa_id === empresaId &&
+        config.activo === true &&
+        config.sede === null, // Sin sede específica
     );
 
     if (configEmpresa) {
       return configEmpresa;
     }
 
-    // Buscar configuración base del sistema
+    // PRIORIDAD 2: Buscar configuración por sede (si se proporciona)
+    if (sede) {
+      const configSede = configuraciones_salario.find(
+        (config: ConfiguracionSalario) =>
+          config.empresa_id === null &&
+          config.activo === true &&
+          config.sede?.toLowerCase() === sede.toLowerCase(),
+      );
+
+      if (configSede) {
+        return configSede;
+      }
+    }
+
+    // PRIORIDAD 3: Buscar configuración base del sistema
     const configBase = configuraciones_salario.find(
       (config: ConfiguracionSalario) =>
-        config.empresa_id === null && config.activo === true,
+        config.empresa_id === null &&
+        config.activo === true &&
+        config.sede === null,
     );
 
     if (configBase) {
       return configBase;
     }
 
+    console.warn("No se encontró ninguna configuración aplicable");
+
     return null;
   };
 
   // Función auxiliar para inicializar grupo
   const inicializarGrupo = (recargo: RecargoDetallado) => {
-    const configuracion = obtenerConfiguracion(recargo.empresa.id);
+    const configuracion = obtenerConfiguracion(
+      recargo.empresa.id,
+      recargo.conductor.sede_trabajo,
+    );
 
     if (!configuracion) return;
 
@@ -1266,43 +1288,18 @@ const agruparRecargos = (
       grupo.totales.total_dias_domingos++;
     }
 
-    // Buscar si ya existe un día con la misma fecha
-    const diaExistente = grupo.dias_laborales_unificados.find(
-      (d) => d.dia === dia.dia,
-    );
+    // Agregar nuevo día con valores por defecto
+    const nuevoDia: DiaLaboral = {
+      ...dia,
+      hed: dia.hed || 0,
+      rn: dia.rn || 0,
+      hen: dia.hen || 0,
+      rd: dia.rd || 0,
+      hefd: dia.hefd || 0,
+      hefn: dia.hefn || 0,
+    };
 
-    if (diaExistente) {
-      // Sumar horas al día existente
-      const camposHoras: CampoHoras[] = [
-        "hed",
-        "rn",
-        "hen",
-        "rd",
-        "hefd",
-        "hefn",
-        "total_horas",
-      ];
-
-      camposHoras.forEach((campo) => {
-        const valorAnterior = diaExistente[campo] || 0;
-        const valorNuevo = dia[campo] || 0;
-
-        diaExistente[campo] = valorAnterior + valorNuevo;
-      });
-    } else {
-      // Agregar nuevo día con valores por defecto
-      const nuevoDia: DiaLaboral = {
-        ...dia,
-        hed: dia.hed || 0,
-        rn: dia.rn || 0,
-        hen: dia.hen || 0,
-        rd: dia.rd || 0,
-        hefd: dia.hefd || 0,
-        hefn: dia.hefn || 0,
-      };
-
-      grupo.dias_laborales_unificados.push(nuevoDia);
-    }
+    grupo.dias_laborales_unificados.push(nuevoDia);
   };
 
   interface ValorRecargo {
@@ -1360,9 +1357,18 @@ const agruparRecargos = (
     return { valorTotal, valorHoraConRecargo };
   };
 
-  const consolidarTipoRecargo = (grupo: GrupoRecargo, tipo: TipoRecargo) => {
+  const consolidarTipoRecargo = (
+    grupo: GrupoRecargo,
+    tipo: TipoRecargo,
+    diaLaboral: DiaLaboral, // Agregar el día laboral como parámetro
+  ) => {
     const configSalarial = grupo.configuracion_salarial;
     const pagaDiasFestivos = configSalarial?.paga_dias_festivos || false;
+
+    // EXCLUIR si el día es de disponibilidad
+    if (diaLaboral.disponibilidad) {
+      return; // No procesar este recargo
+    }
 
     // Excluir recargos dominicales si la configuración paga días festivos
     if (pagaDiasFestivos && tipo.codigo === "RD") {
@@ -1545,10 +1551,12 @@ const agruparRecargos = (
       detalles.dias_laborales.forEach((dia: DiaLaboral) => {
         procesarDiaLaboral(grupos[clave], dia);
 
+        console.log(grupos[clave]);
+
         // Procesar tipos de recargos del día
         if (dia.tipos_recargos && dia.tipos_recargos.length > 0) {
           dia.tipos_recargos.forEach((tipo) => {
-            consolidarTipoRecargo(grupos[clave], tipo);
+            consolidarTipoRecargo(grupos[clave], tipo, dia);
           });
         }
       });
@@ -1556,7 +1564,7 @@ const agruparRecargos = (
   });
 
   // Calcular totales finales para cada grupo
-  Object.values(grupos).forEach((grupo: any, index) => {
+  Object.values(grupos).forEach((grupo: any) => {
     calcularTotalesFinales(grupo);
   });
 
