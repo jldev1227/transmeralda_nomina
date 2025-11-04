@@ -1102,6 +1102,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     descontarTransporte,
     interesCesantias,
     anticipos,
+    ajusteParex
   ]);
 
   // Preparar datos para envío
