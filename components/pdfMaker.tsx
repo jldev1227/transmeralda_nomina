@@ -944,7 +944,7 @@ const PaginaRecargos = ({
                         fontSize: 10,
                       }}
                     >
-                      <View style={{ width: "45%", paddingHorizontal: 3 }}>
+                      <View style={{ width: "43%", paddingHorizontal: 3 }}>
                         <Text style={{ fontSize: 10 }}>
                           {tipo.nombre.toUpperCase()}
                           {tipo.codigo !== "BONO_FESTIVO" && (
@@ -991,7 +991,7 @@ const PaginaRecargos = ({
                           {tipo.horas}
                         </Text>
                       </View>
-                      <View style={{ width: "10%", paddingHorizontal: 3 }}>
+                      <View style={{ width: "12%", paddingHorizontal: 3 }}>
                         <Text
                           style={{
                             textAlign: "center",
