@@ -166,6 +166,17 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
   const [noDescontarPension, setNoDescontarPension] = useState(false);
   const [descontarTransporte, setDescontarTransporte] = useState(false);
 
+  // Estados para ajustes adicionales
+  const [conceptosAdicionales, setConceptosAdicionales] = useState<Array<{
+    valor: number;
+    observaciones: string;
+  }>>([]);
+  const [isVisibleFormAjusteAdicional, setIsVisibleFormAjusteAdicional] = useState(false);
+  const [valorAjusteAdicional, setValorAjusteAdicional] = useState("");
+  const [observacionesAjusteAdicional, setObservacionesAjusteAdicional] = useState("");
+  const [isInvalidValorAjusteAdicional, setIsInvalidValorAjusteAdicional] = useState(false);
+  const [isInvalidObservacionesAjusteAdicional, setIsInvalidObservacionesAjusteAdicional] = useState(false);
+
   const isMobile = useMediaQuery({ maxWidth: 1024 });
 
   // Opciones para selectores
@@ -406,6 +417,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
 
     // Cargar otros valores
     setAnticipos(initialData?.anticipos || []);
+    setConceptosAdicionales(initialData?.conceptos_adicionales || []);
     setDiasLaborados(initialData?.dias_laborados || 0);
     setDiasLaboradosVillanueva(initialData?.dias_laborados_villanueva || 0);
     setDiasLaboradosAnual(initialData?.dias_laborados_anual || 0);
@@ -869,6 +881,74 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     setIsInvalidDateAnticipo(false);
   };
 
+  // Funciones para manejar ajustes adicionales
+  const handleOnchangeAjusteAdicional = (value: string) => {
+    if (value === "") {
+      setValorAjusteAdicional("");
+      return;
+    }
+
+    // Permitir valores negativos
+    const numericValue = parseFloat(value);
+    if (!isNaN(numericValue)) {
+      setValorAjusteAdicional(numericValue.toString());
+      // Limpiar error si hay un valor válido
+      if (numericValue !== 0) {
+        setIsInvalidValorAjusteAdicional(false);
+      }
+    }
+  };
+
+  const handleRegisterAjusteAdicional = () => {
+    let isValid = true;
+
+    // Validar el valor del ajuste
+    if (!valorAjusteAdicional || Number(valorAjusteAdicional) === 0) {
+      setIsInvalidValorAjusteAdicional(true);
+      isValid = false;
+    }
+
+    // Validar las observaciones
+    if (!observacionesAjusteAdicional.trim()) {
+      setIsInvalidObservacionesAjusteAdicional(true);
+      isValid = false;
+    }
+
+    // Si hay errores, detener el proceso
+    if (!isValid) return;
+
+    // Limpiar indicadores de error
+    setIsInvalidValorAjusteAdicional(false);
+    setIsInvalidObservacionesAjusteAdicional(false);
+
+    // Agregar el nuevo ajuste adicional
+    const nuevoAjuste = {
+      valor: Number(valorAjusteAdicional),
+      observaciones: observacionesAjusteAdicional.trim(),
+    };
+
+    // Actualizar la lista de ajustes adicionales
+    setConceptosAdicionales([...conceptosAdicionales, nuevoAjuste]);
+
+    // Limpiar el formulario y ocultarlo
+    setValorAjusteAdicional("");
+    setObservacionesAjusteAdicional("");
+    setIsVisibleFormAjusteAdicional(false);
+  };
+
+  const handleDeleteAjusteAdicional = (index: number) => {
+    setConceptosAdicionales(conceptosAdicionales.filter((_, i) => i !== index));
+  };
+
+  const handleAddAjusteAdicional = () => {
+    setIsVisibleFormAjusteAdicional(true);
+    // Limpiar valores e indicadores de error
+    setValorAjusteAdicional("");
+    setObservacionesAjusteAdicional("");
+    setIsInvalidValorAjusteAdicional(false);
+    setIsInvalidObservacionesAjusteAdicional(false);
+  };
+
   // Cálculo de bonificación Villanueva
   const bonificacionVillanueva = React.useMemo(() => {
     if (!isCheckedAjuste || !conductorSelected) return 0;
@@ -1041,6 +1121,12 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     const totalAnticipos =
       anticipos?.reduce((total: number, a: any) => total + (a.valor || 0), 0) || 0;
 
+    // === AJUSTES ADICIONALES ===
+    const totalAjustesAdicionales = conceptosAdicionales.reduce(
+      (total, ajuste) => total + ajuste.valor,
+      0
+    );
+
     const totalDeducciones =
       salud +
       pension +
@@ -1058,7 +1144,8 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       totalVacaciones +
       bonificacionVillanueva +
       valorIncapacidad +
-      interesCesantias;
+      interesCesantias +
+      totalAjustesAdicionales; // Los ajustes se suman al bruto (pueden ser negativos)
 
     const sueldoTotal = sueldoBruto - totalDeducciones;
 
@@ -1074,6 +1161,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       bonificacionVillanueva,
       valorIncapacidad,
       interesCesantias,
+      totalAjustesAdicionales,
       sueldoBruto,
 
       // --- Deducciones ---
@@ -1102,7 +1190,8 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     descontarTransporte,
     interesCesantias,
     anticipos,
-    ajusteParex
+    ajusteParex,
+    conceptosAdicionales
   ]);
 
   // Preparar datos para envío
@@ -1186,6 +1275,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
         })),
       ),
       anticipos,
+      conceptos_adicionales: conceptosAdicionales,
     };
   };
 
@@ -2670,9 +2760,195 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                         </span>
                       </div>
                     )}
+
+                    {/* Mostrar conceptos adicionales */}
+                    {conceptosAdicionales.map((concepto, index) => (
+                      <div 
+                        key={index} 
+                        className="flex justify-between items-center py-1 border-b border-gray-100"
+                      >
+                        <div className="flex flex-col">
+                          <span className="text-sm text-gray-700">
+                            Ajuste adicional
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {concepto.observaciones}
+                          </span>
+                        </div>
+                        <span className={`font-medium ${concepto.valor >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                          {concepto.valor >= 0 ? '+' : ''}{formatToCOP(concepto.valor)}
+                        </span>
+                      </div>
+                    ))}
+
+                    {/* Botón para agregar ajuste adicional */}
+                    <div className="pt-3 border-t border-gray-200">
+                      <Button
+                        color="primary"
+                        size="sm"
+                        startContent={<Plus size={16} />}
+                        variant="flat"
+                        onPress={handleAddAjusteAdicional}
+                      >
+                        Añadir ajuste adicional
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </Card>
+
+              {/* Modal/Formulario para agregar ajuste adicional */}
+              {isVisibleFormAjusteAdicional && (
+                <Card className="lg:col-span-3 shadow-sm border border-blue-200 bg-blue-50">
+                  <div className="p-5">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-medium text-gray-800">
+                        Añadir Ajuste Adicional
+                      </h3>
+                      <Button
+                        isIconOnly
+                        color="danger"
+                        size="sm"
+                        variant="light"
+                        onPress={() => setIsVisibleFormAjusteAdicional(false)}
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Input
+                          isRequired
+                          className="max-w-full"
+                          description="Valores positivos se suman, negativos se restan"
+                          isInvalid={isInvalidValorAjusteAdicional}
+                          label="Valor del ajuste"
+                          placeholder="$0 (puede ser negativo)"
+                          type="text"
+                          value={valorAjusteAdicional}
+                          onChange={(e) => {
+                            let inputVal = e.target.value.replace(/[^\d-]/g, "");
+                            
+                            // Permitir solo un signo negativo al inicio
+                            if (inputVal.includes('-')) {
+                              if (inputVal.indexOf('-') === 0) {
+                                inputVal = '-' + inputVal.substring(1).replace(/-/g, '');
+                              } else {
+                                inputVal = inputVal.replace(/-/g, '');
+                              }
+                            }
+                            
+                            handleOnchangeAjusteAdicional(inputVal);
+                          }}
+                        />
+
+                        <Input
+                          isRequired
+                          className="max-w-full"
+                          isInvalid={isInvalidObservacionesAjusteAdicional}
+                          label="Descripción del concepto"
+                          placeholder="Ej: Descuento por daños, Bono por desempeño..."
+                          type="text"
+                          value={observacionesAjusteAdicional}
+                          onChange={(e) => {
+                            setObservacionesAjusteAdicional(e.target.value);
+                            if (e.target.value.trim()) {
+                              setIsInvalidObservacionesAjusteAdicional(false);
+                            }
+                          }}
+                        />
+                      </div>
+
+                      <div className="flex gap-2 mt-4 justify-end">
+                        <Button
+                          size="md"
+                          variant="flat"
+                          onPress={() => setIsVisibleFormAjusteAdicional(false)}
+                        >
+                          Cancelar
+                        </Button>
+
+                        <Button
+                          className="font-medium bg-blue-600 text-white"
+                          color="primary"
+                          size="md"
+                          startContent={<Plus size={16} />}
+                          onPress={handleRegisterAjusteAdicional}
+                        >
+                          Añadir ajuste
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              )}
+
+              {/* Lista de ajustes adicionales registrados */}
+              {conceptosAdicionales.length > 0 && (
+                <Card className="lg:col-span-3 shadow-sm border">
+                  <div className="p-5">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-base font-medium text-gray-800">
+                        Ajustes Adicionales Registrados
+                      </h3>
+                      <Badge color="primary" variant="flat">
+                        {conceptosAdicionales.length} concepto{conceptosAdicionales.length !== 1 ? 's' : ''}
+                      </Badge>
+                    </div>
+
+                    <div className="space-y-3">
+                      {conceptosAdicionales.map((concepto, index) => (
+                        <div 
+                          key={index}
+                          className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
+                        >
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-3 h-3 rounded-full ${concepto.valor >= 0 ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                              <div>
+                                <span className="font-medium text-gray-800">
+                                  {concepto.observaciones}
+                                </span>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {concepto.valor >= 0 ? 'Suma al total' : 'Resta del total'}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-3">
+                            <span className={`text-lg font-bold ${concepto.valor >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                              {concepto.valor >= 0 ? '+' : ''}{formatToCOP(concepto.valor)}
+                            </span>
+                            <Button
+                              isIconOnly
+                              color="danger"
+                              size="sm"
+                              variant="light"
+                              onPress={() => handleDeleteAjusteAdicional(index)}
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Total de ajustes */}
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <div className="flex justify-between items-center">
+                        <span className="text-base font-medium text-gray-800">
+                          Total ajustes adicionales:
+                        </span>
+                        <span className={`text-lg font-bold ${totales.totalAjustesAdicionales >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                          {totales.totalAjustesAdicionales >= 0 ? '+' : ''}{formatToCOP(totales.totalAjustesAdicionales)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              )}
 
               <Card className="lg:col-span-2 shadow-sm border">
                 <div className="p-5">

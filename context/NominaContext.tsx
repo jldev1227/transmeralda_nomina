@@ -243,6 +243,10 @@ export interface Liquidacion {
   recargos?: Recargo[];
   anticipos?: Anticipo[];
   mantenimientos?: Mantenimiento[];
+  conceptos_adicionales?: Array<{
+    valor: number;
+    observaciones: string;
+  }>;
   actualizado_por_id?: string;
   creado_por_id?: string;
   liquidado_por_id?: string;
