@@ -167,15 +167,23 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
   const [descontarTransporte, setDescontarTransporte] = useState(false);
 
   // Estados para ajustes adicionales
-  const [conceptosAdicionales, setConceptosAdicionales] = useState<Array<{
-    valor: number;
-    observaciones: string;
-  }>>([]);
-  const [isVisibleFormAjusteAdicional, setIsVisibleFormAjusteAdicional] = useState(false);
+  const [conceptosAdicionales, setConceptosAdicionales] = useState<
+    Array<{
+      valor: number;
+      observaciones: string;
+    }>
+  >([]);
+  const [isVisibleFormAjusteAdicional, setIsVisibleFormAjusteAdicional] =
+    useState(false);
   const [valorAjusteAdicional, setValorAjusteAdicional] = useState("");
-  const [observacionesAjusteAdicional, setObservacionesAjusteAdicional] = useState("");
-  const [isInvalidValorAjusteAdicional, setIsInvalidValorAjusteAdicional] = useState(false);
-  const [isInvalidObservacionesAjusteAdicional, setIsInvalidObservacionesAjusteAdicional] = useState(false);
+  const [observacionesAjusteAdicional, setObservacionesAjusteAdicional] =
+    useState("");
+  const [isInvalidValorAjusteAdicional, setIsInvalidValorAjusteAdicional] =
+    useState(false);
+  const [
+    isInvalidObservacionesAjusteAdicional,
+    setIsInvalidObservacionesAjusteAdicional,
+  ] = useState(false);
 
   const isMobile = useMediaQuery({ maxWidth: 1024 });
 
@@ -430,12 +438,12 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     setNoDescontarPension((initialData?.pension ?? 0) === 0);
     setDescontarTransporte(
       initialData?.dias_laborados !== undefined &&
-      initialData?.dias_laborados > 0 &&
-      initialData?.auxilio_transporte === 0,
+        initialData?.dias_laborados > 0 &&
+        initialData?.auxilio_transporte === 0,
     );
     setIsCesantias(
       (initialData?.cesantias ?? 0) > 0 ||
-      (initialData?.interes_cesantias ?? 0) > 0,
+        (initialData?.interes_cesantias ?? 0) > 0,
     );
   };
 
@@ -500,33 +508,33 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
             mantenimientos:
               detalleExistente.mantenimientos.length > 0
                 ? detalleExistente.mantenimientos.map((mantenimiento) => ({
-                  ...mantenimiento,
-                  // Asegurar que value sea siempre un número
-                  value: Number(
-                    configuracion?.find(
-                      (config) => config.nombre === "Mantenimiento",
-                    )?.valor || 0,
-                  ),
-                  values: mesesRange.map((mes) => {
-                    const mantenimientoExistente = mantenimiento.values.find(
-                      (val) => val.mes === mes,
-                    );
-
-                    return mantenimientoExistente || { mes, quantity: 0 };
-                  }),
-                }))
-                : [
-                  {
+                    ...mantenimiento,
                     // Asegurar que value sea siempre un número
                     value: Number(
                       configuracion?.find(
                         (config) => config.nombre === "Mantenimiento",
                       )?.valor || 0,
                     ),
-                    values: mesesRange.map((mes) => ({ mes, quantity: 0 })),
-                    vehiculoId: vehiculo.value,
-                  },
-                ],
+                    values: mesesRange.map((mes) => {
+                      const mantenimientoExistente = mantenimiento.values.find(
+                        (val) => val.mes === mes,
+                      );
+
+                      return mantenimientoExistente || { mes, quantity: 0 };
+                    }),
+                  }))
+                : [
+                    {
+                      // Asegurar que value sea siempre un número
+                      value: Number(
+                        configuracion?.find(
+                          (config) => config.nombre === "Mantenimiento",
+                        )?.valor || 0,
+                      ),
+                      values: mesesRange.map((mes) => ({ mes, quantity: 0 })),
+                      vehiculoId: vehiculo.value,
+                    },
+                  ],
           };
         }
 
@@ -620,18 +628,18 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       prevDetalles.map((detalle) =>
         detalle.vehiculo.value === vehiculoId
           ? {
-            ...detalle,
-            bonos: detalle.bonos.map((bono) =>
-              bono.name === name
-                ? {
-                  ...bono,
-                  values: bono.values.map((val) =>
-                    val.mes === mes ? { ...val, quantity } : val,
-                  ),
-                }
-                : bono,
-            ),
-          }
+              ...detalle,
+              bonos: detalle.bonos.map((bono) =>
+                bono.name === name
+                  ? {
+                      ...bono,
+                      values: bono.values.map((val) =>
+                        val.mes === mes ? { ...val, quantity } : val,
+                      ),
+                    }
+                  : bono,
+              ),
+            }
           : detalle,
       ),
     );
@@ -647,14 +655,14 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       prevDetalles.map((detalle) =>
         detalle.vehiculo.value === vehiculoId
           ? {
-            ...detalle,
-            mantenimientos: detalle.mantenimientos.map((mantenimiento) => ({
-              ...mantenimiento,
-              values: mantenimiento.values.map((val) =>
-                val.mes === mes ? { ...val, quantity } : val,
-              ),
-            })),
-          }
+              ...detalle,
+              mantenimientos: detalle.mantenimientos.map((mantenimiento) => ({
+                ...mantenimiento,
+                values: mantenimiento.values.map((val) =>
+                  val.mes === mes ? { ...val, quantity } : val,
+                ),
+              })),
+            }
           : detalle,
       ),
     );
@@ -670,11 +678,11 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       prevDetalles.map((detalle) =>
         detalle.vehiculo.value === vehiculoId
           ? {
-            ...detalle,
-            pernotes: detalle.pernotes.map((pernote, i) =>
-              i === index ? { ...pernote, [field]: value } : pernote,
-            ),
-          }
+              ...detalle,
+              pernotes: detalle.pernotes.map((pernote, i) =>
+                i === index ? { ...pernote, [field]: value } : pernote,
+              ),
+            }
           : detalle,
       ),
     );
@@ -692,17 +700,17 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       prevDetalles.map((detalle) =>
         detalle.vehiculo.value === vehiculoId
           ? {
-            ...detalle,
-            recargos: detalle.recargos.map((recargo, i) =>
-              i === index
-                ? {
-                  ...recargo,
-                  [field]: value,
-                  ...(pag_cliente !== undefined && { pag_cliente }),
-                }
-                : recargo,
-            ),
-          }
+              ...detalle,
+              recargos: detalle.recargos.map((recargo, i) =>
+                i === index
+                  ? {
+                      ...recargo,
+                      [field]: value,
+                      ...(pag_cliente !== undefined && { pag_cliente }),
+                    }
+                  : recargo,
+              ),
+            }
           : detalle,
       ),
     );
@@ -714,21 +722,21 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       prevDetalles.map((detalle) =>
         detalle.vehiculo.value === vehiculoId
           ? {
-            ...detalle,
-            pernotes: [
-              ...detalle.pernotes,
-              {
-                vehiculo_id: vehiculoId,
-                empresa_id: "",
-                cantidad: 0,
-                fechas: [],
-                valor: Number(
-                  configuracion?.find((config) => config.nombre === "Pernote")
-                    ?.valor || 0,
-                ),
-              },
-            ],
-          }
+              ...detalle,
+              pernotes: [
+                ...detalle.pernotes,
+                {
+                  vehiculo_id: vehiculoId,
+                  empresa_id: "",
+                  cantidad: 0,
+                  fechas: [],
+                  valor: Number(
+                    configuracion?.find((config) => config.nombre === "Pernote")
+                      ?.valor || 0,
+                  ),
+                },
+              ],
+            }
           : detalle,
       ),
     );
@@ -740,18 +748,18 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       prevDetalles.map((detalle) =>
         detalle.vehiculo.value === vehiculoId
           ? {
-            ...detalle,
-            recargos: [
-              ...detalle.recargos,
-              {
-                vehiculo_id: vehiculoId,
-                empresa_id: "",
-                valor: 0,
-                pag_cliente: false,
-                mes: mesesRange[0] || "",
-              },
-            ],
-          }
+              ...detalle,
+              recargos: [
+                ...detalle.recargos,
+                {
+                  vehiculo_id: vehiculoId,
+                  empresa_id: "",
+                  valor: 0,
+                  pag_cliente: false,
+                  mes: mesesRange[0] || "",
+                },
+              ],
+            }
           : detalle,
       ),
     );
@@ -763,9 +771,9 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       prevDetalles.map((detalle) =>
         detalle.vehiculo.value === vehiculoId
           ? {
-            ...detalle,
-            pernotes: detalle.pernotes.filter((_, i) => i !== index),
-          }
+              ...detalle,
+              pernotes: detalle.pernotes.filter((_, i) => i !== index),
+            }
           : detalle,
       ),
     );
@@ -777,9 +785,9 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       prevDetalles.map((detalle) =>
         detalle.vehiculo.value === vehiculoId
           ? {
-            ...detalle,
-            recargos: detalle.recargos.filter((_, i) => i !== index),
-          }
+              ...detalle,
+              recargos: detalle.recargos.filter((_, i) => i !== index),
+            }
           : detalle,
       ),
     );
@@ -885,11 +893,13 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
   const handleOnchangeAjusteAdicional = (value: string) => {
     if (value === "") {
       setValorAjusteAdicional("");
+
       return;
     }
 
     // Permitir valores negativos
     const numericValue = parseFloat(value);
+
     if (!isNaN(numericValue)) {
       setValorAjusteAdicional(numericValue.toString());
       // Limpiar error si hay un valor válido
@@ -1037,15 +1047,20 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
   // Cálculos de totales financieros
   const totales = React.useMemo(() => {
     // === DATOS BASE ===
-    const conductor = conductores?.find(c => c.id === conductorSelected?.value);
+    const conductor = conductores?.find(
+      (c) => c.id === conductorSelected?.value,
+    );
     const salarioBase = conductor?.salario_base || 0;
     const salarioDevengado = (salarioBase / 30) * diasLaborados;
 
     const auxilioTransporte = descontarTransporte
       ? 0
       : (Number(
-        configuracion?.find(c => c.nombre === "Auxilio de transporte")?.valor || 0
-      ) / 30) * diasLaborados;
+          configuracion?.find((c) => c.nombre === "Auxilio de transporte")
+            ?.valor || 0,
+        ) /
+          30) *
+        diasLaborados;
 
     // === DEVENGOS ===
     const totalBonificaciones = detallesVehiculos.reduce(
@@ -1056,41 +1071,47 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
             total +
             bono.values.reduce(
               (sum, val) => sum + val.quantity * Number(bono.value),
-              0
+              0,
             ),
-          0
+          0,
         ),
-      0
+      0,
     );
 
     const totalPernotes = detallesVehiculos.reduce(
       (acc, item) =>
         acc +
         item.pernotes?.reduce(
-          (total, pernote) => total + Number(pernote.cantidad) * Number(pernote.valor),
-          0
+          (total, pernote) =>
+            total + Number(pernote.cantidad) * Number(pernote.valor),
+          0,
         ),
-      0
+      0,
     );
 
     const totalRecargos = detallesVehiculos.reduce(
       (acc, item) =>
-        acc + item.recargos.reduce((total, recargo) => total + recargo.valor, 0),
-      0
+        acc +
+        item.recargos.reduce((total, recargo) => total + recargo.valor, 0),
+      0,
     );
 
     const ajusteParexPorConcepto = Number(ajusteParex) * 0.5;
 
     // === CONFIGURACIÓN ===
     const porcentajeSalud =
-      Number(configuracion?.find(c => c.nombre === "Salud")?.valor || 0) / 100;
+      Number(configuracion?.find((c) => c.nombre === "Salud")?.valor || 0) /
+      100;
     const porcentajePension =
-      Number(configuracion?.find(c => c.nombre === "Pensión")?.valor || 0) / 100;
+      Number(configuracion?.find((c) => c.nombre === "Pensión")?.valor || 0) /
+      100;
 
     // === VACACIONES ===
     let totalVacaciones = 0;
+
     if (isVacaciones && periodoVacaciones) {
       const diasVacaciones = obtenerDiferenciaDias(periodoVacaciones);
+
       totalVacaciones =
         (salarioBase / 30) *
         (typeof diasVacaciones === "string"
@@ -1119,20 +1140,17 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       : totalVacaciones * porcentajePension;
 
     const totalAnticipos =
-      anticipos?.reduce((total: number, a: any) => total + (a.valor || 0), 0) || 0;
+      anticipos?.reduce((total: number, a: any) => total + (a.valor || 0), 0) ||
+      0;
 
     // === AJUSTES ADICIONALES ===
     const totalAjustesAdicionales = conceptosAdicionales.reduce(
       (total, ajuste) => total + ajuste.valor,
-      0
+      0,
     );
 
     const totalDeducciones =
-      salud +
-      pension +
-      saludVacaciones +
-      pensionVacaciones +
-      totalAnticipos
+      salud + pension + saludVacaciones + pensionVacaciones + totalAnticipos;
 
     // === SUELDOS ===
     const sueldoBruto =
@@ -1191,7 +1209,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     interesCesantias,
     anticipos,
     ajusteParex,
-    conceptosAdicionales
+    conceptosAdicionales,
   ]);
 
   // Preparar datos para envío
@@ -1204,7 +1222,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       return `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`;
     };
 
-    console.log(totales.pension, totales.pensionVacaciones)
+    console.log(totales.pension, totales.pensionVacaciones);
 
     return {
       id: initialData?.id,
@@ -1866,7 +1884,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                 <Badge color="success" variant="flat">
                                   {formatToCOP(
                                     detalleVehiculo.mantenimientos[0]?.value ||
-                                    0,
+                                      0,
                                   )}
                                 </Badge>
                               </Tooltip>
@@ -2083,7 +2101,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                                 <span className="text-2xl font-bold text-emerald-600">
                                                   {formatToCOP(
                                                     pernote.cantidad *
-                                                    (pernote.valor || 0),
+                                                      (pernote.valor || 0),
                                                   )}
                                                 </span>
                                               </div>
@@ -2091,7 +2109,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                           </div>
                                           {/* Sección de fechas seleccionadas - Ancho completo */}
                                           {pernote.fechas &&
-                                            pernote.fechas.length > 0 ? (
+                                          pernote.fechas.length > 0 ? (
                                             <div className="bg-white border border-gray-200 rounded-lg">
                                               <div className="flex items-center space-x-3 p-3">
                                                 <svg
@@ -2150,10 +2168,11 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                                           key={dateIndex}
                                                           className={`
                                                               relative group p-3 rounded-lg border transition-all duration-200 hover:shadow-md hover:-translate-y-0.5
-                                                              ${isWeekend
-                                                              ? "bg-orange-50 border-orange-200 hover:bg-orange-100"
-                                                              : "bg-emerald-50 border-emerald-200 hover:bg-emerald-100"
-                                                            }
+                                                              ${
+                                                                isWeekend
+                                                                  ? "bg-orange-50 border-orange-200 hover:bg-orange-100"
+                                                                  : "bg-emerald-50 border-emerald-200 hover:bg-emerald-100"
+                                                              }
                                                             `}
                                                         >
                                                           {/* Indicador de fin de semana */}
@@ -2401,7 +2420,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                         type="text"
                                         value={
                                           !recargo.pag_cliente &&
-                                            recargo.valor !== 0
+                                          recargo.valor !== 0
                                             ? formatCurrency(recargo.valor)
                                             : ""
                                         }
@@ -2429,7 +2448,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                         type="text"
                                         value={
                                           recargo.pag_cliente &&
-                                            recargo.valor !== 0
+                                          recargo.valor !== 0
                                             ? formatCurrency(recargo.valor)
                                             : ""
                                         }
@@ -2763,8 +2782,8 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
 
                     {/* Mostrar conceptos adicionales */}
                     {conceptosAdicionales.map((concepto, index) => (
-                      <div 
-                        key={index} 
+                      <div
+                        key={index}
                         className="flex justify-between items-center py-1 border-b border-gray-100"
                       >
                         <div className="flex flex-col">
@@ -2775,180 +2794,226 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                             {concepto.observaciones}
                           </span>
                         </div>
-                        <span className={`font-medium ${concepto.valor >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                          {concepto.valor >= 0 ? '+' : ''}{formatToCOP(concepto.valor)}
+                        <span
+                          className={`font-medium ${concepto.valor >= 0 ? "text-emerald-600" : "text-red-600"}`}
+                        >
+                          {concepto.valor >= 0 ? "+" : ""}
+                          {formatToCOP(concepto.valor)}
                         </span>
                       </div>
                     ))}
 
                     {/* Botón para agregar ajuste adicional */}
-                    <div className="pt-3 border-t border-gray-200">
-                      <Button
-                        color="primary"
-                        size="sm"
-                        startContent={<Plus size={16} />}
-                        variant="flat"
-                        onPress={handleAddAjusteAdicional}
-                      >
-                        Añadir ajuste adicional
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Modal/Formulario para agregar ajuste adicional */}
-              {isVisibleFormAjusteAdicional && (
-                <Card className="lg:col-span-3 shadow-sm border border-blue-200 bg-blue-50">
-                  <div className="p-5">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-medium text-gray-800">
-                        Añadir Ajuste Adicional
-                      </h3>
-                      <Button
-                        isIconOnly
-                        color="danger"
-                        size="sm"
-                        variant="light"
-                        onPress={() => setIsVisibleFormAjusteAdicional(false)}
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Input
-                          isRequired
-                          className="max-w-full"
-                          description="Valores positivos se suman, negativos se restan"
-                          isInvalid={isInvalidValorAjusteAdicional}
-                          label="Valor del ajuste"
-                          placeholder="$0 (puede ser negativo)"
-                          type="text"
-                          value={valorAjusteAdicional}
-                          onChange={(e) => {
-                            let inputVal = e.target.value.replace(/[^\d-]/g, "");
-                            
-                            // Permitir solo un signo negativo al inicio
-                            if (inputVal.includes('-')) {
-                              if (inputVal.indexOf('-') === 0) {
-                                inputVal = '-' + inputVal.substring(1).replace(/-/g, '');
-                              } else {
-                                inputVal = inputVal.replace(/-/g, '');
-                              }
-                            }
-                            
-                            handleOnchangeAjusteAdicional(inputVal);
-                          }}
-                        />
-
-                        <Input
-                          isRequired
-                          className="max-w-full"
-                          isInvalid={isInvalidObservacionesAjusteAdicional}
-                          label="Descripción del concepto"
-                          placeholder="Ej: Descuento por daños, Bono por desempeño..."
-                          type="text"
-                          value={observacionesAjusteAdicional}
-                          onChange={(e) => {
-                            setObservacionesAjusteAdicional(e.target.value);
-                            if (e.target.value.trim()) {
-                              setIsInvalidObservacionesAjusteAdicional(false);
-                            }
-                          }}
-                        />
-                      </div>
-
-                      <div className="flex gap-2 mt-4 justify-end">
+                    {!isVisibleFormAjusteAdicional && (
+                      <div className="pt-3">
                         <Button
-                          size="md"
-                          variant="flat"
-                          onPress={() => setIsVisibleFormAjusteAdicional(false)}
-                        >
-                          Cancelar
-                        </Button>
-
-                        <Button
-                          className="font-medium bg-blue-600 text-white"
                           color="primary"
-                          size="md"
+                          size="sm"
                           startContent={<Plus size={16} />}
-                          onPress={handleRegisterAjusteAdicional}
+                          variant="flat"
+                          onPress={handleAddAjusteAdicional}
                         >
-                          Añadir ajuste
+                          Añadir ajuste adicional
                         </Button>
                       </div>
-                    </div>
+                    )}
                   </div>
-                </Card>
-              )}
 
-              {/* Lista de ajustes adicionales registrados */}
-              {conceptosAdicionales.length > 0 && (
-                <Card className="lg:col-span-3 shadow-sm border">
-                  <div className="p-5">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-base font-medium text-gray-800">
-                        Ajustes Adicionales Registrados
-                      </h3>
-                      <Badge color="primary" variant="flat">
-                        {conceptosAdicionales.length} concepto{conceptosAdicionales.length !== 1 ? 's' : ''}
-                      </Badge>
-                    </div>
-
-                    <div className="space-y-3">
-                      {conceptosAdicionales.map((concepto, index) => (
-                        <div 
-                          key={index}
-                          className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
-                        >
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3">
-                              <div className={`w-3 h-3 rounded-full ${concepto.valor >= 0 ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                              <div>
-                                <span className="font-medium text-gray-800">
-                                  {concepto.observaciones}
-                                </span>
-                                <div className="text-xs text-gray-500 mt-1">
-                                  {concepto.valor >= 0 ? 'Suma al total' : 'Resta del total'}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center gap-3">
-                            <span className={`text-lg font-bold ${concepto.valor >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                              {concepto.valor >= 0 ? '+' : ''}{formatToCOP(concepto.valor)}
-                            </span>
+                  <div className="mt-5 space-y-4">
+                    {/* Modal/Formulario para agregar ajuste adicional */}
+                    {isVisibleFormAjusteAdicional && (
+                      <Card className="shadow-sm border border-blue-200 bg-blue-50">
+                        <div className="p-5">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-medium text-gray-800">
+                              Añadir Ajuste Adicional
+                            </h3>
                             <Button
                               isIconOnly
                               color="danger"
                               size="sm"
                               variant="light"
-                              onPress={() => handleDeleteAjusteAdicional(index)}
+                              onPress={() =>
+                                setIsVisibleFormAjusteAdicional(false)
+                              }
                             >
                               <Trash2 size={16} />
                             </Button>
                           </div>
-                        </div>
-                      ))}
-                    </div>
 
-                    {/* Total de ajustes */}
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <div className="flex justify-between items-center">
-                        <span className="text-base font-medium text-gray-800">
-                          Total ajustes adicionales:
-                        </span>
-                        <span className={`text-lg font-bold ${totales.totalAjustesAdicionales >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                          {totales.totalAjustesAdicionales >= 0 ? '+' : ''}{formatToCOP(totales.totalAjustesAdicionales)}
-                        </span>
-                      </div>
-                    </div>
+                          <div className="space-y-4">
+                            <div className="flex flex-col gap-4">
+                              <Input
+                                isRequired
+                                className="max-w-full"
+                                description="Valores positivos se suman, negativos se restan"
+                                isInvalid={isInvalidValorAjusteAdicional}
+                                label="Valor del ajuste"
+                                placeholder="$0 (puede ser negativo)"
+                                type="text"
+                                value={
+                                  valorAjusteAdicional
+                                    ? (Number(valorAjusteAdicional) < 0
+                                        ? "-"
+                                        : "") +
+                                      formatCurrency(
+                                        Math.abs(Number(valorAjusteAdicional)),
+                                      )
+                                    : ""
+                                }
+                                onChange={(e) => {
+                                  let inputVal = e.target.value.replace(
+                                    /[^\d-]/g,
+                                    "",
+                                  );
+
+                                  // Permitir solo un signo negativo al inicio
+                                  if (inputVal.includes("-")) {
+                                    if (inputVal.indexOf("-") === 0) {
+                                      inputVal =
+                                        "-" +
+                                        inputVal.substring(1).replace(/-/g, "");
+                                    } else {
+                                      inputVal = inputVal.replace(/-/g, "");
+                                    }
+                                  }
+
+                                  handleOnchangeAjusteAdicional(inputVal);
+                                }}
+                              />
+
+                              <Input
+                                isRequired
+                                className="max-w-full"
+                                isInvalid={
+                                  isInvalidObservacionesAjusteAdicional
+                                }
+                                label="Descripción del concepto"
+                                placeholder="Ej: Descuento por daños, Bono por desempeño..."
+                                type="text"
+                                value={observacionesAjusteAdicional}
+                                onChange={(e) => {
+                                  setObservacionesAjusteAdicional(
+                                    e.target.value,
+                                  );
+                                  if (e.target.value.trim()) {
+                                    setIsInvalidObservacionesAjusteAdicional(
+                                      false,
+                                    );
+                                  }
+                                }}
+                              />
+                            </div>
+
+                            <div className="flex gap-2 mt-4 justify-end">
+                              <Button
+                                size="md"
+                                variant="flat"
+                                onPress={() =>
+                                  setIsVisibleFormAjusteAdicional(false)
+                                }
+                              >
+                                Cancelar
+                              </Button>
+
+                              <Button
+                                className="font-medium bg-blue-600 text-white"
+                                color="primary"
+                                size="md"
+                                startContent={<Plus size={16} />}
+                                onPress={handleRegisterAjusteAdicional}
+                              >
+                                Añadir ajuste
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    )}
+
+                    {/* Lista de ajustes adicionales registrados */}
+                    {conceptosAdicionales.length > 0 && (
+                      <Card className="shadow-sm border">
+                        <div className="p-5">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-base font-medium text-gray-800">
+                              Ajustes Adicionales Registrados
+                            </h3>
+                            <Badge color="primary" variant="flat">
+                              {conceptosAdicionales.length} concepto
+                              {conceptosAdicionales.length !== 1 ? "s" : ""}
+                            </Badge>
+                          </div>
+
+                          <div className="space-y-3">
+                            {conceptosAdicionales.map((concepto, index) => (
+                              <div
+                                key={index}
+                                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
+                              >
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-3">
+                                    <div
+                                      className={`w-3 h-3 rounded-full ${concepto.valor >= 0 ? "bg-emerald-500" : "bg-red-500"}`}
+                                    />
+                                    <div>
+                                      <span className="font-medium text-gray-800">
+                                        {concepto.observaciones}
+                                      </span>
+                                      <div className="text-xs text-gray-500 mt-1">
+                                        {concepto.valor >= 0
+                                          ? "Suma al total"
+                                          : "Resta del total"}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                  <span
+                                    className={`text-lg font-bold ${concepto.valor >= 0 ? "text-emerald-600" : "text-red-600"}`}
+                                  >
+                                    {concepto.valor >= 0 ? "+" : ""}
+                                    {formatToCOP(concepto.valor)}
+                                  </span>
+                                  <Button
+                                    isIconOnly
+                                    color="danger"
+                                    size="sm"
+                                    variant="light"
+                                    onPress={() =>
+                                      handleDeleteAjusteAdicional(index)
+                                    }
+                                  >
+                                    <Trash2 size={16} />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Total de ajustes */}
+                          <div className="mt-4 pt-4 border-t border-gray-200">
+                            <div className="flex justify-between items-center">
+                              <span className="text-base font-medium text-gray-800">
+                                Total ajustes adicionales:
+                              </span>
+                              <span
+                                className={`text-lg font-bold ${totales.totalAjustesAdicionales >= 0 ? "text-emerald-600" : "text-red-600"}`}
+                              >
+                                {totales.totalAjustesAdicionales >= 0
+                                  ? "+"
+                                  : ""}
+                                {formatToCOP(totales.totalAjustesAdicionales)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    )}
                   </div>
-                </Card>
-              )}
+                </div>
+              </Card>
 
               <Card className="lg:col-span-2 shadow-sm border">
                 <div className="p-5">
@@ -3088,7 +3153,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                                 -
                                 {formatToCOP(
                                   totales.saludVacaciones +
-                                  totales.pensionVacaciones,
+                                    totales.pensionVacaciones,
                                 )}
                               </span>
                             </div>
@@ -3298,118 +3363,118 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
             {detallesVehiculos.some(
               (detalle) => detalle.pernotes.length > 0,
             ) && (
-                <Card className="shadow-sm border">
-                  <div className="p-5">
-                    <h3 className="text-base font-medium text-gray-800 mb-3 flex items-center">
-                      <Calendar className="h-5 w-5 mr-2 text-emerald-600" />
-                      Detalle de Pernotes
-                    </h3>
+              <Card className="shadow-sm border">
+                <div className="p-5">
+                  <h3 className="text-base font-medium text-gray-800 mb-3 flex items-center">
+                    <Calendar className="h-5 w-5 mr-2 text-emerald-600" />
+                    Detalle de Pernotes
+                  </h3>
 
-                    <div className="space-y-4">
-                      {detallesVehiculos.map(
-                        (detalle) =>
-                          detalle.pernotes.length > 0 && (
-                            <div
-                              key={detalle.vehiculo.value}
-                              className="border rounded-lg p-4"
-                            >
-                              <div className="flex items-center justify-between mb-3">
-                                <h4 className="font-medium text-gray-900">
-                                  <span className="text-emerald-600">
-                                    {detalle.vehiculo.label}
-                                  </span>
-                                </h4>
-                                <p>
-                                  {detalle.pernotes.reduce(
-                                    (total, p) => total + (p.cantidad || 0),
-                                    0,
-                                  )}{" "}
-                                  pernotes
-                                </p>
-                              </div>
-
-                              <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                  <thead className="bg-gray-50">
-                                    <tr>
-                                      <th
-                                        className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                        scope="col"
-                                      >
-                                        Cantidad
-                                      </th>
-                                      <th
-                                        className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                        scope="col"
-                                      >
-                                        Empresa
-                                      </th>
-                                      <th
-                                        className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                        scope="col"
-                                      >
-                                        Fechas
-                                      </th>
-                                      <th
-                                        className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                        scope="col"
-                                      >
-                                        Valor
-                                      </th>
-                                    </tr>
-                                  </thead>
-                                  <tbody className="bg-white divide-y divide-gray-200">
-                                    {detalle.pernotes.map((pernote, idx) => (
-                                      <tr key={idx} className="hover:bg-gray-50">
-                                        <td className="px-3 py-2 whitespace-nowrap text-xs">
-                                          {pernote.cantidad || 0}
-                                        </td>
-                                        <td className="px-3 py-2 text-xs">
-                                          {empresas?.find(
-                                            (e) => e.id === pernote.empresa_id,
-                                          )?.nombre || "-"}
-                                        </td>
-                                        <td className="px-3 py-2 text-xs">
-                                          <div className="flex flex-wrap gap-1">
-                                            {pernote.fechas?.map(
-                                              (fecha, fidx) => (
-                                                <Badge
-                                                  key={fidx}
-                                                  className="text-xs px-1"
-                                                  color="primary"
-                                                  variant="flat"
-                                                >
-                                                  {formatDate(fecha)}{" "}
-                                                  {fidx + 1 ===
-                                                    pernote.fechas?.length
-                                                    ? ""
-                                                    : "-"}
-                                                </Badge>
-                                              ),
-                                            )}
-                                            {(!pernote.fechas ||
-                                              pernote.fechas.length === 0) &&
-                                              "-"}
-                                          </div>
-                                        </td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-xs text-right font-medium">
-                                          {formatToCOP(
-                                            (pernote.cantidad || 0) *
-                                            (pernote.valor || 0),
-                                          )}
-                                        </td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
+                  <div className="space-y-4">
+                    {detallesVehiculos.map(
+                      (detalle) =>
+                        detalle.pernotes.length > 0 && (
+                          <div
+                            key={detalle.vehiculo.value}
+                            className="border rounded-lg p-4"
+                          >
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="font-medium text-gray-900">
+                                <span className="text-emerald-600">
+                                  {detalle.vehiculo.label}
+                                </span>
+                              </h4>
+                              <p>
+                                {detalle.pernotes.reduce(
+                                  (total, p) => total + (p.cantidad || 0),
+                                  0,
+                                )}{" "}
+                                pernotes
+                              </p>
                             </div>
-                          ),
-                      )}
-                    </div>
+
+                            <div className="overflow-x-auto">
+                              <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                  <tr>
+                                    <th
+                                      className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                      scope="col"
+                                    >
+                                      Cantidad
+                                    </th>
+                                    <th
+                                      className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                      scope="col"
+                                    >
+                                      Empresa
+                                    </th>
+                                    <th
+                                      className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                      scope="col"
+                                    >
+                                      Fechas
+                                    </th>
+                                    <th
+                                      className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                      scope="col"
+                                    >
+                                      Valor
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                  {detalle.pernotes.map((pernote, idx) => (
+                                    <tr key={idx} className="hover:bg-gray-50">
+                                      <td className="px-3 py-2 whitespace-nowrap text-xs">
+                                        {pernote.cantidad || 0}
+                                      </td>
+                                      <td className="px-3 py-2 text-xs">
+                                        {empresas?.find(
+                                          (e) => e.id === pernote.empresa_id,
+                                        )?.nombre || "-"}
+                                      </td>
+                                      <td className="px-3 py-2 text-xs">
+                                        <div className="flex flex-wrap gap-1">
+                                          {pernote.fechas?.map(
+                                            (fecha, fidx) => (
+                                              <Badge
+                                                key={fidx}
+                                                className="text-xs px-1"
+                                                color="primary"
+                                                variant="flat"
+                                              >
+                                                {formatDate(fecha)}{" "}
+                                                {fidx + 1 ===
+                                                pernote.fechas?.length
+                                                  ? ""
+                                                  : "-"}
+                                              </Badge>
+                                            ),
+                                          )}
+                                          {(!pernote.fechas ||
+                                            pernote.fechas.length === 0) &&
+                                            "-"}
+                                        </div>
+                                      </td>
+                                      <td className="px-3 py-2 whitespace-nowrap text-xs text-right font-medium">
+                                        {formatToCOP(
+                                          (pernote.cantidad || 0) *
+                                            (pernote.valor || 0),
+                                        )}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        ),
+                    )}
                   </div>
-                </Card>
-              )}
+                </div>
+              </Card>
+            )}
           </div>
         )}
       </div>
