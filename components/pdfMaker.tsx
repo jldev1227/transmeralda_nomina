@@ -1922,6 +1922,50 @@ export const LiquidacionPDF = ({
           )}
         </View>
 
+        {/* Conceptos Adicionales */}
+        {item.conceptos_adicionales &&
+          item.conceptos_adicionales.length > 0 && (
+            <>
+              <Text style={styles.sectionHeader}>CONCEPTOS ADICIONALES</Text>
+              <View style={styles.table}>
+                {item.conceptos_adicionales.map((concepto, index) => {
+                  const isNegative = concepto.valor < 0;
+                  const isLast =
+                    index === (item.conceptos_adicionales?.length || 0) - 1;
+
+                  return (
+                    <View
+                      key={index}
+                      style={isLast ? styles.tableRowLast : styles.tableRow}
+                    >
+                      <View style={styles.tableCol1}>
+                        <Text style={styles.valueText}>Ajuste adicional</Text>
+                      </View>
+                      <View style={styles.tableCol2}>
+                        <Text style={[styles.valueText, { fontSize: 10 }]}>
+                          {concepto.observaciones}
+                        </Text>
+                      </View>
+                      <View style={styles.tableCol3}>
+                        <Text style={styles.valueText}>1</Text>
+                      </View>
+                      <View style={styles.tableCol4}>
+                        <Text
+                          style={
+                            isNegative ? styles.redValue : styles.greenValue
+                          }
+                        >
+                          {isNegative ? "" : "+"}
+                          {formatToCOP(concepto.valor)}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            </>
+          )}
+
         {/* Deducciones */}
         <Text style={styles.sectionHeader}>DEDUCCIONES</Text>
         <View style={styles.table}>
@@ -2005,6 +2049,32 @@ export const LiquidacionPDF = ({
               </View>
             </View>
           )}
+
+          {item.conceptos_adicionales &&
+            item.conceptos_adicionales.length > 0 &&
+            (() => {
+              const totalConceptos = item.conceptos_adicionales.reduce(
+                (total, concepto) => total + concepto.valor,
+                0,
+              );
+              const isNegative = totalConceptos < 0;
+
+              return totalConceptos !== 0 ? (
+                <View style={[styles.tableRow, styles.flex]}>
+                  <View>
+                    <Text style={styles.labelText}>Conceptos adicionales</Text>
+                  </View>
+                  <View>
+                    <Text
+                      style={isNegative ? styles.redValue : styles.greenValue}
+                    >
+                      {isNegative ? "" : "+"}
+                      {formatToCOP(totalConceptos)}
+                    </Text>
+                  </View>
+                </View>
+              ) : null;
+            })()}
 
           <View style={[styles.tableRowLast, styles.flex]}>
             <View>
