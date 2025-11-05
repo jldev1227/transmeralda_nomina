@@ -2050,32 +2050,6 @@ export const LiquidacionPDF = ({
             </View>
           )}
 
-          {item.conceptos_adicionales &&
-            item.conceptos_adicionales.length > 0 &&
-            (() => {
-              const totalConceptos = item.conceptos_adicionales.reduce(
-                (total, concepto) => total + concepto.valor,
-                0,
-              );
-              const isNegative = totalConceptos < 0;
-
-              return totalConceptos !== 0 ? (
-                <View style={[styles.tableRow, styles.flex]}>
-                  <View>
-                    <Text style={styles.labelText}>Conceptos adicionales</Text>
-                  </View>
-                  <View>
-                    <Text
-                      style={isNegative ? styles.redValue : styles.greenValue}
-                    >
-                      {isNegative ? "" : "+"}
-                      {formatToCOP(totalConceptos)}
-                    </Text>
-                  </View>
-                </View>
-              ) : null;
-            })()}
-
           <View style={[styles.tableRowLast, styles.flex]}>
             <View>
               <Text style={[styles.labelText]}>Salario total</Text>
