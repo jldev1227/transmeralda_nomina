@@ -435,8 +435,6 @@ interface TipoRecargoConsolidado extends TipoRecargo {
   es_bono_festivo?: boolean;
 }
 
-type CampoHoras = "hed" | "rn" | "hen" | "rd" | "hefd" | "hefn" | "total_horas";
-
 const safeValue = (value: any, defaultValue = "") => {
   return value !== undefined && value !== null ? value : defaultValue;
 };
@@ -600,17 +598,6 @@ const PaginaRecargos = ({
                 {grupo.empresa.nombre} - NIT: {grupo.empresa.nit}
               </Text>
             </Text>
-            {grupo.recargos.length > 1 && (
-              <Text
-                style={{
-                  fontWeight: "semibold",
-                  color: "#2E8B57",
-                  marginTop: 2,
-                }}
-              >
-                CONSOLIDADO DE {grupo.recargos.length} REGISTROS
-              </Text>
-            )}
             <Text style={{ fontSize: 10, color: "#666", marginTop: 2 }}>
               Valor/Hora Base: ${Math.round(valorHoraBase).toLocaleString()}
               {grupo.configuracion_salarial?.empresa &&
@@ -1604,7 +1591,7 @@ export const LiquidacionPDF = ({
         >
           <View style={{ gap: 2 }}>
             <Text style={styles.header}>
-              TRANSPORTES Y SERVICIOS ESMERALDA S.A.S ZOMAC
+              TRANSPORTES Y SERVICIOS ESMERALDA S.A.S
             </Text>
             <Text style={styles.subHeader}>NIT: 901528440-3</Text>
             <Text style={styles.comprobante}>

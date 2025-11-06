@@ -68,7 +68,7 @@ Por favor, revise el documento y si tiene alguna duda o inquietud, no dude en co
   
 Saludos cordiales,
 Equipo de Nómina
-Transportes y Servicios Esmeralda S.A.S ZOMAC`);
+Transportes y Servicios Esmeralda S.A.S`);
 
   // Obtener el userInfo de la cookie al montar el componente
   useEffect(() => {
