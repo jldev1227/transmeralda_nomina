@@ -521,6 +521,53 @@ const PaginaRecargos = ({
       {totalPaginas > 1 && numeroPagina === 2 && "HORAS EXTRAS Y RECARGOS"}
     </Text>
 
+    {/* Avisos si hay días especiales */}
+    {(() => {
+      // Verificar en todos los grupos si hay días especiales
+      const hayDiasFestivosODomingos = grupos.some((grupo) =>
+        grupo.dias_laborales_unificados?.some(
+          (dia) => dia && (dia.es_festivo === true || dia.es_domingo === true),
+        ),
+      );
+
+      const hayDiasDisponibles = grupos.some((grupo) =>
+        grupo.dias_laborales_unificados?.some(
+          (dia) => dia && dia.disponibilidad === true,
+        ),
+      );
+
+      return (
+        <View>
+          {hayDiasFestivosODomingos && (
+            <Text
+              style={{
+                fontSize: 9,
+                color: "#92400E",
+                fontWeight: "bold",
+                marginBottom: 10,
+              }}
+            >
+              Aviso: Los días dominicales o festivos se resaltan en naranja.
+            </Text>
+          )}
+
+          {hayDiasDisponibles && (
+            <Text
+              style={{
+                fontSize: 9,
+                color: "#B91C1C",
+                fontWeight: "bold",
+                marginBottom: 10,
+              }}
+            >
+              Aviso: Los días marcados como disponibilidad no son reconocidos.
+              Se muestran en rojo y no suman a los totales.
+            </Text>
+          )}
+        </View>
+      );
+    })()}
+
     {grupos.map((grupo, index: number) => {
       const valorHoraBase =
         grupo.configuracion_salarial.salario_basico /
@@ -529,26 +576,26 @@ const PaginaRecargos = ({
       const valorSeguridadSocial = Math.round(
         (grupo.configuracion_salarial?.seguridad_social *
           grupo.totales.valor_total) /
-        100,
+          100,
       );
       const valorPrestacionesSociales = Math.round(
         (grupo.configuracion_salarial?.prestaciones_sociales *
           grupo.totales.valor_total) /
-        100,
+          100,
       );
       const valorAdministracion = Math.round(
         (grupo.configuracion_salarial?.administracion *
           (grupo.totales.valor_total +
             valorSeguridadSocial +
             valorPrestacionesSociales)) /
-        100,
+          100,
       );
 
       const total = Math.round(
         valorSeguridadSocial +
-        valorPrestacionesSociales +
-        valorAdministracion +
-        grupo.totales.valor_total,
+          valorPrestacionesSociales +
+          valorAdministracion +
+          grupo.totales.valor_total,
       );
 
       return (
@@ -757,8 +804,15 @@ const PaginaRecargos = ({
                     backgroundColor: (() => {
                       const colorFondoBase =
                         diaIndex % 2 === 0 ? "#ffffff" : "#f9f9f9";
+                      const esDisponible = dia.disponibilidad;
+                      const esEspecial = dia.es_festivo || dia.es_domingo;
 
-                      return dia.disponibilidad ? "#FF000015" : colorFondoBase;
+                      // Rojo claro para disponibilidad, Naranja claro para dominical/festivo
+                      return esDisponible
+                        ? "#FEE2E2"
+                        : esEspecial
+                          ? "#FEF3C7"
+                          : colorFondoBase;
                     })(),
                   }}
                 >
@@ -773,6 +827,16 @@ const PaginaRecargos = ({
                         borderBottomWidth: 1,
                         borderBottomColor: "#E0E0E0",
                         paddingVertical: 3,
+                        color: (() => {
+                          const esDisponible = dia.disponibilidad;
+                          const esEspecial = dia.es_festivo || dia.es_domingo;
+
+                          return esDisponible
+                            ? "#B91C1C"
+                            : esEspecial
+                              ? "#92400E"
+                              : "#333333";
+                        })(),
                       },
                     ]}
                   >
@@ -789,6 +853,16 @@ const PaginaRecargos = ({
                         borderBottomWidth: 1,
                         borderBottomColor: "#E0E0E0",
                         paddingVertical: 3,
+                        color: (() => {
+                          const esDisponible = dia.disponibilidad;
+                          const esEspecial = dia.es_festivo || dia.es_domingo;
+
+                          return esDisponible
+                            ? "#B91C1C"
+                            : esEspecial
+                              ? "#92400E"
+                              : "#333333";
+                        })(),
                       },
                     ]}
                   >
@@ -806,6 +880,16 @@ const PaginaRecargos = ({
                         borderBottomWidth: 1,
                         borderBottomColor: "#E0E0E0",
                         paddingVertical: 3,
+                        color: (() => {
+                          const esDisponible = dia.disponibilidad;
+                          const esEspecial = dia.es_festivo || dia.es_domingo;
+
+                          return esDisponible
+                            ? "#B91C1C"
+                            : esEspecial
+                              ? "#92400E"
+                              : "#333333";
+                        })(),
                       },
                     ]}
                   >
@@ -822,6 +906,16 @@ const PaginaRecargos = ({
                         borderBottomWidth: 1,
                         borderBottomColor: "#E0E0E0",
                         paddingVertical: 3,
+                        color: (() => {
+                          const esDisponible = dia.disponibilidad;
+                          const esEspecial = dia.es_festivo || dia.es_domingo;
+
+                          return esDisponible
+                            ? "#B91C1C"
+                            : esEspecial
+                              ? "#92400E"
+                              : "#333333";
+                        })(),
                       },
                     ]}
                   >
@@ -838,6 +932,16 @@ const PaginaRecargos = ({
                         borderBottomWidth: 1,
                         borderBottomColor: "#E0E0E0",
                         paddingVertical: 3,
+                        color: (() => {
+                          const esDisponible = dia.disponibilidad;
+                          const esEspecial = dia.es_festivo || dia.es_domingo;
+
+                          return esDisponible
+                            ? "#B91C1C"
+                            : esEspecial
+                              ? "#92400E"
+                              : "#333333";
+                        })(),
                       },
                     ]}
                   >
@@ -854,6 +958,16 @@ const PaginaRecargos = ({
                         borderBottomWidth: 1,
                         borderBottomColor: "#E0E0E0",
                         paddingVertical: 3,
+                        color: (() => {
+                          const esDisponible = dia.disponibilidad;
+                          const esEspecial = dia.es_festivo || dia.es_domingo;
+
+                          return esDisponible
+                            ? "#B91C1C"
+                            : esEspecial
+                              ? "#92400E"
+                              : "#333333";
+                        })(),
                       },
                     ]}
                   >
@@ -870,6 +984,16 @@ const PaginaRecargos = ({
                         borderBottomWidth: 1,
                         borderBottomColor: "#E0E0E0",
                         paddingVertical: 3,
+                        color: (() => {
+                          const esDisponible = dia.disponibilidad;
+                          const esEspecial = dia.es_festivo || dia.es_domingo;
+
+                          return esDisponible
+                            ? "#B91C1C"
+                            : esEspecial
+                              ? "#92400E"
+                              : "#333333";
+                        })(),
                       },
                     ]}
                   >
@@ -886,6 +1010,16 @@ const PaginaRecargos = ({
                         borderBottomWidth: 1,
                         borderBottomColor: "#E0E0E0",
                         paddingVertical: 3,
+                        color: (() => {
+                          const esDisponible = dia.disponibilidad;
+                          const esEspecial = dia.es_festivo || dia.es_domingo;
+
+                          return esDisponible
+                            ? "#B91C1C"
+                            : esEspecial
+                              ? "#92400E"
+                              : "#333333";
+                        })(),
                       },
                     ]}
                   >
@@ -900,6 +1034,16 @@ const PaginaRecargos = ({
                         borderBottomWidth: 1,
                         borderBottomColor: "#E0E0E0",
                         paddingVertical: 3,
+                        color: (() => {
+                          const esDisponible = dia.disponibilidad;
+                          const esEspecial = dia.es_festivo || dia.es_domingo;
+
+                          return esDisponible
+                            ? "#B91C1C"
+                            : esEspecial
+                              ? "#92400E"
+                              : "#333333";
+                        })(),
                       },
                     ]}
                   >
@@ -1190,7 +1334,7 @@ const PaginaRecargos = ({
                             flexDirection: "row",
                             borderBottom:
                               tipoIndex !==
-                                grupo.tipos_recargos_consolidados.length - 1
+                              grupo.tipos_recargos_consolidados.length - 1
                                 ? "1px solid #eee"
                                 : "none",
                             fontSize: 10,
@@ -1355,8 +1499,9 @@ const PaginaRecargos = ({
                             width: "45%",
                             padding: 4,
                             borderRightWidth: 1,
-                            borderRightColor: "#E0E0E0"
-                          }}>
+                            borderRightColor: "#E0E0E0",
+                          }}
+                        >
                           SEGURIDAD SOCIAL
                         </Text>
                         <Text
@@ -1390,11 +1535,12 @@ const PaginaRecargos = ({
                       >
                         <Text
                           style={{
-                            width: "45%", 
-                            padding: 4,  
+                            width: "45%",
+                            padding: 4,
                             borderRightWidth: 1,
                             borderRightColor: "#E0E0E0",
-                          }}>
+                          }}
+                        >
                           PRESTACIONES SOCIALES
                         </Text>
                         <Text
@@ -1427,12 +1573,14 @@ const PaginaRecargos = ({
                           borderBottomColor: "#E0E0E0",
                         }}
                       >
-                        <Text style={{ 
-                          width: "45%", 
-                          padding: 4, 
-                          borderRightWidth: 1,
-                          borderRightColor: "#E0E0E0", 
-                        }}>
+                        <Text
+                          style={{
+                            width: "45%",
+                            padding: 4,
+                            borderRightWidth: 1,
+                            borderRightColor: "#E0E0E0",
+                          }}
+                        >
                           ADMINISTRACIÓN
                         </Text>
                         <Text
@@ -1833,9 +1981,9 @@ const agruparRecargos = (
     grupo.totales.total_rd = pagaDiasFestivos
       ? 0
       : grupo.dias_laborales_unificados.reduce(
-        (sum: number, dia: DiaLaboral) => sum + (dia.rd || 0),
-        0,
-      );
+          (sum: number, dia: DiaLaboral) => sum + (dia.rd || 0),
+          0,
+        );
 
     // Agregar bono festivo si aplica
     agregarBonoFestivo(grupo);
@@ -2022,15 +2170,15 @@ export const LiquidacionPDF = ({
               <View>
                 <Text style={[styles.valueText, { marginLeft: -55 }]}>
                   {item.periodo_start_incapacidad &&
-                    item.periodo_end_incapacidad
+                  item.periodo_end_incapacidad
                     ? `${obtenerDiferenciaDias({
-                      start: toDateValue(
-                        parseDate(item.periodo_start_incapacidad),
-                      ),
-                      end: toDateValue(
-                        parseDate(item.periodo_end_incapacidad),
-                      ),
-                    })} días`
+                        start: toDateValue(
+                          parseDate(item.periodo_start_incapacidad),
+                        ),
+                        end: toDateValue(
+                          parseDate(item.periodo_end_incapacidad),
+                        ),
+                      })} días`
                     : "-"}
                 </Text>
               </View>
@@ -2104,49 +2252,49 @@ export const LiquidacionPDF = ({
           {/* Bonificaciones */}
           {item.bonificaciones && item.bonificaciones.length > 0
             ? Object.values(
-              item.bonificaciones.reduce(
-                (acc: BonificacionesAcc, bonificacion: Bonificacion) => {
-                  const totalQuantity = bonificacion.values.reduce(
-                    (sum: number, val: any) => sum + (val.quantity || 0),
-                    0,
-                  );
+                item.bonificaciones.reduce(
+                  (acc: BonificacionesAcc, bonificacion: Bonificacion) => {
+                    const totalQuantity = bonificacion.values.reduce(
+                      (sum: number, val: any) => sum + (val.quantity || 0),
+                      0,
+                    );
 
-                  if (acc[bonificacion.name]) {
-                    acc[bonificacion.name].quantity += totalQuantity;
-                    acc[bonificacion.name].totalValue +=
-                      totalQuantity * bonificacion.value;
-                  } else {
-                    acc[bonificacion.name] = {
-                      name: bonificacion.name,
-                      quantity: totalQuantity,
-                      totalValue: totalQuantity * bonificacion.value,
-                    };
-                  }
+                    if (acc[bonificacion.name]) {
+                      acc[bonificacion.name].quantity += totalQuantity;
+                      acc[bonificacion.name].totalValue +=
+                        totalQuantity * bonificacion.value;
+                    } else {
+                      acc[bonificacion.name] = {
+                        name: bonificacion.name,
+                        quantity: totalQuantity,
+                        totalValue: totalQuantity * bonificacion.value,
+                      };
+                    }
 
-                  return acc;
-                },
-                {},
-              ),
-            )
-              .filter((bono: any) => bono.quantity > 0)
-              .map((bono: any) => (
-                <View key={bono.name} style={styles.tableRow}>
-                  <View style={styles.tableCol1}>
-                    <Text style={styles.valueText}>{bono.name || ""}</Text>
+                    return acc;
+                  },
+                  {},
+                ),
+              )
+                .filter((bono: any) => bono.quantity > 0)
+                .map((bono: any) => (
+                  <View key={bono.name} style={styles.tableRow}>
+                    <View style={styles.tableCol1}>
+                      <Text style={styles.valueText}>{bono.name || ""}</Text>
+                    </View>
+                    <View style={styles.tableCol2}>
+                      <Text style={styles.valueText} />
+                    </View>
+                    <View style={styles.tableCol3}>
+                      <Text style={styles.valueText}>{bono.quantity}</Text>
+                    </View>
+                    <View style={styles.tableCol4}>
+                      <Text style={styles.valueText}>
+                        {formatToCOP(bono.totalValue)}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={styles.tableCol2}>
-                    <Text style={styles.valueText} />
-                  </View>
-                  <View style={styles.tableCol3}>
-                    <Text style={styles.valueText}>{bono.quantity}</Text>
-                  </View>
-                  <View style={styles.tableCol4}>
-                    <Text style={styles.valueText}>
-                      {formatToCOP(bono.totalValue)}
-                    </Text>
-                  </View>
-                </View>
-              ))
+                ))
             : null}
 
           {/* Recargos */}
@@ -2350,9 +2498,9 @@ export const LiquidacionPDF = ({
                 <Text style={styles.valueText}>
                   {item.periodo_start_vacaciones && item.periodo_end_vacaciones
                     ? obtenerDiferenciaDias({
-                      start: parseDate(item.periodo_start_vacaciones),
-                      end: parseDate(item.periodo_end_vacaciones),
-                    })
+                        start: parseDate(item.periodo_start_vacaciones),
+                        end: parseDate(item.periodo_end_vacaciones),
+                      })
                     : 0}{" "}
                   días
                 </Text>
