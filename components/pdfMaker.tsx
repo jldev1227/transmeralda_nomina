@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
   },
 
   tableCellCompact: {
-    fontSize: 10,
+    fontSize: 9,
     textAlign: "center",
     padding: 1,
   },
@@ -529,26 +529,26 @@ const PaginaRecargos = ({
       const valorSeguridadSocial = Math.round(
         (grupo.configuracion_salarial?.seguridad_social *
           grupo.totales.valor_total) /
-          100,
+        100,
       );
       const valorPrestacionesSociales = Math.round(
         (grupo.configuracion_salarial?.prestaciones_sociales *
           grupo.totales.valor_total) /
-          100,
+        100,
       );
       const valorAdministracion = Math.round(
         (grupo.configuracion_salarial?.administracion *
           (grupo.totales.valor_total +
             valorSeguridadSocial +
             valorPrestacionesSociales)) /
-          100,
+        100,
       );
 
       const total = Math.round(
         valorSeguridadSocial +
-          valorPrestacionesSociales +
-          valorAdministracion +
-          grupo.totales.valor_total,
+        valorPrestacionesSociales +
+        valorAdministracion +
+        grupo.totales.valor_total,
       );
 
       return (
@@ -590,12 +590,17 @@ const PaginaRecargos = ({
 
           {/* Empresa info compacta */}
           <View
-            style={{ backgroundColor: "#f9f9f9", padding: 5, fontSize: 10 }}
+            style={{
+              backgroundColor: "#f9f9f9",
+              padding: 5,
+              fontSize: 10,
+              borderBottom: "1px solid #E0E0E0",
+            }}
           >
             <Text style={{ fontWeight: "semibold" }}>
               EMPRESA:{" "}
               <Text style={{ fontWeight: "normal" }}>
-                {grupo.empresa.nombre} - NIT: {grupo.empresa.nit}
+                {grupo.empresa.nombre}
               </Text>
             </Text>
             <Text style={{ fontSize: 10, color: "#666", marginTop: 2 }}>
@@ -611,14 +616,21 @@ const PaginaRecargos = ({
             <View
               style={{
                 flexDirection: "row",
-                backgroundColor: "#2E8B5730",
-                padding: 4,
+                backgroundColor: "#F3F8F5",
+                borderBottomWidth: 1,
+                borderBottomColor: "#E0E0E0",
               }}
             >
               <Text
                 style={[
                   styles.tableHeaderCell,
-                  { flex: 1, textAlign: "center" },
+                  {
+                    flex: 1,
+                    padding: 4,
+                    textAlign: "center",
+                    borderRightWidth: 1,
+                    borderRightColor: "#E0E0E0",
+                  },
                 ]}
               >
                 DÍA
@@ -626,7 +638,13 @@ const PaginaRecargos = ({
               <Text
                 style={[
                   styles.tableHeaderCell,
-                  { flex: 1, textAlign: "center" },
+                  {
+                    flex: 1,
+                    padding: 4,
+                    textAlign: "center",
+                    borderRightWidth: 1,
+                    borderRightColor: "#E0E0E0",
+                  },
                 ]}
               >
                 HORARIO
@@ -634,7 +652,13 @@ const PaginaRecargos = ({
               <Text
                 style={[
                   styles.tableHeaderCell,
-                  { flex: 1, textAlign: "center" },
+                  {
+                    flex: 1,
+                    padding: 4,
+                    textAlign: "center",
+                    borderRightWidth: 1,
+                    borderRightColor: "#E0E0E0",
+                  },
                 ]}
               >
                 HORAS
@@ -642,7 +666,13 @@ const PaginaRecargos = ({
               <Text
                 style={[
                   styles.tableHeaderCell,
-                  { flex: 1, textAlign: "center" },
+                  {
+                    flex: 1,
+                    padding: 4,
+                    textAlign: "center",
+                    borderRightWidth: 1,
+                    borderRightColor: "#E0E0E0",
+                  },
                 ]}
               >
                 HED
@@ -650,7 +680,13 @@ const PaginaRecargos = ({
               <Text
                 style={[
                   styles.tableHeaderCell,
-                  { flex: 1, textAlign: "center" },
+                  {
+                    flex: 1,
+                    padding: 4,
+                    textAlign: "center",
+                    borderRightWidth: 1,
+                    borderRightColor: "#E0E0E0",
+                  },
                 ]}
               >
                 RN
@@ -658,7 +694,13 @@ const PaginaRecargos = ({
               <Text
                 style={[
                   styles.tableHeaderCell,
-                  { flex: 1, textAlign: "center" },
+                  {
+                    flex: 1,
+                    padding: 4,
+                    textAlign: "center",
+                    borderRightWidth: 1,
+                    borderRightColor: "#E0E0E0",
+                  },
                 ]}
               >
                 HEN
@@ -666,7 +708,13 @@ const PaginaRecargos = ({
               <Text
                 style={[
                   styles.tableHeaderCell,
-                  { flex: 1, textAlign: "center" },
+                  {
+                    flex: 1,
+                    padding: 4,
+                    textAlign: "center",
+                    borderRightWidth: 1,
+                    borderRightColor: "#E0E0E0",
+                  },
                 ]}
               >
                 RD
@@ -674,7 +722,13 @@ const PaginaRecargos = ({
               <Text
                 style={[
                   styles.tableHeaderCell,
-                  { flex: 1, textAlign: "center" },
+                  {
+                    flex: 1,
+                    padding: 4,
+                    textAlign: "center",
+                    borderRightWidth: 1,
+                    borderRightColor: "#E0E0E0",
+                  },
                 ]}
               >
                 HEFD
@@ -682,7 +736,11 @@ const PaginaRecargos = ({
               <Text
                 style={[
                   styles.tableHeaderCell,
-                  { flex: 1, textAlign: "center" },
+                  {
+                    flex: 1,
+                    padding: 4,
+                    textAlign: "center",
+                  },
                 ]}
               >
                 HEFN
@@ -696,15 +754,26 @@ const PaginaRecargos = ({
                   key={`${dia.id}-${index}-${diaIndex}`}
                   style={{
                     flexDirection: "row",
-                    padding: 3,
-                    borderBottom: "1px solid #eee",
-                    backgroundColor: dia.disponibilidad ? "#FF000015" : "white",
+                    backgroundColor: (() => {
+                      const colorFondoBase =
+                        diaIndex % 2 === 0 ? "#ffffff" : "#f9f9f9";
+
+                      return dia.disponibilidad ? "#FF000015" : colorFondoBase;
+                    })(),
                   }}
                 >
                   <Text
                     style={[
                       styles.tableCellCompact,
-                      { flex: 1, textAlign: "center" },
+                      {
+                        flex: 1,
+                        textAlign: "center",
+                        borderRightWidth: 1,
+                        borderRightColor: "#eee",
+                        borderBottomWidth: 1,
+                        borderBottomColor: "#E0E0E0",
+                        paddingVertical: 3,
+                      },
                     ]}
                   >
                     {dia.dia}
@@ -712,7 +781,15 @@ const PaginaRecargos = ({
                   <Text
                     style={[
                       styles.tableCellCompact,
-                      { flex: 1, textAlign: "center" },
+                      {
+                        flex: 1,
+                        textAlign: "center",
+                        borderRightWidth: 1,
+                        borderRightColor: "#E0E0E0",
+                        borderBottomWidth: 1,
+                        borderBottomColor: "#E0E0E0",
+                        paddingVertical: 3,
+                      },
                     ]}
                   >
                     {formatearHora(dia.hora_inicio)}-
@@ -721,7 +798,15 @@ const PaginaRecargos = ({
                   <Text
                     style={[
                       styles.tableCellCompact,
-                      { flex: 1, textAlign: "center" },
+                      {
+                        flex: 1,
+                        textAlign: "center",
+                        borderRightWidth: 1,
+                        borderRightColor: "#E0E0E0",
+                        borderBottomWidth: 1,
+                        borderBottomColor: "#E0E0E0",
+                        paddingVertical: 3,
+                      },
                     ]}
                   >
                     {dia.total_horas}
@@ -729,7 +814,15 @@ const PaginaRecargos = ({
                   <Text
                     style={[
                       styles.tableCellCompact,
-                      { flex: 1, textAlign: "center" },
+                      {
+                        flex: 1,
+                        textAlign: "center",
+                        borderRightWidth: 1,
+                        borderRightColor: "#E0E0E0",
+                        borderBottomWidth: 1,
+                        borderBottomColor: "#E0E0E0",
+                        paddingVertical: 3,
+                      },
                     ]}
                   >
                     {(dia.hed || 0) !== 0 ? `${dia.hed}` : "-"}
@@ -737,7 +830,15 @@ const PaginaRecargos = ({
                   <Text
                     style={[
                       styles.tableCellCompact,
-                      { flex: 1, textAlign: "center" },
+                      {
+                        flex: 1,
+                        textAlign: "center",
+                        borderRightWidth: 1,
+                        borderRightColor: "#E0E0E0",
+                        borderBottomWidth: 1,
+                        borderBottomColor: "#E0E0E0",
+                        paddingVertical: 3,
+                      },
                     ]}
                   >
                     {(dia.rn || 0) !== 0 ? `${dia.rn}` : "-"}
@@ -745,7 +846,15 @@ const PaginaRecargos = ({
                   <Text
                     style={[
                       styles.tableCellCompact,
-                      { flex: 1, textAlign: "center" },
+                      {
+                        flex: 1,
+                        textAlign: "center",
+                        borderRightWidth: 1,
+                        borderRightColor: "#E0E0E0",
+                        borderBottomWidth: 1,
+                        borderBottomColor: "#E0E0E0",
+                        paddingVertical: 3,
+                      },
                     ]}
                   >
                     {(dia.hen || 0) !== 0 ? `${dia.hen}` : "-"}
@@ -753,7 +862,15 @@ const PaginaRecargos = ({
                   <Text
                     style={[
                       styles.tableCellCompact,
-                      { flex: 1, textAlign: "center" },
+                      {
+                        flex: 1,
+                        textAlign: "center",
+                        borderRightWidth: 1,
+                        borderRightColor: "#E0E0E0",
+                        borderBottomWidth: 1,
+                        borderBottomColor: "#E0E0E0",
+                        paddingVertical: 3,
+                      },
                     ]}
                   >
                     {(dia.rd || 0) !== 0 ? `${dia.rd}` : "-"}
@@ -761,7 +878,15 @@ const PaginaRecargos = ({
                   <Text
                     style={[
                       styles.tableCellCompact,
-                      { flex: 1, textAlign: "center" },
+                      {
+                        flex: 1,
+                        textAlign: "center",
+                        borderRightWidth: 1,
+                        borderRightColor: "#E0E0E0",
+                        borderBottomWidth: 1,
+                        borderBottomColor: "#E0E0E0",
+                        paddingVertical: 3,
+                      },
                     ]}
                   >
                     {(dia.hefd || 0) !== 0 ? `${dia.hefd}` : "-"}
@@ -769,7 +894,13 @@ const PaginaRecargos = ({
                   <Text
                     style={[
                       styles.tableCellCompact,
-                      { flex: 1, textAlign: "center" },
+                      {
+                        flex: 1,
+                        textAlign: "center",
+                        borderBottomWidth: 1,
+                        borderBottomColor: "#E0E0E0",
+                        paddingVertical: 3,
+                      },
                     ]}
                   >
                     {(dia.hefn || 0) !== 0 ? `${dia.hefn}` : "-"}
@@ -797,362 +928,572 @@ const PaginaRecargos = ({
             style={{
               flexDirection: "row",
               justifyContent: "space-between",
-              padding: 4,
             }}
           >
-            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>
+            <Text
+              style={{
+                flex: 1,
+                fontSize: 10,
+                textAlign: "center",
+                borderRightWidth: 1,
+                borderRightColor: "#E0E0E0",
+                paddingVertical: 4,
+              }}
+            >
               {grupo.totales.total_dias}
             </Text>
-            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>
+            <Text
+              style={{
+                flex: 1,
+                fontSize: 10,
+                textAlign: "center",
+                borderRightWidth: 1,
+                borderRightColor: "#E0E0E0",
+                paddingVertical: 4,
+              }}
+            >
               -
             </Text>
-            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>
+            <Text
+              style={{
+                flex: 1,
+                fontSize: 10,
+                textAlign: "center",
+                borderRightWidth: 1,
+                borderRightColor: "#E0E0E0",
+                paddingVertical: 4,
+              }}
+            >
               {grupo.totales.total_horas}
             </Text>
-            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>
+            <Text
+              style={{
+                flex: 1,
+                fontSize: 10,
+                textAlign: "center",
+                borderRightWidth: 1,
+                borderRightColor: "#E0E0E0",
+                paddingVertical: 4,
+              }}
+            >
               {grupo.totales.total_hed}
             </Text>
-            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>
+            <Text
+              style={{
+                flex: 1,
+                fontSize: 10,
+                textAlign: "center",
+                borderRightWidth: 1,
+                borderRightColor: "#E0E0E0",
+                paddingVertical: 4,
+              }}
+            >
               {grupo.totales.total_rn}
             </Text>
-            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>
+            <Text
+              style={{
+                flex: 1,
+                fontSize: 10,
+                textAlign: "center",
+                borderRightWidth: 1,
+                borderRightColor: "#E0E0E0",
+                paddingVertical: 4,
+              }}
+            >
               {grupo.totales.total_hen}
             </Text>
-            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>
+            <Text
+              style={{
+                flex: 1,
+                fontSize: 10,
+                textAlign: "center",
+                borderRightWidth: 1,
+                borderRightColor: "#E0E0E0",
+                paddingVertical: 4,
+              }}
+            >
               {grupo.totales.total_rd}
             </Text>
-            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>
+            <Text
+              style={{
+                flex: 1,
+                fontSize: 10,
+                textAlign: "center",
+                borderRightWidth: 1,
+                borderRightColor: "#E0E0E0",
+                paddingVertical: 4,
+              }}
+            >
               {grupo.totales.total_hefd}
             </Text>
-            <Text style={{ flex: 1, fontSize: 10, textAlign: "center" }}>
+            <Text
+              style={{
+                flex: 1,
+                fontSize: 10,
+                textAlign: "center",
+                paddingVertical: 4,
+              }}
+            >
               {grupo.totales.total_hefn}
             </Text>
           </View>
 
           {/* Tabla de tipos de recargos */}
-          {grupo.tipos_recargos_consolidados.length > 0 && (
-            <View style={{ borderTop: "1px solid #ddd" }}>
-              {/* Header */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  backgroundColor: "#2E8B5715",
-                  padding: 6,
-                }}
-              >
-                <View style={{ width: "45%", paddingHorizontal: 3 }}>
-                  <Text
-                    style={{
-                      color: "#2E8B57",
-                      fontSize: 10,
-                      fontWeight: "bold",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    TIPO RECARGO
-                  </Text>
-                </View>
-                <View style={{ width: "10%", paddingHorizontal: 3 }}>
-                  <Text
-                    style={{
-                      color: "#2E8B57",
-                      fontSize: 10,
-                      fontWeight: "bold",
-                      textAlign: "center",
-                    }}
-                  >
-                    %
-                  </Text>
-                </View>
-                <View style={{ width: "10%", paddingHorizontal: 3 }}>
-                  <Text
-                    style={{
-                      color: "#2E8B57",
-                      fontSize: 10,
-                      fontWeight: "bold",
-                      textAlign: "center",
-                    }}
-                  >
-                    V/BASE
-                  </Text>
-                </View>
-                <View style={{ width: "10%", paddingHorizontal: 3 }}>
-                  <Text
-                    style={{
-                      color: "#2E8B57",
-                      fontSize: 10,
-                      fontWeight: "bold",
-                      textAlign: "center",
-                    }}
-                  >
-                    V/+ %
-                  </Text>
-                </View>
-                <View style={{ width: "15%", paddingHorizontal: 3 }}>
-                  <Text
-                    style={{
-                      color: "#2E8B57",
-                      fontSize: 10,
-                      fontWeight: "bold",
-                      textAlign: "center",
-                    }}
-                  >
-                    CANTIDAD
-                  </Text>
-                </View>
-                <View style={{ width: "10%", paddingHorizontal: 3 }}>
-                  <Text
-                    style={{
-                      color: "#2E8B57",
-                      fontSize: 10,
-                      fontWeight: "bold",
-                      textAlign: "center",
-                    }}
-                  >
-                    TOTAL
-                  </Text>
-                </View>
-              </View>
+          {grupo.tipos_recargos_consolidados.length > 0 &&
+            (() => {
+              // Calcular anchos basándose en 9 columnas totales (como la tabla principal)
+              const anchoBase = 100 / 9; // ~11.11%
+              const col1 = anchoBase * 4.025; // TIPO RECARGO (4 columnas) ~44.44%
+              const col2 = anchoBase; // % ~11.11%
+              const col3 = anchoBase; // V/BASE ~11.11%
+              const col4 = anchoBase; // V/+ % ~11.11%
+              const col5 = anchoBase; // CANTIDAD ~11.11%
+              const col6 = anchoBase; // TOTAL ~11.11%
 
-              {/* Filas de recargos */}
-              {grupo.tipos_recargos_consolidados.map(
-                (tipo: TipoRecargo, tipoIndex: number) => {
-                  return (
+              return (
+                <View style={{ borderTop: "1px solid #ddd" }}>
+                  {/* Header */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      backgroundColor: "#2E8B5715",
+                      borderBottomWidth: 1,
+                      borderBottomColor: "#E0E0E0",
+                    }}
+                  >
                     <View
-                      key={tipo.codigo}
                       style={{
-                        flexDirection: "row",
-                        padding: 4,
-                        borderBottom:
-                          tipoIndex !==
-                          grupo.tipos_recargos_consolidados.length - 1
-                            ? "1px solid #eee"
-                            : "none",
-                        fontSize: 10,
-                      }}
-                    >
-                      <View style={{ width: "43%", paddingHorizontal: 3 }}>
-                        <Text style={{ fontSize: 10 }}>
-                          {tipo.nombre.toUpperCase()}
-                          {tipo.codigo !== "BONO_FESTIVO" && (
-                            <Text style={{ color: "#007AFF" }}>
-                              {" "}
-                              - {tipo.codigo}
-                            </Text>
-                          )}
-                        </Text>
-                      </View>
-                      <View style={{ width: "10%", paddingHorizontal: 3 }}>
-                        <Text style={{ textAlign: "center", fontSize: 10 }}>
-                          {tipo.porcentaje}%
-                        </Text>
-                      </View>
-                      <View style={{ width: "10%", paddingHorizontal: 3 }}>
-                        <Text
-                          style={{
-                            textAlign: "center",
-                            fontSize: 10,
-                            color: "#666",
-                          }}
-                        >
-                          ${Math.round(tipo.valor_hora_base).toLocaleString()}
-                        </Text>
-                      </View>
-                      <View style={{ width: "10%", paddingHorizontal: 3 }}>
-                        <Text
-                          style={{
-                            textAlign: "center",
-                            fontSize: 10,
-                            fontWeight: "bold",
-                            color: "#2E8B57",
-                          }}
-                        >
-                          $
-                          {Math.round(
-                            tipo.valor_hora_con_recargo,
-                          ).toLocaleString()}
-                        </Text>
-                      </View>
-                      <View style={{ width: "15%", paddingHorizontal: 3 }}>
-                        <Text style={{ textAlign: "center", fontSize: 10 }}>
-                          {tipo.horas}
-                        </Text>
-                      </View>
-                      <View style={{ width: "12%", paddingHorizontal: 3 }}>
-                        <Text
-                          style={{
-                            textAlign: "center",
-                            fontSize: 10,
-                            fontWeight: "bold",
-                          }}
-                        >
-                          ${Math.round(tipo.valor_calculado).toLocaleString()}
-                        </Text>
-                      </View>
-                    </View>
-                  );
-                },
-              )}
-
-              {/* SUBTOTAL */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  padding: 4,
-                  backgroundColor: "#2E8B57",
-                }}
-              >
-                <View style={{ width: "85%", paddingHorizontal: 3 }}>
-                  <Text
-                    style={{ color: "white", fontSize: 10, fontWeight: "bold" }}
-                  >
-                    {isAdmin ? "SUBTOTAL" : "TOTAL"}
-                  </Text>
-                </View>
-                <View style={{ width: "15%", paddingHorizontal: 3 }}>
-                  <Text
-                    style={{
-                      color: "white",
-                      fontSize: 10,
-                      textAlign: "right",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    ${Math.round(grupo.totales.valor_total).toLocaleString()}
-                  </Text>
-                </View>
-              </View>
-
-              {isAdmin && (
-                <View>
-                  <View
-                    style={{
-                      fontSize: 10,
-                      flexDirection: "row",
-                      padding: 4,
-                      borderBottom: "1px solid #eee",
-                    }}
-                  >
-                    <Text style={{ width: "45%", paddingHorizontal: 3 }}>
-                      SEGURIDAD SOCIAL
-                    </Text>
-                    <Text
-                      style={{
-                        width: "10%",
+                        width: `${col1}%`,
                         paddingHorizontal: 3,
-                        textAlign: "center",
+                        paddingVertical: 6,
+                        borderRightWidth: 1,
+                        borderRightColor: "#E0E0E0",
                       }}
                     >
-                      {grupo.configuracion_salarial?.seguridad_social}%
-                    </Text>
-                    <Text
-                      style={{
-                        width: "45%",
-                        paddingHorizontal: 3,
-                        textAlign: "right",
-                      }}
-                    >
-                      ${valorSeguridadSocial.toLocaleString()}
-                    </Text>
-                  </View>
-
-                  <View
-                    style={{
-                      fontSize: 10,
-                      flexDirection: "row",
-                      padding: 4,
-                      borderBottom: "1px solid #eee",
-                    }}
-                  >
-                    <Text style={{ width: "45%", paddingHorizontal: 3 }}>
-                      PRESTACIONES SOCIALES
-                    </Text>
-                    <Text
-                      style={{
-                        width: "10%",
-                        paddingHorizontal: 3,
-                        textAlign: "center",
-                      }}
-                    >
-                      {grupo.configuracion_salarial?.prestaciones_sociales}%
-                    </Text>
-                    <Text
-                      style={{
-                        width: "45%",
-                        paddingHorizontal: 3,
-                        textAlign: "right",
-                      }}
-                    >
-                      ${valorPrestacionesSociales.toLocaleString()}
-                    </Text>
-                  </View>
-
-                  <View
-                    style={{
-                      fontSize: 10,
-                      flexDirection: "row",
-                      padding: 4,
-                    }}
-                  >
-                    <Text style={{ width: "45%", paddingHorizontal: 3 }}>
-                      ADMINISTRACIÓN
-                    </Text>
-                    <Text
-                      style={{
-                        width: "10%",
-                        paddingHorizontal: 3,
-                        textAlign: "center",
-                      }}
-                    >
-                      {grupo.configuracion_salarial?.administracion}%
-                    </Text>
-                    <Text
-                      style={{
-                        width: "45%",
-                        paddingHorizontal: 3,
-                        textAlign: "right",
-                      }}
-                    >
-                      ${valorAdministracion.toLocaleString()}
-                    </Text>
-                  </View>
-
-                  {/* TOTAL */}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      padding: 4,
-                      backgroundColor: "#2E8B57",
-                    }}
-                  >
-                    <View style={{ width: "85%", paddingHorizontal: 3 }}>
                       <Text
                         style={{
-                          color: "white",
-                          fontSize: 10,
+                          color: "#2E8B57",
+                          fontSize: 9,
                           fontWeight: "bold",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        TIPO RECARGO
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        width: `${col2}%`,
+                        paddingHorizontal: 3,
+                        paddingVertical: 6,
+                        borderRightWidth: 1,
+                        borderRightColor: "#E0E0E0",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#2E8B57",
+                          fontSize: 9,
+                          fontWeight: "bold",
+                          textAlign: "center",
+                        }}
+                      >
+                        %
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        width: `${col3}%`,
+                        paddingHorizontal: 3,
+                        paddingVertical: 6,
+                        borderRightWidth: 1,
+                        borderRightColor: "#E0E0E0",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#2E8B57",
+                          fontSize: 9,
+                          fontWeight: "bold",
+                          textAlign: "center",
+                        }}
+                      >
+                        V/BASE
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        width: `${col4}%`,
+                        paddingHorizontal: 3,
+                        paddingVertical: 6,
+                        borderRightWidth: 1,
+                        borderRightColor: "#E0E0E0",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#2E8B57",
+                          fontSize: 9,
+                          fontWeight: "bold",
+                          textAlign: "center",
+                        }}
+                      >
+                        V/+ %
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        width: `${col5}%`,
+                        paddingHorizontal: 3,
+                        paddingVertical: 6,
+                        borderRightWidth: 1,
+                        borderRightColor: "#E0E0E0",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#2E8B57",
+                          fontSize: 9,
+                          fontWeight: "bold",
+                          textAlign: "center",
+                        }}
+                      >
+                        CANTIDAD
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        width: `${col6}%`,
+                        paddingHorizontal: 3,
+                        paddingVertical: 6,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#2E8B57",
+                          fontSize: 9,
+                          fontWeight: "bold",
+                          textAlign: "center",
                         }}
                       >
                         TOTAL
                       </Text>
                     </View>
-                    <View style={{ width: "15%", paddingHorizontal: 3 }}>
-                      <Text
+                  </View>
+
+                  {grupo.tipos_recargos_consolidados.map(
+                    (tipo: TipoRecargo, tipoIndex: number) => {
+                      return (
+                        <View
+                          key={tipo.codigo}
+                          style={{
+                            flexDirection: "row",
+                            borderBottom:
+                              tipoIndex !==
+                                grupo.tipos_recargos_consolidados.length - 1
+                                ? "1px solid #eee"
+                                : "none",
+                            fontSize: 10,
+                          }}
+                        >
+                          <View
+                            style={{
+                              width: `${col1}%`,
+                              paddingHorizontal: 3,
+                              borderRightWidth: 1,
+                              borderRightColor: "#E0E0E0",
+                              paddingVertical: 4,
+                            }}
+                          >
+                            <Text style={{ fontSize: 10 }}>
+                              {tipo.nombre.toUpperCase()}
+                              {tipo.codigo !== "BONO_FESTIVO" && (
+                                <Text style={{ color: "#007AFF" }}>
+                                  {" "}
+                                  - {tipo.codigo}
+                                </Text>
+                              )}
+                            </Text>
+                          </View>
+                          <View
+                            style={{
+                              width: `${col2}%`,
+                              paddingHorizontal: 3,
+                              borderRightWidth: 1,
+                              borderRightColor: "#E0E0E0",
+                              paddingVertical: 4,
+                            }}
+                          >
+                            <Text style={{ textAlign: "center", fontSize: 10 }}>
+                              {tipo.porcentaje}%
+                            </Text>
+                          </View>
+                          <View
+                            style={{
+                              width: `${col3}%`,
+                              paddingHorizontal: 3,
+                              borderRightWidth: 1,
+                              borderRightColor: "#E0E0E0",
+                              paddingVertical: 4,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                textAlign: "center",
+                                fontSize: 10,
+                                color: "#666",
+                              }}
+                            >
+                              $
+                              {Math.round(
+                                tipo.valor_hora_base,
+                              ).toLocaleString()}
+                            </Text>
+                          </View>
+                          <View
+                            style={{
+                              width: `${col4}%`,
+                              paddingHorizontal: 3,
+                              borderRightWidth: 1,
+                              borderRightColor: "#E0E0E0",
+                              paddingVertical: 4,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                textAlign: "center",
+                                fontSize: 10,
+                                fontWeight: "bold",
+                                color: "#2E8B57",
+                              }}
+                            >
+                              $
+                              {Math.round(
+                                tipo.valor_hora_con_recargo,
+                              ).toLocaleString()}
+                            </Text>
+                          </View>
+                          <View
+                            style={{
+                              width: `${col5}%`,
+                              paddingHorizontal: 3,
+                              borderRightWidth: 1,
+                              borderRightColor: "#E0E0E0",
+                              paddingVertical: 4,
+                            }}
+                          >
+                            <Text style={{ textAlign: "center", fontSize: 10 }}>
+                              {tipo.horas}
+                            </Text>
+                          </View>
+                          <View
+                            style={{
+                              width: `${col6}%`,
+                              paddingHorizontal: 3,
+                              paddingVertical: 4,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                textAlign: "center",
+                                fontSize: 10,
+                                fontWeight: "bold",
+                              }}
+                            >
+                              $
+                              {Math.round(
+                                tipo.valor_calculado,
+                              ).toLocaleString()}
+                            </Text>
+                          </View>
+                        </View>
+                      );
+                    },
+                  )}
+
+                  {/* SUBTOTAL */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: 4,
+                      backgroundColor: "#2E8B57",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "white",
+                        fontSize: 10,
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {isAdmin ? "SUBTOTAL" : "TOTAL"}
+                    </Text>
+                    <Text
+                      style={{
+                        color: "white",
+                        fontSize: 10,
+                        fontWeight: "bold",
+                      }}
+                    >
+                      ${Math.round(grupo.totales.valor_total).toLocaleString()}
+                    </Text>
+                  </View>
+
+                  {isAdmin && (
+                    <View>
+                      <View
                         style={{
-                          color: "white",
                           fontSize: 10,
-                          textAlign: "right",
-                          fontWeight: "bold",
+                          flexDirection: "row",
+                          borderBottom: "1px solid #eee",
                         }}
                       >
-                        ${total.toLocaleString()}
-                      </Text>
+                        <Text
+                          style={{
+                            width: "45%",
+                            padding: 4,
+                            borderRightWidth: 1,
+                            borderRightColor: "#E0E0E0"
+                          }}>
+                          SEGURIDAD SOCIAL
+                        </Text>
+                        <Text
+                          style={{
+                            width: "10%",
+                            padding: 4,
+                            borderRightWidth: 1,
+                            borderRightColor: "#E0E0E0",
+                            textAlign: "center",
+                          }}
+                        >
+                          {grupo.configuracion_salarial?.seguridad_social}%
+                        </Text>
+                        <Text
+                          style={{
+                            width: "45%",
+                            padding: 4,
+                            textAlign: "right",
+                          }}
+                        >
+                          ${valorSeguridadSocial.toLocaleString()}
+                        </Text>
+                      </View>
+
+                      <View
+                        style={{
+                          fontSize: 10,
+                          flexDirection: "row",
+                          borderBottom: "1px solid #eee",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            width: "45%", 
+                            padding: 4,  
+                            borderRightWidth: 1,
+                            borderRightColor: "#E0E0E0",
+                          }}>
+                          PRESTACIONES SOCIALES
+                        </Text>
+                        <Text
+                          style={{
+                            width: "10%",
+                            padding: 4,
+                            textAlign: "center",
+                            borderRightWidth: 1,
+                            borderRightColor: "#E0E0E0",
+                          }}
+                        >
+                          {grupo.configuracion_salarial?.prestaciones_sociales}%
+                        </Text>
+                        <Text
+                          style={{
+                            width: "45%",
+                            padding: 4,
+                            textAlign: "right",
+                          }}
+                        >
+                          ${valorPrestacionesSociales.toLocaleString()}
+                        </Text>
+                      </View>
+
+                      <View
+                        style={{
+                          fontSize: 10,
+                          flexDirection: "row",
+                          borderBottomWidth: 1,
+                          borderBottomColor: "#E0E0E0",
+                        }}
+                      >
+                        <Text style={{ 
+                          width: "45%", 
+                          padding: 4, 
+                          borderRightWidth: 1,
+                          borderRightColor: "#E0E0E0", 
+                        }}>
+                          ADMINISTRACIÓN
+                        </Text>
+                        <Text
+                          style={{
+                            width: "10%",
+                            padding: 4,
+                            textAlign: "center",
+                            borderRightWidth: 1,
+                            borderRightColor: "#E0E0E0",
+                          }}
+                        >
+                          {grupo.configuracion_salarial?.administracion}%
+                        </Text>
+                        <Text
+                          style={{
+                            width: "45%",
+                            padding: 4,
+                            textAlign: "right",
+                          }}
+                        >
+                          ${valorAdministracion.toLocaleString()}
+                        </Text>
+                      </View>
+
+                      {/* TOTAL */}
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          padding: 4,
+                          backgroundColor: "#2E8B57",
+                        }}
+                      >
+                        <View style={{ width: "85%", paddingHorizontal: 3 }}>
+                          <Text
+                            style={{
+                              color: "white",
+                              fontSize: 10,
+                              fontWeight: "bold",
+                            }}
+                          >
+                            TOTAL
+                          </Text>
+                        </View>
+                        <View style={{ width: "15%", paddingHorizontal: 3 }}>
+                          <Text
+                            style={{
+                              color: "white",
+                              fontSize: 10,
+                              textAlign: "right",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            ${total.toLocaleString()}
+                          </Text>
+                        </View>
+                      </View>
                     </View>
-                  </View>
+                  )}
                 </View>
-              )}
-            </View>
-          )}
+              );
+            })()}
         </View>
       );
     })}
@@ -1492,9 +1833,9 @@ const agruparRecargos = (
     grupo.totales.total_rd = pagaDiasFestivos
       ? 0
       : grupo.dias_laborales_unificados.reduce(
-          (sum: number, dia: DiaLaboral) => sum + (dia.rd || 0),
-          0,
-        );
+        (sum: number, dia: DiaLaboral) => sum + (dia.rd || 0),
+        0,
+      );
 
     // Agregar bono festivo si aplica
     agregarBonoFestivo(grupo);
@@ -1681,15 +2022,15 @@ export const LiquidacionPDF = ({
               <View>
                 <Text style={[styles.valueText, { marginLeft: -55 }]}>
                   {item.periodo_start_incapacidad &&
-                  item.periodo_end_incapacidad
+                    item.periodo_end_incapacidad
                     ? `${obtenerDiferenciaDias({
-                        start: toDateValue(
-                          parseDate(item.periodo_start_incapacidad),
-                        ),
-                        end: toDateValue(
-                          parseDate(item.periodo_end_incapacidad),
-                        ),
-                      })} días`
+                      start: toDateValue(
+                        parseDate(item.periodo_start_incapacidad),
+                      ),
+                      end: toDateValue(
+                        parseDate(item.periodo_end_incapacidad),
+                      ),
+                    })} días`
                     : "-"}
                 </Text>
               </View>
@@ -1763,49 +2104,49 @@ export const LiquidacionPDF = ({
           {/* Bonificaciones */}
           {item.bonificaciones && item.bonificaciones.length > 0
             ? Object.values(
-                item.bonificaciones.reduce(
-                  (acc: BonificacionesAcc, bonificacion: Bonificacion) => {
-                    const totalQuantity = bonificacion.values.reduce(
-                      (sum: number, val: any) => sum + (val.quantity || 0),
-                      0,
-                    );
+              item.bonificaciones.reduce(
+                (acc: BonificacionesAcc, bonificacion: Bonificacion) => {
+                  const totalQuantity = bonificacion.values.reduce(
+                    (sum: number, val: any) => sum + (val.quantity || 0),
+                    0,
+                  );
 
-                    if (acc[bonificacion.name]) {
-                      acc[bonificacion.name].quantity += totalQuantity;
-                      acc[bonificacion.name].totalValue +=
-                        totalQuantity * bonificacion.value;
-                    } else {
-                      acc[bonificacion.name] = {
-                        name: bonificacion.name,
-                        quantity: totalQuantity,
-                        totalValue: totalQuantity * bonificacion.value,
-                      };
-                    }
+                  if (acc[bonificacion.name]) {
+                    acc[bonificacion.name].quantity += totalQuantity;
+                    acc[bonificacion.name].totalValue +=
+                      totalQuantity * bonificacion.value;
+                  } else {
+                    acc[bonificacion.name] = {
+                      name: bonificacion.name,
+                      quantity: totalQuantity,
+                      totalValue: totalQuantity * bonificacion.value,
+                    };
+                  }
 
-                    return acc;
-                  },
-                  {},
-                ),
-              )
-                .filter((bono: any) => bono.quantity > 0)
-                .map((bono: any) => (
-                  <View key={bono.name} style={styles.tableRow}>
-                    <View style={styles.tableCol1}>
-                      <Text style={styles.valueText}>{bono.name || ""}</Text>
-                    </View>
-                    <View style={styles.tableCol2}>
-                      <Text style={styles.valueText} />
-                    </View>
-                    <View style={styles.tableCol3}>
-                      <Text style={styles.valueText}>{bono.quantity}</Text>
-                    </View>
-                    <View style={styles.tableCol4}>
-                      <Text style={styles.valueText}>
-                        {formatToCOP(bono.totalValue)}
-                      </Text>
-                    </View>
+                  return acc;
+                },
+                {},
+              ),
+            )
+              .filter((bono: any) => bono.quantity > 0)
+              .map((bono: any) => (
+                <View key={bono.name} style={styles.tableRow}>
+                  <View style={styles.tableCol1}>
+                    <Text style={styles.valueText}>{bono.name || ""}</Text>
                   </View>
-                ))
+                  <View style={styles.tableCol2}>
+                    <Text style={styles.valueText} />
+                  </View>
+                  <View style={styles.tableCol3}>
+                    <Text style={styles.valueText}>{bono.quantity}</Text>
+                  </View>
+                  <View style={styles.tableCol4}>
+                    <Text style={styles.valueText}>
+                      {formatToCOP(bono.totalValue)}
+                    </Text>
+                  </View>
+                </View>
+              ))
             : null}
 
           {/* Recargos */}
@@ -2009,9 +2350,9 @@ export const LiquidacionPDF = ({
                 <Text style={styles.valueText}>
                   {item.periodo_start_vacaciones && item.periodo_end_vacaciones
                     ? obtenerDiferenciaDias({
-                        start: parseDate(item.periodo_start_vacaciones),
-                        end: parseDate(item.periodo_end_vacaciones),
-                      })
+                      start: parseDate(item.periodo_start_vacaciones),
+                      end: parseDate(item.periodo_end_vacaciones),
+                    })
                     : 0}{" "}
                   días
                 </Text>
