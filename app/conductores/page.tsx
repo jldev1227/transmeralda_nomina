@@ -17,6 +17,7 @@ import { useNomina } from "@/context/NominaContext";
 import LoadingPage from "@/components/loadingPage";
 import LiquidacionesTable from "@/components/liquidacionesTable";
 import GenericExportButton from "@/components/genericExportButton";
+import DownloadPDFButton from "@/components/downloadPDFButton";
 import EmailSender from "@/components/emailSender";
 
 const LiquidacionesDashboard: React.FC = () => {
@@ -137,32 +138,42 @@ const LiquidacionesDashboard: React.FC = () => {
 
         {/* Filtros y búsqueda */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8 border border-gray-100">
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
-            <h2 className="text-xl font-semibold text-gray-800">
-              Liquidaciones
-            </h2>
+          <div className="flex flex-col gap-6 mb-6">
+            {/* Header con título */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Liquidaciones
+              </h2>
 
-            <div className="flex flex-col md:flex-row lg:flex-row gap-3">
-              <button
-                className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition flex items-center justify-center"
-                onClick={() => router.push("/conductores/agregar")}
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                Nueva Liquidación
-              </button>
+              {/* Botones de acción */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <button
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition flex items-center justify-center whitespace-nowrap"
+                  onClick={() => router.push("/conductores/agregar")}
+                >
+                  <FileText className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Nueva Liquidación</span>
+                </button>
 
-              <GenericExportButton
-                buttonClassName="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition w-full"
-                buttonProps={{
-                  disabled: selectedIds.length === 0,
-                  startContent: <Download className="w-4 h-4 mr-2" />,
-                }}
-                getData={getSelectedLiquidaciones}
-                label={`Exportar (${selectedIds.length})`}
-                options={{ filePrefix: "liquidaciones_seleccionadas" }}
-              />
+                <GenericExportButton
+                  buttonClassName="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition"
+                  buttonProps={{
+                    disabled: selectedIds.length === 0,
+                    startContent: <Download className="w-4 h-4 mr-2 flex-shrink-0" />,
+                  }}
+                  getData={getSelectedLiquidaciones}
+                  label={`Excel (${selectedIds.length})`}
+                  options={{ filePrefix: "liquidaciones_seleccionadas" }}
+                />
 
-              <EmailSender selectedIds={selectedIds} />
+                <DownloadPDFButton
+                  buttonClassName="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                  label={`PDFs (${selectedIds.length})`}
+                  selectedIds={selectedIds}
+                />
+
+                <EmailSender selectedIds={selectedIds} />
+              </div>
             </div>
           </div>
 
