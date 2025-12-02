@@ -146,7 +146,7 @@ const LiquidacionesDashboard: React.FC = () => {
               </h2>
 
               {/* Botones de acción */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 <button
                   className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition flex items-center justify-center whitespace-nowrap"
                   onClick={() => router.push("/conductores/agregar")}
@@ -155,7 +155,7 @@ const LiquidacionesDashboard: React.FC = () => {
                   <span className="truncate">Nueva Liquidación</span>
                 </button>
 
-                <GenericExportButton
+                {/* <GenericExportButton
                   buttonClassName="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition"
                   buttonProps={{
                     disabled: selectedIds.length === 0,
@@ -164,7 +164,7 @@ const LiquidacionesDashboard: React.FC = () => {
                   getData={getSelectedLiquidaciones}
                   label={`Excel (${selectedIds.length})`}
                   options={{ filePrefix: "liquidaciones_seleccionadas" }}
-                />
+                /> */}
 
                 <DownloadPDFButton
                   buttonClassName="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
