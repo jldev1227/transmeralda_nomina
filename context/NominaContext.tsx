@@ -232,6 +232,7 @@ export interface Liquidacion {
   pension: number;
   cesantias: number;
   interes_cesantias: number;
+  prima: number;
   estado?: "Pendiente" | "Liquidado";
   fecha_liquidacion?: string | null;
   observaciones?: string | null;
