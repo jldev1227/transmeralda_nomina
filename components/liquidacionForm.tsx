@@ -157,6 +157,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
   const [cesantias, setCesantias] = useState(0);
   const [interesCesantias, setInteresCesantias] = useState(0);
   const [prima, setPrima] = useState(0);
+  const [primaPendiente, setPrimaPendiente] = useState<number | null>(null);
   const [ajustePorDia, setAjustePorDia] = useState(0);
   const [isVisibleFormAnticipo, setIsVisibleFormAnticipo] = useState(false);
   const [valorAnticipo, setValorAnticipo] = useState("");
@@ -433,6 +434,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     setCesantias(initialData?.cesantias || 0);
     setInteresCesantias(initialData?.interes_cesantias || 0);
     setPrima(initialData?.prima || 0);
+    setPrimaPendiente(initialData?.prima_pendiente || null);
     setIsCheckedAjuste((initialData?.ajuste_salarial ?? 0) > 0);
     setIsAjustePorDia(!!initialData?.ajuste_salarial_por_dia);
     setIsAjusteParex((initialData?.ajuste_parex ?? 0) > 0);
@@ -1166,6 +1168,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       valorIncapacidad +
       interesCesantias +
       prima +
+      (primaPendiente || 0) +
       totalAjustesAdicionales; // Los ajustes se suman al bruto (pueden ser negativos)
 
     const sueldoTotal = sueldoBruto - totalDeducciones;
@@ -1211,6 +1214,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     descontarTransporte,
     interesCesantias,
     prima,
+    primaPendiente,
     anticipos,
     ajusteParex,
     conceptosAdicionales,
@@ -1265,6 +1269,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       cesantias,
       interes_cesantias: interesCesantias,
       prima,
+      prima_pendiente: primaPendiente,
       estado:
         totales.salud > 0 && totales.pension > 0 ? "Liquidado" : "Pendiente",
 
@@ -1812,6 +1817,30 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
 
                           <p className="text-xs text-gray-500 italic mt-1">
                             Este valor de prima corresponde al saldo pendiente del mes anterior
+                          </p>
+
+                          <Input
+                            className="max-w-xs"
+                            label="Prima pendiente (opcional)"
+                            placeholder="Ingrese el valor"
+                            size="sm"
+                            startContent={
+                              <DollarSign className="h-4 w-4 text-gray-400" />
+                            }
+                            type="text"
+                            value={primaPendiente !== null ? formatCurrency(primaPendiente) : ""}
+                            onChange={(e) => {
+                              const inputVal = e.target.value.replace(
+                                /[^\d]/g,
+                                "",
+                              );
+
+                              setPrimaPendiente(inputVal ? +inputVal : null);
+                            }}
+                          />
+
+                          <p className="text-xs text-gray-500 italic mt-1">
+                            Valor pendiente de prima por pagar
                           </p>
                         </div>
                       )}
@@ -2819,6 +2848,22 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                         </div>
                         <span className="font-medium text-blue-600">
                           {formatToCOP(prima)}
+                        </span>
+                      </div>
+                    )}
+
+                    {primaPendiente !== null && primaPendiente > 0 && (
+                      <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-gray-700">
+                            Prima pendiente
+                          </span>
+                          <span className="text-xs text-gray-500 italic">
+                            Valor pendiente de prima por pagar
+                          </span>
+                        </div>
+                        <span className="text-base font-semibold text-emerald-600">
+                          +{formatToCOP(primaPendiente)}
                         </span>
                       </div>
                     )}

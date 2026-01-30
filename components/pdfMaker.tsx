@@ -2542,6 +2542,22 @@ export const LiquidacionPDF = ({
             </View>
           )}
 
+          {safeValue(item.prima_pendiente, "0") > 0 && (
+            <View style={[styles.tableRow, styles.flex]}>
+              <View style={{flex: 1}}>
+                <Text style={styles.labelText}>Prima pendiente</Text>
+                <Text style={[styles.labelText, {fontSize: 8, color: '#666', fontStyle: 'italic'}]}>
+                  Valor pendiente de prima por pagar
+                </Text>
+              </View>
+              <View>
+                <Text style={[styles.blueValue, {color: '#2563EB'}]}>
+                  {formatToCOP(safeValue(item.prima_pendiente, "0"))}
+                </Text>
+              </View>
+            </View>
+          )}
+
           <View style={[styles.tableRowLast, styles.flex]}>
             <View>
               <Text style={[styles.labelText]}>Salario total</Text>
