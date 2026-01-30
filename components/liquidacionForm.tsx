@@ -1839,7 +1839,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                           />
 
                           <p className="text-xs text-gray-500 italic mt-1">
-                            Este valor de prima corresponde al saldo pendiente del mes anterior
+                            Este valor de prima corresponde al ya pagado
                           </p>
 
                           <Input
