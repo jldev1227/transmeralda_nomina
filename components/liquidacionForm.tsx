@@ -151,6 +151,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
   const [isVacaciones, setIsVacaciones] = useState(false);
   const [isIncapacidad, setIsIncapacidad] = useState(false);
   const [isCesantias, setIsCesantias] = useState(false);
+  const [isPrima, setIsPrima] = useState(false);
   const [diasLaborados, setDiasLaborados] = useState(0);
   const [diasLaboradosVillanueva, setDiasLaboradosVillanueva] = useState(0);
   const [diasLaboradosAnual, setDiasLaboradosAnual] = useState(0);
@@ -448,6 +449,10 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     setIsCesantias(
       (initialData?.cesantias ?? 0) > 0 ||
         (initialData?.interes_cesantias ?? 0) > 0,
+    );
+    setIsPrima(
+      (initialData?.prima ?? 0) > 0 ||
+        (initialData?.prima_pendiente ?? 0) > 0,
     );
   };
 
@@ -1794,7 +1799,25 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                               setInteresCesantias(+inputVal || 0);
                             }}
                           />
+                        </div>
+                      )}
+                    </div>
 
+                    <Divider />
+
+                    <div>
+                      <Checkbox
+                        className="mb-2"
+                        color="success"
+                        isSelected={isPrima}
+                        size="md"
+                        onChange={(e) => setIsPrima(e.target.checked)}
+                      >
+                        <span className="text-sm font-medium">Prima</span>
+                      </Checkbox>
+
+                      {isPrima && (
+                        <div className="mt-3 pl-7 space-y-3 pt-1 border-l-2 border-emerald-100">
                           <Input
                             className="max-w-xs"
                             label="Valor de la prima"
