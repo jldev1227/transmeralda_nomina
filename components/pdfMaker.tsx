@@ -2341,7 +2341,7 @@ export const LiquidacionPDF = ({
 
           {/* Pernotes (lógica original mantenida) */}
           {item.pernotes && item.pernotes.length > 0 ? (
-            <View style={styles.tableRowLast}>
+            <View style={styles.tableRow}>
               <View style={styles.tableCol1}>
                 <Text style={styles.valueText}>Pernotes</Text>
               </View>
@@ -2381,7 +2381,7 @@ export const LiquidacionPDF = ({
               </View>
             </View>
           ) : (
-            <View style={styles.tableRowLast}>
+            <View style={styles.tableRow}>
               <View style={styles.tableCol1}>
                 <Text style={styles.valueText}>Pernotes</Text>
               </View>
@@ -2393,6 +2393,66 @@ export const LiquidacionPDF = ({
               </View>
               <View style={styles.tableCol4}>
                 <Text style={styles.valueText}>{formatToCOP(0)}</Text>
+              </View>
+            </View>
+          )}
+
+          {/* Prima diciembre 2025 ya pagada */}
+          {safeValue(item.prima, "0") > 0 && (
+            <View style={styles.tableRow}>
+              <View style={styles.tableCol1}>
+                <Text style={styles.valueText}>PRIMA DIC. 2025</Text>
+              </View>
+              <View style={styles.tableCol2}>
+                <Text style={styles.valueText} />
+              </View>
+              <View style={styles.tableCol3}>
+                <Text style={styles.valueText}>1</Text>
+              </View>
+              <View style={styles.tableCol4}>
+                <Text style={styles.valueText}>
+                  {formatToCOP(safeValue(item.prima, "0"))}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* Ajuste prima diciembre 2025 PAREX */}
+          {safeValue(item.prima_pendiente, "0") > 0 && (
+            <View style={styles.tableRow}>
+              <View style={styles.tableCol1}>
+                <Text style={styles.valueText}>AJUSTE PRIMA DIC. 2025 (PAREX)</Text>
+              </View>
+              <View style={styles.tableCol2}>
+                <Text style={styles.valueText} />
+              </View>
+              <View style={styles.tableCol3}>
+                <Text style={styles.valueText}>1</Text>
+              </View>
+              <View style={styles.tableCol4}>
+                <Text style={styles.valueText}>
+                  {formatToCOP(safeValue(item.prima_pendiente, "0"))}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* Intereses de cesantías */}
+          {safeValue(item.interes_cesantias, "0") > 0 && (
+            <View style={styles.tableRowLast}>
+              <View style={styles.tableCol1}>
+                <Text style={styles.valueText}>INTERESES DE CESANTIAS</Text>
+              </View>
+              <View style={styles.tableCol2}>
+                <Text style={styles.valueText} />
+              </View>
+              <View style={styles.tableCol3}>
+                <Text style={styles.valueText}>1</Text>
+              </View>
+              <View style={styles.tableCol4}>
+                <Text style={styles.valueText}>
+                  {formatToCOP(safeValue(item.interes_cesantias, "0"))}
+                </Text>
               </View>
             </View>
           )}
@@ -2457,11 +2517,7 @@ export const LiquidacionPDF = ({
           </View>
 
           <View
-            style={
-              item.anticipos && item.anticipos.length == 0
-                ? [styles.tableRowLast, styles.flex]
-                : [styles.tableRow, styles.flex]
-            }
+            style={[styles.tableRow, styles.flex]}
           >
             <View>
               <Text style={styles.labelText}>Pensión</Text>
@@ -2472,6 +2528,40 @@ export const LiquidacionPDF = ({
               </Text>
             </View>
           </View>
+
+          {/* Prima diciembre 2025 ya pagada (deducción informativa) */}
+          {safeValue(item.prima, "0") > 0 && (
+            <View style={[styles.tableRow, styles.flex]}>
+              <View>
+                <Text style={styles.labelText}>PRIMA DIC. 2025</Text>
+              </View>
+              <View>
+                <Text style={styles.redValue}>
+                  {formatToCOP(safeValue(item.prima, "0"))}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* Intereses de cesantías ya pagados (deducción informativa) */}
+          {safeValue(item.interes_cesantias, "0") > 0 && (
+            <View
+              style={
+                item.anticipos && item.anticipos.length == 0
+                  ? [styles.tableRowLast, styles.flex]
+                  : [styles.tableRow, styles.flex]
+              }
+            >
+              <View>
+                <Text style={styles.labelText}>INTERESES DE CESANTIAS</Text>
+              </View>
+              <View>
+                <Text style={styles.redValue}>
+                  {formatToCOP(safeValue(item.interes_cesantias, "0"))}
+                </Text>
+              </View>
+            </View>
+          )}
 
           {item.anticipos && item?.anticipos.length > 0 && (
             <View style={[styles.tableRowLast, styles.flex]}>
