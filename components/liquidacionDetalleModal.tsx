@@ -13,11 +13,14 @@ import {
   CalendarClock,
   ClockIcon,
   SignatureIcon,
+  FileText,
 } from "lucide-react";
 import { Button } from "@heroui/button";
 import { Skeleton } from "@heroui/skeleton";
 
 import handleGeneratePDF from "./pdfMaker";
+import handleGeneratePrimaPDF from "./pdfMakerPrima";
+import handleGenerateInteresesCesantiasPDF from "./pdfMakerInteresesCesantias";
 
 import { Bonificacion, Conductor, useNomina } from "@/context/NominaContext";
 import { formatDate, formatDateShort } from "@/helpers/helpers";
@@ -187,6 +190,34 @@ const LiquidacionDetalleModal: React.FC = () => {
     : firmasError
       ? "Error en firmas"
       : "Ver Desprendible";
+
+  // Funciones para descargar desprendibles adicionales
+  const descargarDesprendiblePrima = async () => {
+    if (!liquidacionActual) return;
+    
+    try {
+      await handleGeneratePrimaPDF(liquidacionActual, firmas);
+    } catch (error) {
+      console.error("Error al generar desprendible de prima:", error);
+      alert("Error al generar el desprendible de prima");
+    }
+  };
+
+  const descargarDesprendibleIntereses = async () => {
+    if (!liquidacionActual) return;
+    
+    try {
+      await handleGenerateInteresesCesantiasPDF(liquidacionActual, firmas);
+    } catch (error) {
+      console.error("Error al generar desprendible de intereses:", error);
+      alert("Error al generar el desprendible de intereses de cesantías");
+    }
+  };
+
+  // Determinar si mostrar botones de desprendibles adicionales
+  const mostrarBotonPrima = (liquidacionActual.prima && liquidacionActual.prima > 0) || 
+                            (liquidacionActual.prima_pendiente && liquidacionActual.prima_pendiente > 0);
+  const mostrarBotonIntereses = liquidacionActual.interes_cesantias && liquidacionActual.interes_cesantias > 0;
 
   return (
     <div
@@ -2137,7 +2168,34 @@ const LiquidacionDetalleModal: React.FC = () => {
               </div>
             </div>
           )}
-          <div className="flex justify-end space-x-3 mt-6">
+          <div className="flex justify-between items-center mt-6">
+            {/* Botones de desprendibles adicionales a la izquierda */}
+            <div className="flex space-x-3">
+              {mostrarBotonPrima && (
+                <Button
+                  className="rounded-md"
+                  color="primary"
+                  variant="flat"
+                  onPress={descargarDesprendiblePrima}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Desprendible Prima
+                </Button>
+              )}
+              {mostrarBotonIntereses && (
+                <Button
+                  className="rounded-md"
+                  color="secondary"
+                  variant="flat"
+                  onPress={descargarDesprendibleIntereses}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Desprendible Intereses
+                </Button>
+              )}
+            </div>
+
+            {/* Botón principal a la derecha */}
             <Button
               className="rounded-md"
               color="primary"

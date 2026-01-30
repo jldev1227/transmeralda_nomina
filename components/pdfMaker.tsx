@@ -2381,7 +2381,7 @@ export const LiquidacionPDF = ({
               </View>
             </View>
           ) : (
-            <View style={styles.tableRow}>
+            <View style={styles.tableRowLast}>
               <View style={styles.tableCol1}>
                 <Text style={styles.valueText}>Pernotes</Text>
               </View>
@@ -2393,66 +2393,6 @@ export const LiquidacionPDF = ({
               </View>
               <View style={styles.tableCol4}>
                 <Text style={styles.valueText}>{formatToCOP(0)}</Text>
-              </View>
-            </View>
-          )}
-
-          {/* Prima diciembre 2025 ya pagada */}
-          {safeValue(item.prima, "0") > 0 && (
-            <View style={styles.tableRow}>
-              <View style={styles.tableCol1}>
-                <Text style={styles.valueText}>Prima dic. 2025</Text>
-              </View>
-              <View style={styles.tableCol2}>
-                <Text style={styles.valueText} />
-              </View>
-              <View style={styles.tableCol3}>
-                <Text style={styles.valueText}>1</Text>
-              </View>
-              <View style={styles.tableCol4}>
-                <Text style={styles.valueText}>
-                  {formatToCOP(safeValue(item.prima, "0"))}
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {/* Ajuste prima diciembre 2025 PAREX */}
-          {safeValue(item.prima_pendiente, "0") > 0 && (
-            <View style={styles.tableRow}>
-              <View style={styles.tableCol1}>
-                <Text style={styles.valueText}>Ajuste prima dic. 2025 (Parex)</Text>
-              </View>
-              <View style={styles.tableCol2}>
-                <Text style={styles.valueText} />
-              </View>
-              <View style={styles.tableCol3}>
-                <Text style={styles.valueText}>1</Text>
-              </View>
-              <View style={styles.tableCol4}>
-                <Text style={styles.valueText}>
-                  {formatToCOP(safeValue(item.prima_pendiente, "0"))}
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {/* Intereses de cesantías */}
-          {safeValue(item.interes_cesantias, "0") > 0 && (
-            <View style={styles.tableRowLast}>
-              <View style={styles.tableCol1}>
-                <Text style={styles.valueText}>Intereses de cesantías</Text>
-              </View>
-              <View style={styles.tableCol2}>
-                <Text style={styles.valueText} />
-              </View>
-              <View style={styles.tableCol3}>
-                <Text style={styles.valueText}>1</Text>
-              </View>
-              <View style={styles.tableCol4}>
-                <Text style={styles.valueText}>
-                  {formatToCOP(safeValue(item.interes_cesantias, "0"))}
-                </Text>
               </View>
             </View>
           )}
@@ -2517,7 +2457,11 @@ export const LiquidacionPDF = ({
           </View>
 
           <View
-            style={[styles.tableRow, styles.flex]}
+            style={
+              item.anticipos && item.anticipos.length == 0
+                ? [styles.tableRowLast, styles.flex]
+                : [styles.tableRow, styles.flex]
+            }
           >
             <View>
               <Text style={styles.labelText}>Pensión</Text>
@@ -2528,40 +2472,6 @@ export const LiquidacionPDF = ({
               </Text>
             </View>
           </View>
-
-          {/* Prima diciembre 2025 ya pagada (deducción informativa) */}
-          {safeValue(item.prima, "0") > 0 && (
-            <View style={[styles.tableRow, styles.flex]}>
-              <View>
-                <Text style={styles.labelText}>Prima dic. 2025</Text>
-              </View>
-              <View>
-                <Text style={styles.redValue}>
-                  {formatToCOP(safeValue(item.prima, "0"))}
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {/* Intereses de cesantías ya pagados (deducción informativa) */}
-          {safeValue(item.interes_cesantias, "0") > 0 && (
-            <View
-              style={
-                item.anticipos && item.anticipos.length == 0
-                  ? [styles.tableRowLast, styles.flex]
-                  : [styles.tableRow, styles.flex]
-              }
-            >
-              <View>
-                <Text style={styles.labelText}>Intereses de cesantías</Text>
-              </View>
-              <View>
-                <Text style={styles.redValue}>
-                  {formatToCOP(safeValue(item.interes_cesantias, "0"))}
-                </Text>
-              </View>
-            </View>
-          )}
 
           {item.anticipos && item?.anticipos.length > 0 && (
             <View style={[styles.tableRowLast, styles.flex]}>
@@ -2598,22 +2508,6 @@ export const LiquidacionPDF = ({
               <View>
                 <Text style={styles.orangeValue}>
                   {formatToCOP(safeValue(item.total_vacaciones, "0"))}
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {safeValue(item.prima_pendiente, "0") > 0 && (
-            <View style={[styles.tableRow, styles.flex]}>
-              <View style={{flex: 1}}>
-                <Text style={styles.labelText}>Prima pendiente</Text>
-                <Text style={[styles.labelText, {fontSize: 8, color: '#666', fontStyle: 'italic'}]}>
-                  Valor pendiente de prima por pagar (suma al total)
-                </Text>
-              </View>
-              <View>
-                <Text style={[styles.blueValue, {color: '#2563EB'}]}>
-                  {formatToCOP(safeValue(item.prima_pendiente, "0"))}
                 </Text>
               </View>
             </View>
