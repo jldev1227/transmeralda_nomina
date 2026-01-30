@@ -2401,7 +2401,7 @@ export const LiquidacionPDF = ({
           {safeValue(item.prima, "0") > 0 && (
             <View style={styles.tableRow}>
               <View style={styles.tableCol1}>
-                <Text style={styles.valueText}>PRIMA DIC. 2025</Text>
+                <Text style={styles.valueText}>Prima dic. 2025</Text>
               </View>
               <View style={styles.tableCol2}>
                 <Text style={styles.valueText} />
@@ -2421,7 +2421,7 @@ export const LiquidacionPDF = ({
           {safeValue(item.prima_pendiente, "0") > 0 && (
             <View style={styles.tableRow}>
               <View style={styles.tableCol1}>
-                <Text style={styles.valueText}>AJUSTE PRIMA DIC. 2025 (PAREX)</Text>
+                <Text style={styles.valueText}>Ajuste prima dic. 2025 (Parex)</Text>
               </View>
               <View style={styles.tableCol2}>
                 <Text style={styles.valueText} />
@@ -2441,7 +2441,7 @@ export const LiquidacionPDF = ({
           {safeValue(item.interes_cesantias, "0") > 0 && (
             <View style={styles.tableRowLast}>
               <View style={styles.tableCol1}>
-                <Text style={styles.valueText}>INTERESES DE CESANTIAS</Text>
+                <Text style={styles.valueText}>Intereses de cesantías</Text>
               </View>
               <View style={styles.tableCol2}>
                 <Text style={styles.valueText} />
@@ -2533,7 +2533,7 @@ export const LiquidacionPDF = ({
           {safeValue(item.prima, "0") > 0 && (
             <View style={[styles.tableRow, styles.flex]}>
               <View>
-                <Text style={styles.labelText}>PRIMA DIC. 2025</Text>
+                <Text style={styles.labelText}>Prima dic. 2025</Text>
               </View>
               <View>
                 <Text style={styles.redValue}>
@@ -2553,7 +2553,7 @@ export const LiquidacionPDF = ({
               }
             >
               <View>
-                <Text style={styles.labelText}>INTERESES DE CESANTIAS</Text>
+                <Text style={styles.labelText}>Intereses de cesantías</Text>
               </View>
               <View>
                 <Text style={styles.redValue}>
@@ -2598,35 +2598,6 @@ export const LiquidacionPDF = ({
               <View>
                 <Text style={styles.orangeValue}>
                   {formatToCOP(safeValue(item.total_vacaciones, "0"))}
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {safeValue(item.interes_cesantias, "0") > 0 && (
-            <View style={[styles.tableRow, styles.flex]}>
-              <View>
-                <Text style={styles.labelText}>Interes cesantias</Text>
-              </View>
-              <View>
-                <Text style={styles.blueValue}>
-                  {formatToCOP(safeValue(item.interes_cesantias, "0"))}
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {safeValue(item.prima, "0") > 0 && (
-            <View style={[styles.tableRow, styles.flex]}>
-              <View style={{flex: 1}}>
-                <Text style={styles.labelText}>Prima</Text>
-                <Text style={[styles.labelText, {fontSize: 8, color: '#666', fontStyle: 'italic'}]}>
-                  Saldo pendiente del mes anterior (informativo)
-                </Text>
-              </View>
-              <View>
-                <Text style={[styles.grayValue, {color: '#666'}]}>
-                  {formatToCOP(safeValue(item.prima, "0"))}
                 </Text>
               </View>
             </View>
