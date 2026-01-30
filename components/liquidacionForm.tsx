@@ -1172,9 +1172,9 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       bonificacionVillanueva +
       valorIncapacidad +
       interesCesantias +
-      prima +
-      (primaPendiente || 0) +
+      (primaPendiente || 0) + // Solo prima_pendiente se suma al total
       totalAjustesAdicionales; // Los ajustes se suman al bruto (pueden ser negativos)
+    // Nota: prima NO se suma al total, solo se muestra en el PDF
 
     const sueldoTotal = sueldoBruto - totalDeducciones;
 
@@ -2866,7 +2866,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                         <div className="flex flex-col">
                           <span className="text-sm text-gray-700">Prima</span>
                           <span className="text-xs text-gray-500 italic">
-                            Saldo pendiente del mes anterior
+                            Saldo pendiente del mes anterior (no suma al total)
                           </span>
                         </div>
                         <span className="font-medium text-blue-600">
@@ -2882,7 +2882,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                             Prima pendiente
                           </span>
                           <span className="text-xs text-gray-500 italic">
-                            Valor pendiente de prima por pagar
+                            Valor pendiente de prima por pagar (suma al total)
                           </span>
                         </div>
                         <span className="text-base font-semibold text-emerald-600">

@@ -2531,11 +2531,11 @@ export const LiquidacionPDF = ({
               <View style={{flex: 1}}>
                 <Text style={styles.labelText}>Prima</Text>
                 <Text style={[styles.labelText, {fontSize: 8, color: '#666', fontStyle: 'italic'}]}>
-                  Saldo pendiente del mes anterior
+                  Saldo pendiente del mes anterior (informativo)
                 </Text>
               </View>
               <View>
-                <Text style={[styles.blueValue, {color: '#2563EB'}]}>
+                <Text style={[styles.grayValue, {color: '#666'}]}>
                   {formatToCOP(safeValue(item.prima, "0"))}
                 </Text>
               </View>
@@ -2547,7 +2547,7 @@ export const LiquidacionPDF = ({
               <View style={{flex: 1}}>
                 <Text style={styles.labelText}>Prima pendiente</Text>
                 <Text style={[styles.labelText, {fontSize: 8, color: '#666', fontStyle: 'italic'}]}>
-                  Valor pendiente de prima por pagar
+                  Valor pendiente de prima por pagar (suma al total)
                 </Text>
               </View>
               <View>
