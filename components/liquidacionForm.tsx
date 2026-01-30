@@ -156,6 +156,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
   const [diasLaboradosAnual, setDiasLaboradosAnual] = useState(0);
   const [cesantias, setCesantias] = useState(0);
   const [interesCesantias, setInteresCesantias] = useState(0);
+  const [prima, setPrima] = useState(0);
   const [ajustePorDia, setAjustePorDia] = useState(0);
   const [isVisibleFormAnticipo, setIsVisibleFormAnticipo] = useState(false);
   const [valorAnticipo, setValorAnticipo] = useState("");
@@ -431,6 +432,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     setDiasLaboradosAnual(initialData?.dias_laborados_anual || 0);
     setCesantias(initialData?.cesantias || 0);
     setInteresCesantias(initialData?.interes_cesantias || 0);
+    setPrima(initialData?.prima || 0);
     setIsCheckedAjuste((initialData?.ajuste_salarial ?? 0) > 0);
     setIsAjustePorDia(!!initialData?.ajuste_salarial_por_dia);
     setIsAjusteParex((initialData?.ajuste_parex ?? 0) > 0);
@@ -1163,6 +1165,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       bonificacionVillanueva +
       valorIncapacidad +
       interesCesantias +
+      prima +
       totalAjustesAdicionales; // Los ajustes se suman al bruto (pueden ser negativos)
 
     const sueldoTotal = sueldoBruto - totalDeducciones;
@@ -1207,6 +1210,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
     noDescontarPension,
     descontarTransporte,
     interesCesantias,
+    prima,
     anticipos,
     ajusteParex,
     conceptosAdicionales,
@@ -1260,6 +1264,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       pension: totales.pension + totales.pensionVacaciones,
       cesantias,
       interes_cesantias: interesCesantias,
+      prima,
       estado:
         totales.salud > 0 && totales.pension > 0 ? "Liquidado" : "Pendiente",
 
@@ -1784,6 +1789,30 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                               setInteresCesantias(+inputVal || 0);
                             }}
                           />
+
+                          <Input
+                            className="max-w-xs"
+                            label="Valor de la prima"
+                            placeholder="Ingrese el valor"
+                            size="sm"
+                            startContent={
+                              <DollarSign className="h-4 w-4 text-gray-400" />
+                            }
+                            type="text"
+                            value={formatCurrency(prima)}
+                            onChange={(e) => {
+                              const inputVal = e.target.value.replace(
+                                /[^\d]/g,
+                                "",
+                              );
+
+                              setPrima(+inputVal || 0);
+                            }}
+                          />
+
+                          <p className="text-xs text-gray-500 italic mt-1">
+                            Este valor de prima corresponde al saldo pendiente del mes anterior
+                          </p>
                         </div>
                       )}
                     </div>
@@ -2776,6 +2805,20 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
                         </span>
                         <span className="font-medium text-emerald-600">
                           {formatToCOP(interesCesantias)}
+                        </span>
+                      </div>
+                    )}
+
+                    {prima > 0 && (
+                      <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                        <div className="flex flex-col">
+                          <span className="text-sm text-gray-700">Prima</span>
+                          <span className="text-xs text-gray-500 italic">
+                            Saldo pendiente del mes anterior
+                          </span>
+                        </div>
+                        <span className="font-medium text-blue-600">
+                          {formatToCOP(prima)}
                         </span>
                       </div>
                     )}
