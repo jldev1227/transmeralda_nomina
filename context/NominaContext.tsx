@@ -227,6 +227,7 @@ export interface Liquidacion {
   ajuste_salarial: number;
   ajuste_parex: number;
   ajuste_salarial_por_dia: boolean;
+  es_cotransmeq?: boolean;
   valor_incapacidad: number;
   salud: number;
   pension: number;

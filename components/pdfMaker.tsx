@@ -506,6 +506,7 @@ type PaginasRecargos = {
   numeroPagina: number;
   totalPaginas: number;
   isAdmin: boolean;
+  es_cotransmeq?: boolean;
 };
 
 // Componente de página de recargos
@@ -514,6 +515,7 @@ const PaginaRecargos = ({
   numeroPagina,
   totalPaginas,
   isAdmin,
+  es_cotransmeq,
 }: PaginasRecargos) => (
   <Page size="A4" style={styles.page} wrap={false}>
     {/* Título con número de página */}
@@ -610,7 +612,7 @@ const PaginaRecargos = ({
           {/* Header del vehículo */}
           <View
             style={{
-              backgroundColor: "#2E8B57",
+              backgroundColor: es_cotransmeq ? "#FF9500" : "#2E8B57",
               padding: 8,
               flexDirection: "row",
               justifyContent: "space-between",
@@ -1055,12 +1057,12 @@ const PaginaRecargos = ({
           </View>
 
           {/* Totales de días */}
-          <View style={{ backgroundColor: "#2E8B5715", padding: 4 }}>
+          <View style={{ backgroundColor: es_cotransmeq ? "#FF950015" : "#2E8B5715", padding: 4 }}>
             <Text
               style={{
                 fontWeight: "bold",
                 fontSize: 11,
-                color: "#2E8B57",
+                color: es_cotransmeq ? "#FF9500" : "#2E8B57",
                 textAlign: "center",
               }}
             >
@@ -1200,7 +1202,7 @@ const PaginaRecargos = ({
                   <View
                     style={{
                       flexDirection: "row",
-                      backgroundColor: "#2E8B5715",
+                      backgroundColor: es_cotransmeq ? "#FF950015" : "#2E8B5715",
                       borderBottomWidth: 1,
                       borderBottomColor: "#E0E0E0",
                     }}
@@ -1216,7 +1218,7 @@ const PaginaRecargos = ({
                     >
                       <Text
                         style={{
-                          color: "#2E8B57",
+                          color: es_cotransmeq ? "#FF9500" : "#2E8B57",
                           fontSize: 9,
                           fontWeight: "bold",
                           textTransform: "uppercase",
@@ -1236,7 +1238,7 @@ const PaginaRecargos = ({
                     >
                       <Text
                         style={{
-                          color: "#2E8B57",
+                          color: es_cotransmeq ? "#FF9500" : "#2E8B57",
                           fontSize: 9,
                           fontWeight: "bold",
                           textAlign: "center",
@@ -1256,7 +1258,7 @@ const PaginaRecargos = ({
                     >
                       <Text
                         style={{
-                          color: "#2E8B57",
+                          color: es_cotransmeq ? "#FF9500" : "#2E8B57",
                           fontSize: 9,
                           fontWeight: "bold",
                           textAlign: "center",
@@ -1276,7 +1278,7 @@ const PaginaRecargos = ({
                     >
                       <Text
                         style={{
-                          color: "#2E8B57",
+                          color: es_cotransmeq ? "#FF9500" : "#2E8B57",
                           fontSize: 9,
                           fontWeight: "bold",
                           textAlign: "center",
@@ -1296,7 +1298,7 @@ const PaginaRecargos = ({
                     >
                       <Text
                         style={{
-                          color: "#2E8B57",
+                          color: es_cotransmeq ? "#FF9500" : "#2E8B57",
                           fontSize: 9,
                           fontWeight: "bold",
                           textAlign: "center",
@@ -1314,7 +1316,7 @@ const PaginaRecargos = ({
                     >
                       <Text
                         style={{
-                          color: "#2E8B57",
+                          color: es_cotransmeq ? "#FF9500" : "#2E8B57",
                           fontSize: 9,
                           fontWeight: "bold",
                           textAlign: "center",
@@ -1408,7 +1410,7 @@ const PaginaRecargos = ({
                                 textAlign: "center",
                                 fontSize: 10,
                                 fontWeight: "bold",
-                                color: "#2E8B57",
+                                color: es_cotransmeq ? "#FF9500" : "#2E8B57",
                               }}
                             >
                               $
@@ -1462,7 +1464,7 @@ const PaginaRecargos = ({
                       justifyContent: "space-between",
                       alignItems: "center",
                       padding: 4,
-                      backgroundColor: "#2E8B57",
+                      backgroundColor: es_cotransmeq ? "#FF9500" : "#2E8B57",
                     }}
                   >
                     <Text
@@ -1610,7 +1612,7 @@ const PaginaRecargos = ({
                         style={{
                           flexDirection: "row",
                           padding: 4,
-                          backgroundColor: "#2E8B57",
+                          backgroundColor: es_cotransmeq ? "#FF9500" : "#2E8B57",
                         }}
                       >
                         <View style={{ width: "85%", paddingHorizontal: 3 }}>
@@ -2079,30 +2081,32 @@ export const LiquidacionPDF = ({
           }}
         >
           <View style={{ gap: 2 }}>
-            <Text style={styles.header}>
-              TRANSPORTES Y SERVICIOS ESMERALDA S.A.S
+            <Text style={[styles.header, { color: item.es_cotransmeq ? "#FF9500" : "#2E8B57" }]}>
+              {item.es_cotransmeq 
+                ? "SERVICIOS Y TRANSPORTES COTRANSMEQ S.A.S"
+                : "TRANSPORTES Y SERVICIOS ESMERALDA S.A.S"}
             </Text>
-            <Text style={styles.subHeader}>NIT: 901528440-3</Text>
-            <Text style={styles.comprobante}>
+            <Text style={styles.subHeader}>
+              NIT: {item.es_cotransmeq ? "901983227" : "901528440-3"}
+            </Text>
+            <Text style={[styles.comprobante, { color: item.es_cotransmeq ? "#FF9500" : "#2E8B57" }]}>
               COMPROBANTE DE NOMINA - {MonthAndYear(item.periodo_end)}
             </Text>
-            <Text style={styles.comprobante}>
-              BÁSICO CORRESPONDIENTE AL MES DE {MonthAndYear(item.periodo_end)}
-            </Text>
-          </View>
-          <Image
-            source={"/assets/codi.png"}
-            style={{
-              width: 175,
-              position: "absolute",
-              height: 100,
-              right: -50,
-              objectFit: "contain",
-            }}
-          />
+          <Text style={[styles.comprobante, { color: item.es_cotransmeq ? "#FF9500" : "#2E8B57" }]}>
+            BÁSICO CORRESPONDIENTE AL MES DE {MonthAndYear(item.periodo_end)}
+          </Text>
         </View>
-
-        {/* Datos del empleado */}
+        <Image
+          source={item.es_cotransmeq ? "/assets/cotransmeq.png" : "/assets/codi.png"}
+          style={{
+            width: 175,
+            position: "absolute",
+            height: 100,
+            right: item.es_cotransmeq ? -40 : -50,
+            objectFit: "contain",
+          }}
+        />
+      </View>        {/* Datos del empleado */}
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.flex]}>
             <View>
@@ -2208,24 +2212,24 @@ export const LiquidacionPDF = ({
         </View>
 
         {/* Periodo */}
-        <Text style={[styles.subHeaderCenter, { marginVertical: 12 }]}>
+        <Text style={[styles.subHeaderCenter, { marginVertical: 12, color: item.es_cotransmeq ? "#FF9500" : "#2E8B57" }]}>
           ADICIONALES {formatDate(item.periodo_start)} -{" "}
           {formatDate(item.periodo_end)}
         </Text>
 
         {/* Tabla de Conceptos (misma lógica original) */}
         <View style={styles.table}>
-          <View style={styles.tableHeader}>
+          <View style={[styles.tableHeader, { backgroundColor: item.es_cotransmeq ? "#FF950015" : "#2E8B5715" }]}>
             <View style={styles.tableColHeader1}>
               <Text
-                style={[styles.labelText, { color: "#2E8B57", fontSize: 10 }]}
+                style={[styles.labelText, { color: item.es_cotransmeq ? "#FF9500" : "#2E8B57", fontSize: 10 }]}
               >
                 CONCEPTO
               </Text>
             </View>
             <View style={styles.tableColHeader2}>
               <Text
-                style={[styles.labelText, { color: "#2E8B57", fontSize: 10 }]}
+                style={[styles.labelText, { color: item.es_cotransmeq ? "#FF9500" : "#2E8B57", fontSize: 10 }]}
               >
                 OBSERVACIÓN
               </Text>
@@ -2234,7 +2238,7 @@ export const LiquidacionPDF = ({
               <Text
                 style={[
                   styles.labelText,
-                  { color: "#2E8B57", fontSize: 10, textAlign: "center" },
+                  { color: item.es_cotransmeq ? "#FF9500" : "#2E8B57", fontSize: 10, textAlign: "center" },
                 ]}
               >
                 CANTIDAD
@@ -2242,7 +2246,7 @@ export const LiquidacionPDF = ({
             </View>
             <View style={styles.tableColHeader4}>
               <Text
-                style={[styles.labelText, { color: "#2E8B57", fontSize: 10 }]}
+                style={[styles.labelText, { color: item.es_cotransmeq ? "#FF9500" : "#2E8B57", fontSize: 10 }]}
               >
                 VALOR
               </Text>
@@ -2402,7 +2406,7 @@ export const LiquidacionPDF = ({
         {item.conceptos_adicionales &&
           item.conceptos_adicionales.length > 0 && (
             <>
-              <Text style={styles.sectionHeader}>CONCEPTOS ADICIONALES</Text>
+              <Text style={[styles.sectionHeader, { color: item.es_cotransmeq ? "#FF9500" : "#2E8B57" }]}>CONCEPTOS ADICIONALES</Text>
               <View style={styles.table}>
                 {item.conceptos_adicionales.map((concepto, index) => {
                   const isNegative = concepto.valor < 0;
@@ -2443,7 +2447,7 @@ export const LiquidacionPDF = ({
           )}
 
         {/* Deducciones */}
-        <Text style={styles.sectionHeader}>DEDUCCIONES</Text>
+        <Text style={[styles.sectionHeader, { color: item.es_cotransmeq ? "#FF9500" : "#2E8B57" }]}>DEDUCCIONES</Text>
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.flex]}>
             <View>
@@ -2487,7 +2491,7 @@ export const LiquidacionPDF = ({
           )}
         </View>
 
-        <Text style={styles.sectionHeader}>RESUMEN FINAL</Text>
+        <Text style={[styles.sectionHeader, { color: item.es_cotransmeq ? "#FF9500" : "#2E8B57" }]}>RESUMEN FINAL</Text>
         <View style={[styles.table]}>
           {safeValue(item.total_vacaciones, "0") > 0 && (
             <View style={[styles.tableRow, styles.flex]}>
@@ -2596,6 +2600,7 @@ export const LiquidacionPDF = ({
             isAdmin={isAdmin}
             numeroPagina={indicePagina + 2} // Asumiendo que es la segunda página del documento
             totalPaginas={paginasAgrupadas.length + 1} // +1 por la página principal
+            es_cotransmeq={item.es_cotransmeq}
           />
         ));
       })()}

@@ -150,21 +150,25 @@ export const PrimaPDF = ({ item, firmas }: PrimaPDFProps) => {
           }}
         >
           <View style={{ gap: 2 }}>
-            <Text style={styles.header}>
-              TRANSPORTES Y SERVICIOS ESMERALDA S.A.S
+            <Text style={[styles.header, { color: item.es_cotransmeq ? "#FF9500" : "#2E8B57" }]}>
+              {item.es_cotransmeq
+                ? "SERVICIOS Y TRANSPORTES COTRANSMEQ S.A.S"
+                : "TRANSPORTES Y SERVICIOS ESMERALDA S.A.S"}
             </Text>
-            <Text style={styles.subHeader}>NIT: 901528440-3</Text>
-            <Text style={styles.comprobante}>
+            <Text style={styles.subHeader}>
+              NIT: {item.es_cotransmeq ? "901983227" : "901528440-3"}
+            </Text>
+            <Text style={[styles.comprobante, { color: item.es_cotransmeq ? "#FF9500" : "#2E8B57" }]}>
               DESPRENDIBLE DE PRIMA - DICIEMBRE 2025
             </Text>
           </View>
           <Image
-            source={"/assets/codi.png"}
+            source={item.es_cotransmeq ? "/assets/cotransmeq.png" : "/assets/codi.png"}
             style={{
               width: 175,
               position: "absolute",
               height: 100,
-              right: -50,
+              right: item.es_cotransmeq ? -40 : -50,
               objectFit: "contain",
             }}
           />
@@ -205,10 +209,13 @@ export const PrimaPDF = ({ item, firmas }: PrimaPDFProps) => {
           </View>
         </View>
 
-        <Text style={styles.sectionHeader}>DETALLE DE PRIMA</Text>
+        <Text style={[styles.sectionHeader, { color: item.es_cotransmeq ? "#FF9500" : "#2E8B57" }]}>DETALLE DE PRIMA</Text>
 
         {/* Información destacada */}
-        <View style={styles.destacado}>
+        <View style={[styles.destacado, { 
+          backgroundColor: item.es_cotransmeq ? "#FFF4E6" : "#FFF9E6",
+          borderColor: item.es_cotransmeq ? "#FFA726" : "#FFD700"
+        }]}>
           <Text style={{ fontSize: 10, marginBottom: 5, fontWeight: "bold" }}>
             Información importante:
           </Text>
