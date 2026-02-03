@@ -519,7 +519,7 @@ const PaginaRecargos = ({
 }: PaginasRecargos) => (
   <Page size="A4" style={styles.page} wrap={false}>
     {/* Título con número de página */}
-    <Text style={[styles.subHeaderCenter, { marginBottom: 15 }]}>
+    <Text style={[styles.subHeaderCenter, { marginBottom: 15, color: es_cotransmeq ? "#FF9500" : "#2E8B57" }]}>
       {totalPaginas > 1 && numeroPagina === 2 && "HORAS EXTRAS Y RECARGOS"}
     </Text>
 
@@ -660,401 +660,410 @@ const PaginaRecargos = ({
           </View>
 
           {/* Tabla de días laborales */}
-          <View style={styles.tableNoBorder}>
+            <View style={styles.tableNoBorder}>
             {/* Header de tabla */}
             <View
               style={{
-                flexDirection: "row",
-                backgroundColor: "#F3F8F5",
-                borderBottomWidth: 1,
-                borderBottomColor: "#E0E0E0",
+              flexDirection: "row",
+              backgroundColor: es_cotransmeq ? "#FF950015" : "#F3F8F5",
+              borderBottomWidth: 1,
+              borderBottomColor: "#E0E0E0",
               }}
             >
               <Text
-                style={[
-                  styles.tableHeaderCell,
-                  {
-                    flex: 1,
-                    padding: 4,
-                    textAlign: "center",
-                    borderRightWidth: 1,
-                    borderRightColor: "#E0E0E0",
-                  },
-                ]}
+              style={[
+                styles.tableHeaderCell,
+                {
+                flex: 1,
+                padding: 4,
+                textAlign: "center",
+                borderRightWidth: 1,
+                borderRightColor: "#E0E0E0",
+                color: es_cotransmeq ? "#FF9500" : "#2E8B57",
+                },
+              ]}
               >
-                DÍA
+              DÍA
               </Text>
               <Text
-                style={[
-                  styles.tableHeaderCell,
-                  {
-                    flex: 1,
-                    padding: 4,
-                    textAlign: "center",
-                    borderRightWidth: 1,
-                    borderRightColor: "#E0E0E0",
-                  },
-                ]}
+              style={[
+                styles.tableHeaderCell,
+                {
+                flex: 1,
+                padding: 4,
+                textAlign: "center",
+                borderRightWidth: 1,
+                borderRightColor: "#E0E0E0",
+                color: es_cotransmeq ? "#FF9500" : "#2E8B57",
+                },
+              ]}
               >
-                HORARIO
+              HORARIO
               </Text>
               <Text
-                style={[
-                  styles.tableHeaderCell,
-                  {
-                    flex: 1,
-                    padding: 4,
-                    textAlign: "center",
-                    borderRightWidth: 1,
-                    borderRightColor: "#E0E0E0",
-                  },
-                ]}
+              style={[
+                styles.tableHeaderCell,
+                {
+                flex: 1,
+                padding: 4,
+                textAlign: "center",
+                borderRightWidth: 1,
+                borderRightColor: "#E0E0E0",
+                color: es_cotransmeq ? "#FF9500" : "#2E8B57",
+                },
+              ]}
               >
-                HORAS
+              HORAS
               </Text>
               <Text
-                style={[
-                  styles.tableHeaderCell,
-                  {
-                    flex: 1,
-                    padding: 4,
-                    textAlign: "center",
-                    borderRightWidth: 1,
-                    borderRightColor: "#E0E0E0",
-                  },
-                ]}
+              style={[
+                styles.tableHeaderCell,
+                {
+                flex: 1,
+                padding: 4,
+                textAlign: "center",
+                borderRightWidth: 1,
+                borderRightColor: "#E0E0E0",
+                color: es_cotransmeq ? "#FF9500" : "#2E8B57",
+                },
+              ]}
               >
-                HED
+              HED
               </Text>
               <Text
-                style={[
-                  styles.tableHeaderCell,
-                  {
-                    flex: 1,
-                    padding: 4,
-                    textAlign: "center",
-                    borderRightWidth: 1,
-                    borderRightColor: "#E0E0E0",
-                  },
-                ]}
+              style={[
+                styles.tableHeaderCell,
+                {
+                flex: 1,
+                padding: 4,
+                textAlign: "center",
+                borderRightWidth: 1,
+                borderRightColor: "#E0E0E0",
+                color: es_cotransmeq ? "#FF9500" : "#2E8B57",
+                },
+              ]}
               >
-                RN
+              RN
               </Text>
               <Text
-                style={[
-                  styles.tableHeaderCell,
-                  {
-                    flex: 1,
-                    padding: 4,
-                    textAlign: "center",
-                    borderRightWidth: 1,
-                    borderRightColor: "#E0E0E0",
-                  },
-                ]}
+              style={[
+                styles.tableHeaderCell,
+                {
+                flex: 1,
+                padding: 4,
+                textAlign: "center",
+                borderRightWidth: 1,
+                borderRightColor: "#E0E0E0",
+                color: es_cotransmeq ? "#FF9500" : "#2E8B57",
+                },
+              ]}
               >
-                HEN
+              HEN
               </Text>
               <Text
-                style={[
-                  styles.tableHeaderCell,
-                  {
-                    flex: 1,
-                    padding: 4,
-                    textAlign: "center",
-                    borderRightWidth: 1,
-                    borderRightColor: "#E0E0E0",
-                  },
-                ]}
+              style={[
+                styles.tableHeaderCell,
+                {
+                flex: 1,
+                padding: 4,
+                textAlign: "center",
+                borderRightWidth: 1,
+                borderRightColor: "#E0E0E0",
+                color: es_cotransmeq ? "#FF9500" : "#2E8B57",
+                },
+              ]}
               >
-                RD
+              RD
               </Text>
               <Text
-                style={[
-                  styles.tableHeaderCell,
-                  {
-                    flex: 1,
-                    padding: 4,
-                    textAlign: "center",
-                    borderRightWidth: 1,
-                    borderRightColor: "#E0E0E0",
-                  },
-                ]}
+              style={[
+                styles.tableHeaderCell,
+                {
+                flex: 1,
+                padding: 4,
+                textAlign: "center",
+                borderRightWidth: 1,
+                borderRightColor: "#E0E0E0",
+                color: es_cotransmeq ? "#FF9500" : "#2E8B57",
+                },
+              ]}
               >
-                HEFD
+              HEFD
               </Text>
               <Text
-                style={[
-                  styles.tableHeaderCell,
-                  {
-                    flex: 1,
-                    padding: 4,
-                    textAlign: "center",
-                  },
-                ]}
+              style={[
+                styles.tableHeaderCell,
+                {
+                flex: 1,
+                padding: 4,
+                textAlign: "center",
+                color: es_cotransmeq ? "#FF9500" : "#2E8B57",
+                },
+              ]}
               >
-                HEFN
+              HEFN
               </Text>
             </View>
 
             {/* Filas con datos unificados */}
             {grupo.dias_laborales_unificados?.map(
               (dia: DiaLaboral, diaIndex: number) => (
-                <View
-                  key={`${dia.id}-${index}-${diaIndex}`}
-                  style={{
-                    flexDirection: "row",
-                    backgroundColor: (() => {
-                      const colorFondoBase =
-                        diaIndex % 2 === 0 ? "#ffffff" : "#f9f9f9";
-                      const esDisponible = dia.disponibilidad;
-                      const esEspecial = dia.es_festivo || dia.es_domingo;
+              <View
+                key={`${dia.id}-${index}-${diaIndex}`}
+                style={{
+                flexDirection: "row",
+                backgroundColor: (() => {
+                  const colorFondoBase =
+                  diaIndex % 2 === 0 ? "#ffffff" : "#f9f9f9";
+                  const esDisponible = dia.disponibilidad;
+                  const esEspecial = dia.es_festivo || dia.es_domingo;
 
-                      // Rojo claro para disponibilidad, Naranja claro para dominical/festivo
-                      return esDisponible
-                        ? "#FEE2E2"
-                        : esEspecial
-                          ? "#FEF3C7"
-                          : colorFondoBase;
-                    })(),
-                  }}
+                  // Rojo claro para disponibilidad, Naranja claro para dominical/festivo
+                  return esDisponible
+                  ? "#FEE2E2"
+                  : esEspecial
+                    ? "#FEF3C7"
+                    : colorFondoBase;
+                })(),
+                }}
+              >
+                <Text
+                style={[
+                  styles.tableCellCompact,
+                  {
+                  flex: 1,
+                  textAlign: "center",
+                  borderRightWidth: 1,
+                  borderRightColor: "#eee",
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#E0E0E0",
+                  paddingVertical: 3,
+                  color: (() => {
+                    const esDisponible = dia.disponibilidad;
+                    const esEspecial = dia.es_festivo || dia.es_domingo;
+
+                    return esDisponible
+                    ? "#B91C1C"
+                    : esEspecial
+                      ? "#92400E"
+                      : "#333333";
+                  })(),
+                  },
+                ]}
                 >
-                  <Text
-                    style={[
-                      styles.tableCellCompact,
-                      {
-                        flex: 1,
-                        textAlign: "center",
-                        borderRightWidth: 1,
-                        borderRightColor: "#eee",
-                        borderBottomWidth: 1,
-                        borderBottomColor: "#E0E0E0",
-                        paddingVertical: 3,
-                        color: (() => {
-                          const esDisponible = dia.disponibilidad;
-                          const esEspecial = dia.es_festivo || dia.es_domingo;
+                {dia.dia}
+                </Text>
+                <Text
+                style={[
+                  styles.tableCellCompact,
+                  {
+                  flex: 1,
+                  textAlign: "center",
+                  borderRightWidth: 1,
+                  borderRightColor: "#E0E0E0",
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#E0E0E0",
+                  paddingVertical: 3,
+                  color: (() => {
+                    const esDisponible = dia.disponibilidad;
+                    const esEspecial = dia.es_festivo || dia.es_domingo;
 
-                          return esDisponible
-                            ? "#B91C1C"
-                            : esEspecial
-                              ? "#92400E"
-                              : "#333333";
-                        })(),
-                      },
-                    ]}
-                  >
-                    {dia.dia}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.tableCellCompact,
-                      {
-                        flex: 1,
-                        textAlign: "center",
-                        borderRightWidth: 1,
-                        borderRightColor: "#E0E0E0",
-                        borderBottomWidth: 1,
-                        borderBottomColor: "#E0E0E0",
-                        paddingVertical: 3,
-                        color: (() => {
-                          const esDisponible = dia.disponibilidad;
-                          const esEspecial = dia.es_festivo || dia.es_domingo;
+                    return esDisponible
+                    ? "#B91C1C"
+                    : esEspecial
+                      ? "#92400E"
+                      : "#333333";
+                  })(),
+                  },
+                ]}
+                >
+                {formatearHora(dia.hora_inicio)}-
+                {formatearHora(dia.hora_fin)}
+                </Text>
+                <Text
+                style={[
+                  styles.tableCellCompact,
+                  {
+                  flex: 1,
+                  textAlign: "center",
+                  borderRightWidth: 1,
+                  borderRightColor: "#E0E0E0",
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#E0E0E0",
+                  paddingVertical: 3,
+                  color: (() => {
+                    const esDisponible = dia.disponibilidad;
+                    const esEspecial = dia.es_festivo || dia.es_domingo;
 
-                          return esDisponible
-                            ? "#B91C1C"
-                            : esEspecial
-                              ? "#92400E"
-                              : "#333333";
-                        })(),
-                      },
-                    ]}
-                  >
-                    {formatearHora(dia.hora_inicio)}-
-                    {formatearHora(dia.hora_fin)}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.tableCellCompact,
-                      {
-                        flex: 1,
-                        textAlign: "center",
-                        borderRightWidth: 1,
-                        borderRightColor: "#E0E0E0",
-                        borderBottomWidth: 1,
-                        borderBottomColor: "#E0E0E0",
-                        paddingVertical: 3,
-                        color: (() => {
-                          const esDisponible = dia.disponibilidad;
-                          const esEspecial = dia.es_festivo || dia.es_domingo;
+                    return esDisponible
+                    ? "#B91C1C"
+                    : esEspecial
+                      ? "#92400E"
+                      : "#333333";
+                  })(),
+                  },
+                ]}
+                >
+                {dia.total_horas}
+                </Text>
+                <Text
+                style={[
+                  styles.tableCellCompact,
+                  {
+                  flex: 1,
+                  textAlign: "center",
+                  borderRightWidth: 1,
+                  borderRightColor: "#E0E0E0",
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#E0E0E0",
+                  paddingVertical: 3,
+                  color: (() => {
+                    const esDisponible = dia.disponibilidad;
+                    const esEspecial = dia.es_festivo || dia.es_domingo;
 
-                          return esDisponible
-                            ? "#B91C1C"
-                            : esEspecial
-                              ? "#92400E"
-                              : "#333333";
-                        })(),
-                      },
-                    ]}
-                  >
-                    {dia.total_horas}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.tableCellCompact,
-                      {
-                        flex: 1,
-                        textAlign: "center",
-                        borderRightWidth: 1,
-                        borderRightColor: "#E0E0E0",
-                        borderBottomWidth: 1,
-                        borderBottomColor: "#E0E0E0",
-                        paddingVertical: 3,
-                        color: (() => {
-                          const esDisponible = dia.disponibilidad;
-                          const esEspecial = dia.es_festivo || dia.es_domingo;
+                    return esDisponible
+                    ? "#B91C1C"
+                    : esEspecial
+                      ? "#92400E"
+                      : "#333333";
+                  })(),
+                  },
+                ]}
+                >
+                {(dia.hed || 0) !== 0 ? `${dia.hed}` : "-"}
+                </Text>
+                <Text
+                style={[
+                  styles.tableCellCompact,
+                  {
+                  flex: 1,
+                  textAlign: "center",
+                  borderRightWidth: 1,
+                  borderRightColor: "#E0E0E0",
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#E0E0E0",
+                  paddingVertical: 3,
+                  color: (() => {
+                    const esDisponible = dia.disponibilidad;
+                    const esEspecial = dia.es_festivo || dia.es_domingo;
 
-                          return esDisponible
-                            ? "#B91C1C"
-                            : esEspecial
-                              ? "#92400E"
-                              : "#333333";
-                        })(),
-                      },
-                    ]}
-                  >
-                    {(dia.hed || 0) !== 0 ? `${dia.hed}` : "-"}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.tableCellCompact,
-                      {
-                        flex: 1,
-                        textAlign: "center",
-                        borderRightWidth: 1,
-                        borderRightColor: "#E0E0E0",
-                        borderBottomWidth: 1,
-                        borderBottomColor: "#E0E0E0",
-                        paddingVertical: 3,
-                        color: (() => {
-                          const esDisponible = dia.disponibilidad;
-                          const esEspecial = dia.es_festivo || dia.es_domingo;
+                    return esDisponible
+                    ? "#B91C1C"
+                    : esEspecial
+                      ? "#92400E"
+                      : "#333333";
+                  })(),
+                  },
+                ]}
+                >
+                {(dia.rn || 0) !== 0 ? `${dia.rn}` : "-"}
+                </Text>
+                <Text
+                style={[
+                  styles.tableCellCompact,
+                  {
+                  flex: 1,
+                  textAlign: "center",
+                  borderRightWidth: 1,
+                  borderRightColor: "#E0E0E0",
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#E0E0E0",
+                  paddingVertical: 3,
+                  color: (() => {
+                    const esDisponible = dia.disponibilidad;
+                    const esEspecial = dia.es_festivo || dia.es_domingo;
 
-                          return esDisponible
-                            ? "#B91C1C"
-                            : esEspecial
-                              ? "#92400E"
-                              : "#333333";
-                        })(),
-                      },
-                    ]}
-                  >
-                    {(dia.rn || 0) !== 0 ? `${dia.rn}` : "-"}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.tableCellCompact,
-                      {
-                        flex: 1,
-                        textAlign: "center",
-                        borderRightWidth: 1,
-                        borderRightColor: "#E0E0E0",
-                        borderBottomWidth: 1,
-                        borderBottomColor: "#E0E0E0",
-                        paddingVertical: 3,
-                        color: (() => {
-                          const esDisponible = dia.disponibilidad;
-                          const esEspecial = dia.es_festivo || dia.es_domingo;
+                    return esDisponible
+                    ? "#B91C1C"
+                    : esEspecial
+                      ? "#92400E"
+                      : "#333333";
+                  })(),
+                  },
+                ]}
+                >
+                {(dia.hen || 0) !== 0 ? `${dia.hen}` : "-"}
+                </Text>
+                <Text
+                style={[
+                  styles.tableCellCompact,
+                  {
+                  flex: 1,
+                  textAlign: "center",
+                  borderRightWidth: 1,
+                  borderRightColor: "#E0E0E0",
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#E0E0E0",
+                  paddingVertical: 3,
+                  color: (() => {
+                    const esDisponible = dia.disponibilidad;
+                    const esEspecial = dia.es_festivo || dia.es_domingo;
 
-                          return esDisponible
-                            ? "#B91C1C"
-                            : esEspecial
-                              ? "#92400E"
-                              : "#333333";
-                        })(),
-                      },
-                    ]}
-                  >
-                    {(dia.hen || 0) !== 0 ? `${dia.hen}` : "-"}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.tableCellCompact,
-                      {
-                        flex: 1,
-                        textAlign: "center",
-                        borderRightWidth: 1,
-                        borderRightColor: "#E0E0E0",
-                        borderBottomWidth: 1,
-                        borderBottomColor: "#E0E0E0",
-                        paddingVertical: 3,
-                        color: (() => {
-                          const esDisponible = dia.disponibilidad;
-                          const esEspecial = dia.es_festivo || dia.es_domingo;
+                    return esDisponible
+                    ? "#B91C1C"
+                    : esEspecial
+                      ? "#92400E"
+                      : "#333333";
+                  })(),
+                  },
+                ]}
+                >
+                {(dia.rd || 0) !== 0 ? `${dia.rd}` : "-"}
+                </Text>
+                <Text
+                style={[
+                  styles.tableCellCompact,
+                  {
+                  flex: 1,
+                  textAlign: "center",
+                  borderRightWidth: 1,
+                  borderRightColor: "#E0E0E0",
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#E0E0E0",
+                  paddingVertical: 3,
+                  color: (() => {
+                    const esDisponible = dia.disponibilidad;
+                    const esEspecial = dia.es_festivo || dia.es_domingo;
 
-                          return esDisponible
-                            ? "#B91C1C"
-                            : esEspecial
-                              ? "#92400E"
-                              : "#333333";
-                        })(),
-                      },
-                    ]}
-                  >
-                    {(dia.rd || 0) !== 0 ? `${dia.rd}` : "-"}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.tableCellCompact,
-                      {
-                        flex: 1,
-                        textAlign: "center",
-                        borderRightWidth: 1,
-                        borderRightColor: "#E0E0E0",
-                        borderBottomWidth: 1,
-                        borderBottomColor: "#E0E0E0",
-                        paddingVertical: 3,
-                        color: (() => {
-                          const esDisponible = dia.disponibilidad;
-                          const esEspecial = dia.es_festivo || dia.es_domingo;
+                    return esDisponible
+                    ? "#B91C1C"
+                    : esEspecial
+                      ? "#92400E"
+                      : "#333333";
+                  })(),
+                  },
+                ]}
+                >
+                {(dia.hefd || 0) !== 0 ? `${dia.hefd}` : "-"}
+                </Text>
+                <Text
+                style={[
+                  styles.tableCellCompact,
+                  {
+                  flex: 1,
+                  textAlign: "center",
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#E0E0E0",
+                  paddingVertical: 3,
+                  color: (() => {
+                    const esDisponible = dia.disponibilidad;
+                    const esEspecial = dia.es_festivo || dia.es_domingo;
 
-                          return esDisponible
-                            ? "#B91C1C"
-                            : esEspecial
-                              ? "#92400E"
-                              : "#333333";
-                        })(),
-                      },
-                    ]}
-                  >
-                    {(dia.hefd || 0) !== 0 ? `${dia.hefd}` : "-"}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.tableCellCompact,
-                      {
-                        flex: 1,
-                        textAlign: "center",
-                        borderBottomWidth: 1,
-                        borderBottomColor: "#E0E0E0",
-                        paddingVertical: 3,
-                        color: (() => {
-                          const esDisponible = dia.disponibilidad;
-                          const esEspecial = dia.es_festivo || dia.es_domingo;
-
-                          return esDisponible
-                            ? "#B91C1C"
-                            : esEspecial
-                              ? "#92400E"
-                              : "#333333";
-                        })(),
-                      },
-                    ]}
-                  >
-                    {(dia.hefn || 0) !== 0 ? `${dia.hefn}` : "-"}
-                  </Text>
-                </View>
+                    return esDisponible
+                    ? "#B91C1C"
+                    : esEspecial
+                      ? "#92400E"
+                      : "#333333";
+                  })(),
+                  },
+                ]}
+                >
+                {(dia.hefn || 0) !== 0 ? `${dia.hefn}` : "-"}
+                </Text>
+              </View>
               ),
             )}
-          </View>
+            </View>
 
           {/* Totales de días */}
           <View style={{ backgroundColor: es_cotransmeq ? "#FF950015" : "#2E8B5715", padding: 4 }}>
