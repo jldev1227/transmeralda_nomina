@@ -2519,7 +2519,14 @@ export const LiquidacionPDF = ({
             </View>
             <View>
               <Text style={styles.greenValue}>
-                {formatToCOP(safeValue(item.sueldo_total, "0"))}
+                {(() => {
+                  const sueldoBase = parseFloat(safeValue(item.sueldo_total, "0"));
+                  const interesesCesantias = parseFloat(safeValue(item.interes_cesantias, "0"));
+                  
+                  const sueldoAjustado = sueldoBase - interesesCesantias;
+                  
+                  return formatToCOP(sueldoAjustado);
+                })()}
               </Text>
             </View>
           </View>

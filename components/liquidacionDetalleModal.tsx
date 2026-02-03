@@ -215,9 +215,9 @@ const LiquidacionDetalleModal: React.FC = () => {
   };
 
   // Determinar si mostrar botones de desprendibles adicionales
-  const mostrarBotonPrima = (liquidacionActual.prima && liquidacionActual.prima > 0) || 
-                            (liquidacionActual.prima_pendiente && liquidacionActual.prima_pendiente > 0);
-  const mostrarBotonIntereses = liquidacionActual.interes_cesantias && liquidacionActual.interes_cesantias > 0;
+  const mostrarBotonPrima = (liquidacionActual.prima || 0) > 0 || 
+                            (liquidacionActual.prima_pendiente || 0) > 0;
+  const mostrarBotonIntereses = (liquidacionActual.interes_cesantias || 0) > 0;
 
   return (
     <div
