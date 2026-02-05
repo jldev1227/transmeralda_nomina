@@ -2608,8 +2608,9 @@ export const LiquidacionPDF = ({
                 {(() => {
                   const sueldoBase = parseFloat(safeValue(item.sueldo_total, "0"));
                   const interesesCesantias = parseFloat(safeValue(item.interes_cesantias, "0"));
+                  const primaPendiente = parseFloat(safeValue(item.prima_pendiente, "0"));
                   
-                  const sueldoAjustado = sueldoBase - interesesCesantias;
+                  const sueldoAjustado = sueldoBase - interesesCesantias - primaPendiente;
                   
                   return formatToCOP(sueldoAjustado);
                 })()}
