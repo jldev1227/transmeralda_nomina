@@ -440,11 +440,12 @@ const safeValue = (value: any, defaultValue = "") => {
 };
 
 const calcularAlturaGrupo = (grupo: GrupoPaginas) => {
-  const alturaBase = 120; // Header + empresa info
+  const alturaBase = 140; // Header + empresa info (aumentado para conductor info)
   const alturaDiasPorFila = 25; // Aproximado por fila de día laboral
   const alturaTablaRecargos = 60; // Header + totales de tabla de recargos
   const alturaRecargosPorFila = 22; // Por cada tipo de recargo
   const alturaFooter = 40; // Información adicional
+  const alturaFirma = 130; // Espacio adicional para la firma (imagen + texto + padding)
 
   const diasConRecargos =
     grupo.dias_laborales_unificados?.filter((dia) => {
@@ -458,7 +459,8 @@ const calcularAlturaGrupo = (grupo: GrupoPaginas) => {
     diasConRecargos * alturaDiasPorFila +
     alturaTablaRecargos +
     tiposRecargos * alturaRecargosPorFila +
-    alturaFooter
+    alturaFooter +
+    alturaFirma // Agregamos el espacio para la firma
   );
 };
 
@@ -469,7 +471,7 @@ const agruparEnPaginas = (
   const paginas: GrupoRecargo[][] = [];
   let paginaActual: GrupoRecargo[] = [];
   let alturaAcumulada = 80; // Margen para título
-  const alturaMaximaPagina = 700; // Altura disponible en página A4
+  const alturaMaximaPagina = 620; // Altura disponible en página A4 (reducida para dar espacio a la firma)
 
   recargosAgrupados.forEach((grupo) => {
     const alturaGrupo = calcularAlturaGrupo(grupo);
@@ -507,6 +509,13 @@ type PaginasRecargos = {
   totalPaginas: number;
   isAdmin: boolean;
   es_cotransmeq?: boolean;
+  firmas?: any[];
+  conductor?: {
+    nombre: string;
+    apellido: string;
+    numero_identificacion: string;
+  };
+  año?: number;
 };
 
 // Componente de página de recargos
@@ -516,6 +525,9 @@ const PaginaRecargos = ({
   totalPaginas,
   isAdmin,
   es_cotransmeq,
+  firmas = [],
+  conductor,
+  año,
 }: PaginasRecargos) => (
   <Page size="A4" style={styles.page} wrap={false}>
     {/* Título con número de página */}
@@ -614,27 +626,43 @@ const PaginaRecargos = ({
             style={{
               backgroundColor: es_cotransmeq ? "#FF9500" : "#2E8B57",
               padding: 8,
-              flexDirection: "row",
-              justifyContent: "space-between",
+              flexDirection: "column",
+              gap: 4,
             }}
           >
-            <Text style={{ color: "white", fontWeight: "bold", fontSize: 10 }}>
-              VEHÍCULO: {grupo.vehiculo.placa}
-            </Text>
-            <Text
-              style={{
-                color: "white",
-                fontSize: 10,
-                textTransform: "uppercase",
-                fontWeight: "bold",
-                textAlign: "center",
-              }}
-            >
-              MES:{" "}
-              {new Date(grupo.año, grupo.mes - 1).toLocaleString("es-ES", {
-                month: "long",
-              })}
-            </Text>
+            {/* Información del conductor */}
+            {conductor && (
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                <Text style={{ color: "white", fontWeight: "bold", fontSize: 9 }}>
+                  CONDUCTOR: {conductor.nombre} {conductor.apellido}
+                </Text>
+                <Text style={{ color: "white", fontSize: 9 }}>
+                  C.C.: {conductor.numero_identificacion}
+                </Text>
+              </View>
+            )}
+            
+            {/* Información del vehículo y periodo */}
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+              <Text style={{ color: "white", fontWeight: "bold", fontSize: 10 }}>
+                VEHÍCULO: {grupo.vehiculo.placa}
+              </Text>
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: 10,
+                  textTransform: "uppercase",
+                  fontWeight: "bold",
+                  textAlign: "center",
+                }}
+              >
+                MES:{" "}
+                {new Date(grupo.año, grupo.mes - 1).toLocaleString("es-ES", {
+                  month: "long",
+                })}{" "}
+                {año || grupo.año}
+              </Text>
+            </View>
           </View>
 
           {/* Empresa info compacta */}
@@ -1657,11 +1685,56 @@ const PaginaRecargos = ({
       );
     })}
 
-    {/* Footer */}
-    <View style={{ position: "absolute", bottom: 20, right: 20 }}>
-      <Text style={{ fontSize: 8, color: "#666" }}>
-        Página {numeroPagina} de {totalPaginas}
-      </Text>
+    {/* Espacio en blanco para la firma - CRÍTICO para evitar superposición */}
+    <View style={{ height: 140, width: "100%" }} />
+
+    {/* Footer con firma */}
+    <View style={styles.footer}>
+      {firmas && firmas[0]?.presignedUrl && (
+        <View
+          style={{
+            width: 220,
+            height: 110,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Image
+            source={firmas[0].presignedUrl}
+            style={{
+              width: 180,
+              height: 50,
+              objectFit: "contain",
+            }}
+          />
+          <View
+            style={{
+              width: "80%",
+              height: 1,
+              backgroundColor: "#BDBDBD",
+              marginBottom: 2,
+              alignSelf: "center",
+            }}
+          />
+          <Text
+            style={{
+              fontSize: 10,
+              color: "#2E8B57",
+              textAlign: "center",
+              fontWeight: "bold",
+              marginTop: 4,
+              marginBottom: 7,
+            }}
+          >
+            Firma de recibido
+          </Text>
+        </View>
+      )}
+      <View style={{ position: "absolute", bottom: 0, right: -10 }}>
+        <Text style={{ fontSize: 8, color: "#666" }}>
+          Página {numeroPagina} de {totalPaginas}
+        </Text>
+      </View>
     </View>
   </Page>
 );
@@ -2602,6 +2675,9 @@ export const LiquidacionPDF = ({
         );
         const paginasAgrupadas = agruparEnPaginas(recargosAgrupados);
 
+        // Extraer año del periodo o del primer grupo
+        const año = recargosAgrupados[0]?.año || new Date(item.periodo_start).getFullYear();
+
         return paginasAgrupadas.map((gruposPagina, indicePagina) => (
           <PaginaRecargos
             key={`pagina-recargos-${indicePagina}`}
@@ -2610,6 +2686,9 @@ export const LiquidacionPDF = ({
             numeroPagina={indicePagina + 2} // Asumiendo que es la segunda página del documento
             totalPaginas={paginasAgrupadas.length + 1} // +1 por la página principal
             es_cotransmeq={item.es_cotransmeq}
+            firmas={firmas}
+            conductor={item.conductor}
+            año={año}
           />
         ));
       })()}

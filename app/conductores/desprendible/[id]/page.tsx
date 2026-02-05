@@ -34,6 +34,8 @@ import { apiClient } from "@/config/apiClient";
 import { MonthAndYear } from "@/helpers/helpers";
 import { Liquidacion } from "@/context/NominaContext";
 import handleGeneratePDF from "@/components/pdfMaker";
+import handleGeneratePrimaPDF from "@/components/pdfMakerPrima";
+import handleGenerateInteresesCesantiasPDF from "@/components/pdfMakerInteresesCesantias";
 import useFirmasExistentes from "@/hooks/useFirmasExistentes";
 import { FirmaConUrl } from "@/types";
 import SignatureImage from "@/components/ui/signatureImage";
@@ -515,6 +517,43 @@ export default function Page() {
     }
   }, [liquidacionData]);
 
+  const viewPrimaDocument = useCallback(() => {
+    if (liquidacionData) {
+      handleGeneratePrimaPDF(liquidacionData, []);
+    }
+  }, [liquidacionData]);
+
+  const viewInteresesDocument = useCallback(() => {
+    if (liquidacionData) {
+      handleGenerateInteresesCesantiasPDF(liquidacionData, []);
+    }
+  }, [liquidacionData]);
+
+  // Verificar si tiene prima o intereses
+  const tienePrima = useMemo(() => {
+    if (!liquidacionData) return false;
+    const primaValue =
+      typeof liquidacionData.prima === "number"
+        ? liquidacionData.prima
+        : parseFloat(liquidacionData.prima || "0");
+    const primaPendienteValue =
+      typeof liquidacionData.prima_pendiente === "number"
+        ? liquidacionData.prima_pendiente
+        : parseFloat(liquidacionData.prima_pendiente || "0");
+
+    return primaValue > 0 || primaPendienteValue > 0;
+  }, [liquidacionData]);
+
+  const tieneIntereses = useMemo(() => {
+    if (!liquidacionData) return false;
+    const interesesValue =
+      typeof liquidacionData.interes_cesantias === "number"
+        ? liquidacionData.interes_cesantias
+        : parseFloat(liquidacionData.interes_cesantias || "0");
+
+    return interesesValue > 0;
+  }, [liquidacionData]);
+
   // Efectos
   useEffect(() => {
     if (!liquidacionId) return;
@@ -571,6 +610,10 @@ export default function Page() {
               <SignedDocumentView
                 firmas={firmas}
                 onViewDocument={viewDocument}
+                onViewPrima={viewPrimaDocument}
+                onViewIntereses={viewInteresesDocument}
+                tienePrima={tienePrima}
+                tieneIntereses={tieneIntereses}
               />
             ) : (
               <SignatureProcess
@@ -723,9 +766,17 @@ const InfoItem = ({
 const SignedDocumentView = ({
   firmas,
   onViewDocument,
+  onViewPrima,
+  onViewIntereses,
+  tienePrima,
+  tieneIntereses,
 }: {
   firmas: FirmaConUrl[];
   onViewDocument: () => void;
+  onViewPrima: () => void;
+  onViewIntereses: () => void;
+  tienePrima: boolean;
+  tieneIntereses: boolean;
 }) => (
   <div className="space-y-4">
     <div className="bg-green-50 border-l-4 border-green-400 p-4">
@@ -736,8 +787,8 @@ const SignedDocumentView = ({
             Documento Firmado Exitosamente
           </h3>
           <p className="text-sm text-green-700 mt-1">
-            Este desprendible de nómina ya ha sido firmado digitalmente. Puede
-            proceder a visualizar o descargar el documento.
+            Los desprendibles han sido firmados digitalmente. Puede proceder a
+            visualizar o descargar los documentos disponibles.
           </p>
         </div>
       </div>
@@ -745,14 +796,41 @@ const SignedDocumentView = ({
 
     <FirmasExistentes firmas={firmas} />
 
-    <Button
-      className="w-full"
-      color="primary"
-      startContent={<EyeIcon className="h-4 w-4" />}
-      onPress={onViewDocument}
-    >
-      Ver Documento
-    </Button>
+    {/* Botones de visualización */}
+    <div className="space-y-3">
+      <Button
+        className="w-full"
+        color="primary"
+        startContent={<EyeIcon className="h-4 w-4" />}
+        onPress={onViewDocument}
+      >
+        Ver Desprendible de Nómina
+      </Button>
+
+      {tienePrima && (
+        <Button
+          className="w-full"
+          color="secondary"
+          startContent={<EyeIcon className="h-4 w-4" />}
+          variant="flat"
+          onPress={onViewPrima}
+        >
+          Ver Desprendible de Prima
+        </Button>
+      )}
+
+      {tieneIntereses && (
+        <Button
+          className="w-full"
+          color="success"
+          startContent={<EyeIcon className="h-4 w-4" />}
+          variant="flat"
+          onPress={onViewIntereses}
+        >
+          Ver Desprendible de Intereses de Cesantías
+        </Button>
+      )}
+    </div>
   </div>
 );
 

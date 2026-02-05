@@ -276,22 +276,15 @@ export const InteresesCesantiasPDF = ({
               />
               <Text
                 style={{
-                  fontSize: 9,
-                  color: "#424242",
+                  fontSize: 10,
+                  color: "#2E8B57",
                   textAlign: "center",
                   fontWeight: "bold",
+                  marginTop: 4,
+                  marginBottom: 7,
                 }}
               >
-                {firmas[0].nombre}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 8,
-                  color: "#757575",
-                  textAlign: "center",
-                }}
-              >
-                {firmas[0].cargo}
+                Firma de recibido
               </Text>
             </View>
           )}
