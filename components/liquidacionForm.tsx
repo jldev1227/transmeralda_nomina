@@ -1027,7 +1027,7 @@ const LiquidacionForm: React.FC<LiquidacionFormProps> = ({
       0,
     );
 
-    return (totalRecargosParex * 0.08).toFixed(0);
+    return ((totalRecargosParex + bonificacionVillanueva) * 0.08).toFixed(0);
   }, [isAjusteParex, conductorSelected, conductores, configuracion]);
 
   // Cálculo de remuneración incapacidad
