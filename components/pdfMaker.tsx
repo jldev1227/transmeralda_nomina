@@ -2386,7 +2386,7 @@ export const LiquidacionPDF = ({
           {/* Recargos */}
           <View style={styles.tableRow}>
             <View style={styles.tableCol1}>
-              <Text style={styles.valueText}>Recargos</Text>
+              <Text style={styles.valueText}>Otros</Text>
             </View>
             <View style={styles.tableCol2}>
               <Text style={[styles.valueText, { fontSize: 10 }]}>
@@ -2500,9 +2500,6 @@ export const LiquidacionPDF = ({
                       key={index}
                       style={isLast ? styles.tableRowLast : styles.tableRow}
                     >
-                      <View style={styles.tableCol1}>
-                        <Text style={styles.valueText}>Ajuste adicional</Text>
-                      </View>
                       <View style={styles.tableCol2}>
                         <Text style={[styles.valueText, { fontSize: 10 }]}>
                           {concepto.observaciones}
