@@ -2276,21 +2276,23 @@ export const LiquidacionPDF = ({
             </View>
           )}
 
-          <View style={[styles.tableRowLast, styles.flex]}>
-            <View>
-              <Text style={styles.labelText}>Ajuste villanueva</Text>
+          {!item.es_cotransmeq && (
+            <View style={[styles.tableRowLast, styles.flex]}>
+              <View>
+                <Text style={styles.labelText}>Ajuste villanueva</Text>
+              </View>
+              <View>
+                <Text style={styles.valueText}>
+                  {safeValue(item.dias_laborados_villanueva, "0")} días
+                </Text>
+              </View>
+              <View>
+                <Text style={styles.orangeValue}>
+                  {formatToCOP(safeValue(item.ajuste_salarial, "0"))}
+                </Text>
+              </View>
             </View>
-            <View>
-              <Text style={styles.valueText}>
-                {safeValue(item.dias_laborados_villanueva, "0")} días
-              </Text>
-            </View>
-            <View>
-              <Text style={styles.orangeValue}>
-                {formatToCOP(safeValue(item.ajuste_salarial, "0"))}
-              </Text>
-            </View>
-          </View>
+          )}
         </View>
 
         {/* Periodo */}
