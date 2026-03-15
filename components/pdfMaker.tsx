@@ -2279,7 +2279,7 @@ export const LiquidacionPDF = ({
           {!item.es_cotransmeq && (
             <View style={[styles.tableRowLast, styles.flex]}>
               <View>
-                <Text style={styles.labelText}>Ajuste villanueva</Text>
+                <Text style={styles.labelText}>Ajuste salarial</Text>
               </View>
               <View>
                 <Text style={styles.valueText}>
